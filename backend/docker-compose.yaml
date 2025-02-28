@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # nestjs_api:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     PORT: 3000
+  #     NODE_ENV: development
+  #   volumes:
+  #     - ./src:/usr/src/app/src
+  dev_db:
+    image: postgres
+    container_name: dadndb
+    env_file: ./.env
+    ports:
+      - $POSDB_LOCAL_PORT:$POSDB_DOCKER_PORT
+    environment:
+      MYSQL_ROOT_PASSWORD: $POSDB_ROOT_PASSWORD
+      MYSQL_DATABASE: $POSDB_DATABASE
+      MYSQL_USER: $POSDB_USER
+      MYSQL_PASSWORD: $POSDB_PASSWORD
+    volumes:
+      - mydb:/var/lib/mysql:rw
+      - ./postgres-db:/docker-entrypoint-initdb.d/
+    networks:
+      - default
+volumes:
+  mydb:
+networks:
+  default:
+
+#docker-compose -f Docker-compose.yaml up --build -d
+
+#QUERY
+#User
+#docker exec -it <container_name> mysql -u <username> -p
+#docker exec -it dev_db mysql -u testuser -p
+#root
+#docker exec -it dev_db mysql -u root -p
+
+#use <dbname>;
+#SELECT * FROM user;
