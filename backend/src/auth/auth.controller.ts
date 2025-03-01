@@ -17,4 +17,19 @@ export class AuthController {
             loginDto.password
         );
     }
+
+    
+    // Todo
+    @Post('resend-code')
+    @Public()
+    async resendCode(): Promise<string>{
+      return await this.authService.resendCode();
+    }
+
+    // Todo
+    @Post('reset-password')
+    @Public()
+    async resetPassword(): Promise<string>{
+      return await this.authService.resetPassword();
+    }
 }

@@ -35,12 +35,4 @@ networks:
 
 #docker-compose -f Docker-compose.yaml up --build -d
 
-#QUERY
-#User
-#docker exec -it <container_name> mysql -u <username> -p
-#docker exec -it dev_db mysql -u testuser -p
-#root
-#docker exec -it dev_db mysql -u root -p
-
-#use <dbname>;
-#SELECT * FROM user;
+# psql -U testuser -W dadndb

@@ -62,14 +62,14 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <a href="#" className="text-sm text-blue-600 mt-3 ml-2">Forgot password?</a>
+            {/* <a href="#" className="text-sm text-blue-600 mt-3 ml-2">Forgot password?</a> */}
           </div>
         </div>
 
-        <div className="mt-4 flex items-center">
+        {/* <div className="mt-4 flex items-center">
           <input type="checkbox" className="mr-2" />
           <span className="text-sm">Remember for 30 days</span>
-        </div>
+        </div> */}
 
         <button
           onClick={handleLogin}
@@ -79,7 +79,7 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <div className="text-center text-sm text-gray-400 mt-4">Or</div>
+        {/* <div className="text-center text-sm text-gray-400 mt-4">Or</div>
 
         <div className="flex gap-4 mt-4">
           <button className="flex-1 border flex items-center justify-center py-2 rounded">
@@ -88,7 +88,7 @@ export default function LoginPage() {
           <button className="flex-1 border flex items-center justify-center py-2 rounded">
             <FaApple className="mr-2" /> Sign in with Apple
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Right Side - Image */}

@@ -10,14 +10,24 @@ function lazy(moduleLoader: () => Promise<any>) {
 }
 
 const adminRoutes: RouteObject[] = [
-
+  {
+    path: "dashboard",
+    lazy: lazy(() => import("./pages/dashboard/home")),
+  },
 ]
 
 const gardenerRoutes: RouteObject[] = [
-
+  {
+    path: "dashboard",
+    lazy: lazy(() => import("./pages/dashboard/home")),
+  },
 ]
 
 const routes: RouteObject[] = [
+  {
+    path: "/",
+    lazy: lazy(() => import("./pages/auth/login")),
+  },
   {
     path: "login",
     lazy: lazy(() => import("./pages/auth/login")),
@@ -26,6 +36,20 @@ const routes: RouteObject[] = [
     path: "dashboard",
     lazy: lazy(() => import("./pages/dashboard/home")),
   },
-]
+  {
+    path: "/admin",
+    children: adminRoutes,
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/gardener",
+    children: gardenerRoutes,
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "*",
+    element: <ErrorBoundary />,
+  },
+];
 
 export default routes;

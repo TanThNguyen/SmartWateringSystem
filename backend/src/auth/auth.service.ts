@@ -34,4 +34,14 @@ export class AuthService {
     //         access_token: await this.jwtService.signAsync(payload),
     //     };
     // }
+
+    // Todo: Implement resend code functionality
+    async resendCode(): Promise<string> {
+        return "Code sent successfully!";
+    }
+
+    // Todo: Implement reset password functionality
+    async resetPassword(): Promise<string> {
+        return "Reset password email sent successfully!";
+    }
 }

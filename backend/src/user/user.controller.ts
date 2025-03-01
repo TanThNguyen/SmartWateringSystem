@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, DeleteUsersDto, FindAllUsersDto, UpdateUserDto } from './dto';
+import { CreateUserDto, DeleteUsersDto, FindAllUsersDto, GetUsersRequestDto, UpdateUserDto } from './dto';
 
 @Controller('user')
 export class UserController {
@@ -22,9 +22,8 @@ export class UserController {
     }
 
     @Get('all')
-    async getAllUsers(): Promise<FindAllUsersDto> {
-        const users: FindAllUsersDto = await this.userService.getAllUsers();
-        return users;
+    async getAllUsers(@Query() query: GetUsersRequestDto): Promise<FindAllUsersDto> {
+        return await this.userService.getAllUsers(query);
     }
 
     

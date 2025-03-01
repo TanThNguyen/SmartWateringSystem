@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto, FindByEmailDto, DeleteUsersDto, UpdateUserDto, FindAllUsersDto, InfoUsersDto } from './dto';
+import { CreateUserDto, FindByEmailDto, DeleteUsersDto, UpdateUserDto, FindAllUsersDto, InfoUsersDto, GetUsersRequestDto } from './dto';
 import { Role } from '@prisma/client';
 import { handlerHashPassword } from 'src/helper/util';
 
@@ -94,29 +94,75 @@ export class UserService {
         return 'Users marked as INACTIVE!';
     }
 
-    async getAllUsers(): Promise<FindAllUsersDto> {
-        const users = await this.prismaService.user.findMany({
-            select: {
-                name: true,
-                email: true,
-                phone: true,
-                address: true,
-                role: true,
-                updatedAt: true,
-            },
-        });
+    async getAllUsers(query: GetUsersRequestDto): Promise<FindAllUsersDto> {
+        const page = Number(query.page) || 1;
+        const items_per_page = Number(query.items_per_page) || 5;
+        const { order, search, role } = query;
+        const skip = (page - 1) * items_per_page;
     
-        // Chuyển null thành chuỗi rỗng ("") để khớp DTO
+        const [users, total] = await Promise.all([
+            this.prismaService.user.findMany({
+                where: {
+                    ...(search && {
+                        OR: [
+                            { name: { contains: search, mode: 'insensitive' } },
+                            { email: { contains: search, mode: 'insensitive' } },
+                            { address: { contains: search, mode: 'insensitive' } },
+                            { phone: { contains: search, mode: 'insensitive' } },
+                        ],
+                    }),
+                    ...(role !== 'ALL' && { role }),
+                },
+                orderBy: {
+                    updatedAt: order === 'asc' ? 'asc' : 'desc',
+                },
+                take: items_per_page,
+                skip: skip,
+                select: {
+                    name: true,
+                    email: true,
+                    phone: true,
+                    address: true,
+                    role: true,
+                    updatedAt: true,
+                },
+            }),
+            this.prismaService.user.count({
+                where: {
+                    ...(search && {
+                        OR: [
+                            { name: { contains: search, mode: 'insensitive' } },
+                            { email: { contains: search, mode: 'insensitive' } },
+                            { address: { contains: search, mode: 'insensitive' } },
+                            { phone: { contains: search, mode: 'insensitive' } },
+                        ],
+                    }),
+                    ...(role !== 'ALL' && { role }),
+                },
+            }),
+        ]);
+    
+        const lastPage = Math.ceil(total / items_per_page);
+        const nextPage = page + 1 > lastPage ? null : page + 1;
+        const prevPage = page - 1 < 1 ? null : page - 1;
+    
         const formattedUsers: InfoUsersDto[] = users.map(user => ({
             name: user.name,
             email: user.email,
-            phone: user.phone ?? "",   // Ép kiểu null -> ""
-            address: user.address ?? "", // Ép kiểu null -> ""
+            phone: user.phone ?? "",
+            address: user.address ?? "",
             role: user.role,
             updatedAt: user.updatedAt,
         }));
     
-        return { users: formattedUsers };
+        return {
+            users: formattedUsers,
+            total,
+            currentPage: page,
+            nextPage,
+            prevPage,
+            lastPage
+        };
     }
 
     async findByEmail(email: string): Promise<FindByEmailDto> {
