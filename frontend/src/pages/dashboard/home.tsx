@@ -1,42 +1,130 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaHome, FaCog, FaSignOutAlt, FaBell, FaUsers, FaHistory  } from "react-icons/fa";
+import { LONG_DATE_FORMAT } from  "../../types/date.type";
+import { TIME_FORMAT } from  "../../types/date.type";
+
+
+
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("User");
   const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Lấy username từ localStorage (nếu có)
   useEffect(() => {
-    // Giả sử lấy tên từ localStorage sau khi đăng nhập
     const storedUser = localStorage.getItem("username");
     if (storedUser) {
       setUsername(storedUser);
     }
   }, []);
 
+//  cập nhật thời gian 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date()); 
+    }, 1000); //1000ms = 1 giây
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Hàm đăng xuất
   const handleLogout = () => {
     localStorage.removeItem("username");
     navigate("/login");
   };
 
+
+  const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
+
+  const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
+
+
+
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-1/5 bg-white shadow-lg p-4">
-        <h2 className="text-xl font-bold mb-4">Dashboard</h2>
-        <ul>
-          <li className="p-2 hover:bg-gray-200 cursor-pointer">🏠 Trang chủ</li>
-          <li className="p-2 hover:bg-gray-200 cursor-pointer">👤 Hồ sơ</li>
-          <li className="p-2 hover:bg-gray-200 cursor-pointer">⚙️ Cài đặt</li>
-          <li className="p-2 text-red-600 hover:bg-red-100 cursor-pointer" onClick={handleLogout}>
-            🚪 Đăng xuất
-          </li>
-        </ul>
+    <div
+      // background
+      className="relative h-screen w-screen bg-cover bg-center"
+      style={{ backgroundImage: "url('/src/assets/bg.jpg')" }} 
+    >
+      {/* bổ sung thêm thông tin sau */}
+      {/* Thông báo */}
+      <div className="absolute top-4 left-4 flex items-center bg-white/80 backdrop-blur-sm p-3 rounded-md shadow-md text-sm text-gray-800">
+        <div className="relative">
+          <FaBell size={24} />
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+
+          </span>
+        </div>
+
+        {/* Nội dung thông báo */}
+        
+        <span className="ml-2 font-semibold">
+          Hoạt động bất thường, kiểm tra bơm
+        </span>
       </div>
 
-      {/* Nội dung chính */}
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold">Chào mừng, {username}!</h1>
-        <p className="text-gray-600 mt-2">Đây là trang Dashboard của bạn.</p>
+      
+      <div className="absolute top-4 right-4 text-white">
+        <div className="text-lg font-semibold mb-1 text-center">
+          Chào mừng {username}!
+        </div>
+        <div className="text-sm text-right">
+          {dateString}
+          <br />
+          {timeString}
+        </div>
+      </div>
+
+      {/* Sidebar dọc bên trái (chứa icon) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-0 flex flex-col gap-6 bg-white/20 backdrop-blur-sm p-4 rounded-r-lg">
+        <button className="text-white hover:text-gray-200">
+          <FaHome size={24} />
+        </button>
+        <button className="text-white hover:text-gray-200">
+          <FaUsers size={24} />
+        </button>
+        <button className="text-white hover:text-gray-200">
+          <FaHistory size={24} />
+        </button>
+        <button className="text-white hover:text-gray-200">
+          <FaCog size={24} />
+        </button>
+        <button onClick={handleLogout} className="text-white hover:text-gray-200">
+          <FaSignOutAlt size={24} />
+        </button>
+      </div>
+
+      {/* thông tin, đợi cập nhật */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="bg-white/30 backdrop-blur-md rounded-xl w-4/5 max-w-5xl p-6 flex flex-col gap-6">
+          {/* Khu vực hiển thị thông tin thời tiết / thiết bị */}
+          <div className="flex justify-between gap-4">
+            <div className="flex-1 bg-white/80 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-xl font-semibold mb-1">Trời nắng</div>
+              <div className="text-3xl font-bold">30°C</div>
+              <div className="text-sm text-gray-500 mt-1">Nhiệt độ ngoài trời</div>
+            </div>
+            <div className="flex-1 bg-white/80 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-xl font-semibold mb-1">Độ ẩm</div>
+              <div className="text-3xl font-bold">60%</div>
+              <div className="text-sm text-gray-500 mt-1">Độ ẩm bình thường</div>
+            </div>   
+
+
+
+            {/* thông tin thiết bị đợi cập nhật */}
+            {/* <div className="flex-1 bg-white/80 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-xl font-semibold mb-1">Air Conditioner</div>
+              <div className="text-3xl font-bold">16°C</div>
+              <div className="text-sm text-gray-500 mt-1">Cooling mode</div>
+            </div> */}
+          </div>
+
+
+        </div>
       </div>
     </div>
   );
