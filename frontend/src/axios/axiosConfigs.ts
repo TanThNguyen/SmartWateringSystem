@@ -16,7 +16,8 @@ axiosClient.interceptors.request.use(
 
     if (token) {
       const tokenString = JSON.parse(token);
-      config.headers.Authorization = `Bearer ${tokenString['accessToken']}`;
+      // config.headers.Authorization = `Bearer ${tokenString['accessToken']}`;
+      config.headers.Authorization = `Bearer ${tokenString}`;
     }
     return config;
   },
@@ -27,7 +28,7 @@ axiosClient.interceptors.request.use(
 
 axiosClient.interceptors.response.use(
   (response) => {
-    return response.data;
+    return response;
   },
   (error) => {
     return Promise.reject(error);

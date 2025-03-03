@@ -109,6 +109,12 @@ export class GetUsersRequestDto {
 }
 
 export class InfoUsersDto {
+
+    @IsUUID()
+    @IsString()
+    @IsNotEmpty()
+    userId: string;
+    
     @IsString()
     @IsNotEmpty()
     name: string;

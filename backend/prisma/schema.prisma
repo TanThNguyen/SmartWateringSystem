@@ -65,7 +65,7 @@ model Device {
   dht20Sensor    DHT20Sensor?
   pump           Pump?
   logs           Log[]
-  commandQueue   CommandQueue[]
+  // commandQueue   CommandQueue[]
 }
 
 enum DeviceStatus {
@@ -170,29 +170,29 @@ model IrrigationSchedule {
   pump Pump @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
 }
 
-model CommandQueue {
-  commandId   String        @id @default(uuid())
-  deviceId    String
-  commandType CommandType
-  status      CommandStatus @default(Dang_cho)
-  timestamp   DateTime      @default(now())
-  retryCount  Int           @default(0)
+// model CommandQueue {
+//   commandId   String        @id @default(uuid())
+//   deviceId    String
+//   commandType CommandType
+//   status      CommandStatus @default(Dang_cho)
+//   timestamp   DateTime      @default(now())
+//   retryCount  Int           @default(0)
 
-  device Device @relation(fields: [deviceId], references: [deviceId], onDelete: Cascade)
-}
+//   device Device @relation(fields: [deviceId], references: [deviceId], onDelete: Cascade)
+// }
 
-enum CommandType {
-  Bat_bom
-  Tat_bom
-  Cap_nhat_cau_hinh
-}
+// enum CommandType {
+//   Bat_bom
+//   Tat_bom
+//   Cap_nhat_cau_hinh
+// }
 
-enum CommandStatus {
-  Dang_cho
-  Da_gui
-  Thanh_cong
-  That_bai
-}
+// enum CommandStatus {
+//   Dang_cho
+//   Da_gui
+//   Thanh_cong
+//   That_bai
+// }
 
 model Log {
   logId       String   @id @default(uuid())

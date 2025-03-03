@@ -119,6 +119,7 @@ export class UserService {
                 take: items_per_page,
                 skip: skip,
                 select: {
+                    userId:true,
                     name: true,
                     email: true,
                     phone: true,
@@ -147,6 +148,7 @@ export class UserService {
         const prevPage = page - 1 < 1 ? null : page - 1;
     
         const formattedUsers: InfoUsersDto[] = users.map(user => ({
+            userId: user.userId,
             name: user.name,
             email: user.email,
             phone: user.phone ?? "",

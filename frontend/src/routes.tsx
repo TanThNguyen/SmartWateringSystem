@@ -50,6 +50,13 @@ const routes: RouteObject[] = [
     path: "*",
     element: <ErrorBoundary />,
   },
+
+
+  // Test api
+  {
+    path: "/api",
+    lazy: lazy(() => import("./pages/userManagement/testApi")),
+  },
 ];
 
 export default routes;

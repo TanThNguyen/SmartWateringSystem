@@ -4,7 +4,9 @@ import { CreateUserDto, DeleteUsersDto, FindAllUsersDto, GetUsersRequestDto, Upd
 
 @Controller('user')
 export class UserController {
-    constructor(private readonly userService: UserService) {}
+    constructor(private readonly userService: UserService) { }
+
+    // Check role for authentication before accessing routes
 
     @Post('create')
     create(@Body() createUserDto: CreateUserDto): Promise<String> {
@@ -26,5 +28,4 @@ export class UserController {
         return await this.userService.getAllUsers(query);
     }
 
-    
 }
