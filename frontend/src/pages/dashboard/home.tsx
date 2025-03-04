@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaHome, FaCog, FaSignOutAlt, FaBell, FaUsers, FaHistory  } from "react-icons/fa";
+import { FaBell } from "react-icons/fa";
 import { LONG_DATE_FORMAT } from  "../../types/date.type";
 import { TIME_FORMAT } from  "../../types/date.type";
 
@@ -9,7 +8,6 @@ import { TIME_FORMAT } from  "../../types/date.type";
 
 export default function DashboardPage() {
   const [username, setUsername] = useState("User");
-  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Lấy username từ localStorage (nếu có)
@@ -29,11 +27,7 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Hàm đăng xuất
-  const handleLogout = () => {
-    localStorage.removeItem("username");
-    navigate("/login");
-  };
+ 
 
 
   const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
@@ -44,11 +38,7 @@ export default function DashboardPage() {
 
 
   return (
-    <div
-      // background
-      className="relative h-screen w-screen bg-cover bg-center"
-      style={{ backgroundImage: "url('/src/assets/bg.jpg')" }} 
-    >
+    <div>
       {/* bổ sung thêm thông tin sau */}
       {/* Thông báo */}
       <div className="absolute top-4 left-4 flex items-center bg-white/80 backdrop-blur-sm p-3 rounded-md shadow-md text-sm text-gray-800">
@@ -78,24 +68,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Sidebar dọc bên trái (chứa icon) */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 flex flex-col gap-6 bg-white/20 backdrop-blur-sm p-4 rounded-r-lg">
-        <button className="text-white hover:text-gray-200">
-          <FaHome size={24} />
-        </button>
-        <button className="text-white hover:text-gray-200">
-          <FaUsers size={24} />
-        </button>
-        <button className="text-white hover:text-gray-200">
-          <FaHistory size={24} />
-        </button>
-        <button className="text-white hover:text-gray-200">
-          <FaCog size={24} />
-        </button>
-        <button onClick={handleLogout} className="text-white hover:text-gray-200">
-          <FaSignOutAlt size={24} />
-        </button>
-      </div>
+
 
       {/* thông tin, đợi cập nhật */}
       <div className="absolute inset-0 flex items-center justify-center">

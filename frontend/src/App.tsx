@@ -3,19 +3,24 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import './index.css'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import "./index.css";
+import { BrowserRouter, useRoutes } from "react-router-dom";
 import routes from "./routes";
 
 function App() {
-  const defaultRouter = createBrowserRouter(routes);
-
+  const element = useRoutes(routes);
   return (
     <PrimeReactProvider>
       <ToastContainer />
-      <RouterProvider router={defaultRouter}></RouterProvider>
+      {element}
     </PrimeReactProvider>
-  )
+  );
 }
 
-export default App
+export default function Root() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
