@@ -1,3 +1,5 @@
+
+//yêu cầu danh sách
 export type UsersRequestType = {
 
     page: number;
@@ -8,6 +10,8 @@ export type UsersRequestType = {
 
 }
 
+
+//thông tin người dùng
 export type InfoUsersType = {
     userId: string;
     name: string;
@@ -19,6 +23,8 @@ export type InfoUsersType = {
 
 }
 
+
+//danh sách người dùng
 export type AllUsersType = {
 
     users: InfoUsersType[];
@@ -30,6 +36,8 @@ export type AllUsersType = {
 
 }
 
+
+//tạo nugòi dùng
 export type CreateUserType = {
 
     name: string;
@@ -40,6 +48,8 @@ export type CreateUserType = {
     password: string;
 }
 
+
+//cập nhat người dùng
 export type UpdateUserType = {
 
     userId: string;

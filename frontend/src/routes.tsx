@@ -11,6 +11,8 @@ const DevicePage = lazy(() => import('./pages/dashboard/device'));
 const HistoryPage = lazy(() => import('./pages/dashboard/history'));
 const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
 
+const LoginPage = lazy(() => import('./pages/auth/login'));
+
 const LoadingSpinner = () => (
 	<div className='flex min-h-screen items-center justify-center'>
 		<div className='h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-l-transparent border-r-transparent' />
@@ -40,11 +42,19 @@ const gardenerRoutes: RouteObject[] = [
 const routes: RouteObject[] = [
   {
     path: "/",
-    lazy: lazya(() => import("./pages/auth/login")),
+    element: (
+		<Suspense fallback={<LoadingSpinner />}>
+			  <LoginPage />
+		</Suspense>
+	),
   },
   {
     path: "login",
-    lazy: lazya(() => import("./pages/auth/login")),
+    element: (
+		<Suspense fallback={<LoadingSpinner />}>
+			  <LoginPage />
+		</Suspense>
+	),
   },
   {
     path: 'dashboard',
@@ -58,7 +68,7 @@ const routes: RouteObject[] = [
 					index: true,
 					element: <Navigate to="home" replace />,
 				},
-        {
+        		{
           
 					path: 'home',
 					element: (
@@ -75,7 +85,7 @@ const routes: RouteObject[] = [
 						</Suspense>
 					),
 				},
-        {
+{
 					path: 'usermanager',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -83,7 +93,7 @@ const routes: RouteObject[] = [
 						</Suspense>
 					),
 				},
-        {
+        		{
 					path: 'history',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -91,7 +101,7 @@ const routes: RouteObject[] = [
 						</Suspense>
 					),
 				},
-        {
+        		{
 					path: 'setting',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -100,7 +110,7 @@ const routes: RouteObject[] = [
 					),
 				},
 			],
-  },
+  	},
   {
     path: "/admin",
     children: adminRoutes,

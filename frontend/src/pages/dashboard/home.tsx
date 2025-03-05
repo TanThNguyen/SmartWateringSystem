@@ -39,24 +39,9 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* bổ sung thêm thông tin sau */}
-      {/* Thông báo */}
-      <div className="absolute top-4 left-4 flex items-center bg-white/80 backdrop-blur-sm p-3 rounded-md shadow-md text-sm text-gray-800">
-        <div className="relative">
-          <FaBell size={24} />
-          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+      {/* bổ sung thêm thông tin sau */}      
 
-          </span>
-        </div>
-
-        {/* Nội dung thông báo */}
-        
-        <span className="ml-2 font-semibold">
-          Hoạt động bất thường, kiểm tra bơm
-        </span>
-      </div>
-
-      
+      {/* hiển thị thời gian */}
       <div className="absolute top-4 right-4 text-white">
         <div className="text-lg font-semibold mb-1 text-center">
           Chào mừng {username}!
