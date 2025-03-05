@@ -175,7 +175,8 @@ export default function UserManagementPage() {
     return true;
   });
 
-  // Danh sách năm gia nhập cho dropdown (đảm bảo dropdown luôn "bằng bảng")
+  // Tạo danh sách năm gia nhập cho dropdown
+  // Đảm bảo có "Anytime" và chỉ hiển thị năm có trong filteredUsers
   const joinedYears = [
     "Anytime",
     ...new Set(filteredUsers.map((user) => getYearFromDate(user.joined))),
@@ -183,10 +184,13 @@ export default function UserManagementPage() {
 
   return (
     <div className="container">
-      <h2 className="welcome">Welcome, {username}!</h2>
+      {/* Nếu muốn giữ lại lời chào: */}
+      {/* <h2 className="welcome">Welcome, {username}!</h2> */}
 
-      {/* Thanh tìm kiếm và bộ lọc */}
+      {/* Thanh tìm kiếm + lọc + logo + nút Add */}
       <div className="filterContainer">
+        <div className="logoCircle">1</div>
+
         <input
           type="text"
           placeholder="Search items..."
@@ -200,9 +204,9 @@ export default function UserManagementPage() {
           onChange={(e) => setPermissionFilter(e.target.value)}
           className="selectInput"
         >
-          <option value="All">Permissions: All</option>
-          <option value="Admin">Permissions: Admin</option>
-          <option value="Contributor">Permissions: Contributor</option>
+          <option value="All">Permissions All</option>
+          <option value="Admin">Permissions Admin</option>
+          <option value="Contributor">Permissions Contributor</option>
         </select>
 
         <select
@@ -216,6 +220,8 @@ export default function UserManagementPage() {
             </option>
           ))}
         </select>
+
+        <button className="addButton">Add</button>
       </div>
 
       {/* Bảng hiển thị danh sách người dùng */}
@@ -238,7 +244,12 @@ export default function UserManagementPage() {
                   <td>{user.email}</td>
                   <td>{user.location}</td>
                   <td>{user.joined}</td>
-                  <td>{user.permission}</td>
+                  <td>
+                    {/* Badge màu cho quyền */}
+                    <span className={`permissionBadge ${user.permission.toLowerCase()}`}>
+                      {user.permission}
+                    </span>
+                  </td>
                 </tr>
               ))
             ) : (
@@ -253,45 +264,97 @@ export default function UserManagementPage() {
       </div>
 
       <style jsx>{`
+        /* Container chính: đặt background, canh giữa, v.v. */
         .container {
+          /* Thay link ảnh nền thật của bạn vào đây */
+          background: url("https://images.unsplash.com/photo-1562075219-5356a05c8db5?fit=crop&w=1600&q=80")
+            no-repeat center center fixed;
+          background-size: cover;
           padding: 20px;
           font-family: Arial, sans-serif;
-          background-color: #fafafa;
+          min-height: 100vh;
           display: flex;
           flex-direction: column;
           align-items: center;
         }
 
-        .welcome {
-          margin-bottom: 20px;
-          color: #333;
+        /* Logo hình tròn góc trái (nếu muốn) */
+        .logoCircle {
+          width: 30px;
+          height: 30px;
+          background-color: #e74c3c;
+          color: #fff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          margin-right: 10px;
         }
 
+        /* Nếu muốn hiển thị tiêu đề chào */
+        .welcome {
+          margin-bottom: 20px;
+          color: #fff;
+          text-shadow: 1px 1px 2px #000;
+        }
+
+        /* Thanh chứa filter và nút Add */
         .filterContainer {
           margin-bottom: 15px;
           display: flex;
-          flex-wrap: wrap;
+          align-items: center;
           gap: 10px;
-          width: 100%;
-          justify-content: center;
+          width: 90%;
+          padding: 10px;
+          background-color: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(8px);
+          border-radius: 8px;
         }
 
-        .searchInput,
-        .selectInput {
+        /* Input tìm kiếm */
+        .searchInput {
+          flex: 1;
           padding: 8px;
           border: 1px solid #ccc;
           border-radius: 4px;
           font-size: 14px;
         }
 
+        /* Dropdown chung */
+        .selectInput {
+          padding: 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 14px;
+          background-color: #fff;
+          cursor: pointer;
+        }
+
+        /* Nút Add */
+        .addButton {
+          background-color: #2ecc71;
+          color: #fff;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+        }
+        .addButton:hover {
+          background-color: #27ae60;
+        }
+
+        /* Vùng chứa bảng */
         .tableContainer {
-          background: #fff;
+          background: rgba(255, 255, 255, 0.652);
+          backdrop-filter: blur(10px);
           border-radius: 8px;
           overflow-y: auto;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          /* Thay đổi từ max-height sang height để giữ kích thước cố định */
-          height: 591px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          height: 591px; 
           width: 90%;
+          margin-bottom: 20px;
         }
 
         .userTable {
@@ -306,7 +369,7 @@ export default function UserManagementPage() {
           border-bottom: 1px solid #e0e0e0;
         }
 
-        /* Fixed header when scrolling */
+        /* Cố định header khi cuộn */
         .userTable thead {
           position: sticky;
           top: 0;
@@ -316,7 +379,7 @@ export default function UserManagementPage() {
 
         .userTable thead th {
           font-weight: 600;
-          color: #555;
+          color: #333;
         }
 
         .userTable tbody tr:hover {
@@ -330,20 +393,32 @@ export default function UserManagementPage() {
           color: #888;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-          .userTable th,
-          .userTable td {
-            padding: 10px;
-          }
+        /* Badge màu cho cột Permissions */
+        .permissionBadge {
+          display: inline-block;
+          padding: 4px 8px;
+          border-radius: 12px;
+          color: #fff;
+          font-weight: bold;
+        }
+        .permissionBadge.admin {
+          color: #e74c3c;
+        }
+        .permissionBadge.contributor {
+          color: #52b45f; 
+        }
 
+        /* Responsive */
+        @media (max-width: 768px) {
           .filterContainer {
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
+            gap: 10px;
           }
-
           .tableContainer {
             width: 100%;
+            height: auto; /* Cho mobile dễ xem hơn */
+            max-height: 591px;
           }
         }
       `}</style>
