@@ -476,8 +476,7 @@ export default function UserManagementPage() {
           height: 591px; 
           width: 90%;
           margin-bottom: 20px;
-          position: relative;
-          z-index: 20;
+
         }
 
         .userTable {
