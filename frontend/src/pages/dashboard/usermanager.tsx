@@ -278,7 +278,50 @@ export default function UserManagementPage() {
             Add
           </button>
       
-        {showAddForm && (
+        
+
+      </div>
+
+      {/* Bảng hiển thị danh sách người dùng */}
+      <div className="tableContainer" >
+        <table className="userTable">
+          <thead>
+            <tr>
+              <th>Full Name</th>
+              <th>Email Address</th>
+              <th>Location</th>
+              <th>Joined</th>
+              <th>Permissions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user, index) => (
+                <tr key={index}>
+                  <td>{user.fullName}</td>
+                  <td>{user.email}</td>
+                  <td>{user.location}</td>
+                  <td>{user.joined}</td>
+                  <td>
+                    {/* Badge màu cho quyền */}
+                    <span className={`permissionBadge ${user.permission.toLowerCase()}`}>
+                      {user.permission}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="noResults">
+                  No matching users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+            
+      {showAddForm && (
         <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
           <label>
             Name:
@@ -341,48 +384,6 @@ export default function UserManagementPage() {
           </div>
         </PopupModal>
       )}
-
-      </div>
-
-      {/* Bảng hiển thị danh sách người dùng */}
-      <div className="tableContainer" >
-        <table className="userTable">
-          <thead>
-            <tr>
-              <th>Full Name</th>
-              <th>Email Address</th>
-              <th>Location</th>
-              <th>Joined</th>
-              <th>Permissions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user, index) => (
-                <tr key={index}>
-                  <td>{user.fullName}</td>
-                  <td>{user.email}</td>
-                  <td>{user.location}</td>
-                  <td>{user.joined}</td>
-                  <td>
-                    {/* Badge màu cho quyền */}
-                    <span className={`permissionBadge ${user.permission.toLowerCase()}`}>
-                      {user.permission}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="noResults">
-                  No matching users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
       <style jsx>{`
         /* Container chính: đặt background, canh giữa, v.v. */
         .container {
