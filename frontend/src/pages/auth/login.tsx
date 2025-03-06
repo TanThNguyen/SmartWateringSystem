@@ -21,7 +21,6 @@ export default function LoginPage() {
     try {
       const response = await authApi.login({ email, password });
       if (response.success) {
-        //???
         const { accessToken } = response.data;
         // Lưu token vào localStorage
         localStorage.setItem("token", JSON.stringify(accessToken));

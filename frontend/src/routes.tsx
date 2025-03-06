@@ -13,6 +13,17 @@ const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
 
 const LoginPage = lazy(() => import('./pages/auth/login'));
 
+//thêm hàm tự chuyển về login nếu chưa đăng nhập, hiện tại dùng link để vào các trang khác
+
+// const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+// 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
+
+// 	if (!isAuthenticated) {
+// 		return <Navigate to='/' replace />;
+// 	}
+// 	return children;
+// };
+
 const LoadingSpinner = () => (
 	<div className='flex min-h-screen items-center justify-center'>
 		<div className='h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-l-transparent border-r-transparent' />

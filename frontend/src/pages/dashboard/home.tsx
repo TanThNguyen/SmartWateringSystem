@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { FaBell } from "react-icons/fa";
 import { LONG_DATE_FORMAT } from  "../../types/date.type";
 import { TIME_FORMAT } from  "../../types/date.type";
 
