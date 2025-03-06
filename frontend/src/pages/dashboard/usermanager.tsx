@@ -473,7 +473,7 @@ export default function UserManagementPage() {
           border-radius: 8px;
           overflow-y: auto;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-          height: 591px; 
+          height: 570px; 
           width: 90%;
           margin-bottom: 20px;
 

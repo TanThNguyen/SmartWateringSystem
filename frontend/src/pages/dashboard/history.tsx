@@ -65,6 +65,26 @@ export default function HistoryPage() {
       timestamp: "11:09:05 23012025",
       description: "Bơm nước khu A hoàn thành",
     },
+    {
+      type: "1111",
+      timestamp: "11:09:05 23012025",
+      description: "Bơm nước khu A hoàn thành",
+    },
+    {
+      type: "1111",
+      timestamp: "11:09:05 23012025",
+      description: "Bơm nước khu A hoàn thành", 
+    },
+    {
+      type: "1111",
+      timestamp: "11:09:05 23012025",
+      description: "Bơm nước khu A hoàn thành",
+    },
+    {
+      type: "1111",
+      timestamp: "11:09:05 23012025",
+      description: "Bơm nước khu A hoàn thành",
+    },
   ]);
 
   return (
@@ -132,6 +152,7 @@ export default function HistoryPage() {
           background: url("https://images.unsplash.com/photo-1562075219-5356a05c8db5?fit=crop&w=1600&q=80")
             no-repeat center center fixed;
           background-size: cover;
+          /* padding: 20px; */
           min-height: 100vh;
           font-family: Arial, sans-serif;
           display: flex; /* để sidebar và mainContent ngang hàng */
@@ -200,7 +221,7 @@ export default function HistoryPage() {
           backdrop-filter: blur(10px);
           border-radius: 8px;
           overflow-y: auto;
-          height: 500px; 
+          height: 550px; 
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
