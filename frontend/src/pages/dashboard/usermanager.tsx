@@ -231,25 +231,46 @@ export default function UserManagementPage() {
       toast.error("Lỗi khi tạo người dùng");
     }
   };
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-
+  // hàm chọn
+  const handleSelectUser = (userId: string) => {
+    setSelectedUsers((prevSelected) =>
+      prevSelected.includes(userId)
+        ? prevSelected.filter((id) => id !== userId)
+        : [...prevSelected, userId] 
+    );
+  };
+  // hàm xóa
+  const handleDeleteUsers = async () => {
+    if (selectedUsers.length === 0) return;
+    try {
+        await userAPI.deleteUsers(selectedUsers);
+        setSelectedUsers([]);
+        fetchUsers();
+    } catch (error) {
+        console.error("Lỗi khi xóa người dùng:", error);
+    }
+  };
   return (
     <div className="container">
+      
       {/* Nếu muốn giữ lại lời chào: */}
       {/* <h2 className="welcome">Welcome, {username}!</h2> */}
 
       {/* Thanh tìm kiếm + lọc + logo + nút Add */}
       <div className="filterContainer">
-        <div className="logoCircle">1</div>
-
+        {/* <div className="logoCircle">1</div> */}
+        {/* //thanh tìm kiếm */}
         <input
           type="text"
           placeholder="Search items..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="searchInput"
+          className="w-full md:w-1/2 lg:w-1/3 px-4 py-2 text-lg"
         />
 
+        {/* //thanh lọc theo quyền */}
         <select
           value={permissionFilter}
           onChange={(e) => setPermissionFilter(e.target.value)}
@@ -260,6 +281,7 @@ export default function UserManagementPage() {
           <option value="Contributor">Permissions Contributor</option>
         </select>
 
+        {/* //thanh lọc theo năm gia nhập */}
         <select
           value={joinedFilter}
           onChange={(e) => setJoinedFilter(e.target.value)}
@@ -375,12 +397,21 @@ export default function UserManagementPage() {
               value={newUser.role}
               onChange={handleNewUserChange}
             >
-              value="USER"
+              <option value="USER">User</option>
+              <option value="ADMIN">Admin</option>
+              <option value="CONTRIBUTOR">Contributor</option>
             </select>
           </label>
-          <div>
-            <button onClick={handleCreateUser}>Create</button>
-            <button onClick={() => setShowAddForm(false)}>Cancel</button>
+          <div className="flex justify-between mt-4 w-full">
+
+            <button onClick={handleCreateUser} 
+            className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
+            >Create</button>
+
+            <button onClick={() => setShowAddForm(false)}
+            className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
+            >Cancel</button>
+
           </div>
         </PopupModal>
       )}
@@ -436,7 +467,7 @@ export default function UserManagementPage() {
         /* Input tìm kiếm */
         .searchInput {
           flex: 1;
-          padding: 8px;
+           padding: 6px 30px;
           border: 1px solid #ccc;
           border-radius: 4px;
           font-size: 14px;

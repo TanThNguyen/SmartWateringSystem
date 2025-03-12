@@ -10,6 +10,8 @@ const SettingPage = lazy(() => import('./pages/dashboard/setting'));
 const DevicePage = lazy(() => import('./pages/dashboard/device'));
 const HistoryPage = lazy(() => import('./pages/dashboard/history'));
 const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
+const TestAPI = lazy(() => import('./pages/userManagement/testApi'));
+
 
 const LoginPage = lazy(() => import('./pages/auth/login'));
 
@@ -139,7 +141,11 @@ const routes: RouteObject[] = [
   // Test api
   {
     path: "/api",
-    lazy: lazya(() => import("./pages/userManagement/testApi")),
+	element: (
+		<Suspense fallback={<LoadingSpinner />}>
+			<TestAPI />
+		</Suspense>
+	),
   },
 ];
 
