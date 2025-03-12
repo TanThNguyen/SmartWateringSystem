@@ -23,7 +23,7 @@ export default function LoginPage() {
       if (response.success) {
         const { accessToken } = response.data;
         // Lưu token vào localStorage
-        localStorage.setItem("token", JSON.stringify(accessToken));
+        localStorage.setItem("token", JSON.stringify(accessToken)); 
         toast.success("Đăng nhập thành công!");
         navigate("/dashboard");
       } else {
