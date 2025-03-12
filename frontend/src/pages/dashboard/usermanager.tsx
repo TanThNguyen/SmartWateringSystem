@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { userAPI } from "../../axios/user.api";
 import PopupModal from "../../layout/popupmodal";
+import { AllUsersType, UsersRequestType, CreateUserType, UpdateUserType } from "../../types/user.type";
 
 
 export default function UserManagementPage() {
@@ -21,134 +22,120 @@ export default function UserManagementPage() {
   });
 
   // Dữ liệu người dùng mô phỏng
-  const users = [
+  const usersData = [
     {
-      fullName: "Leslie Maya",
+      userId: "1",
+      name: "Leslie Maya",
       email: "leslie@gmail.com",
-      location: "Los Angeles, CA",
-      joined: "October 2, 2010",
-      permission: "Admin",
+      address: "Los Angeles, CA",
+      updatedAt: "October 2, 2010",
+      role: "Admin",
     },
     {
-      fullName: "Josie Deck",
+      userId: "2",
+      name: "Josie Deck",
       email: "josie@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
+      address: "Cheyenne, WY",
+      updatedAt: "May 20, 2015",
+      role: "Admin",
     },
     {
-      fullName: "Alex Pfeiffer",
+      userId: "3",
+      name: "Alex Pfeiffer",
       email: "alex@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
+      address: "Cheyenne, WY",
+      updatedAt: "May 20, 2015",
+      role: "Admin",
     },
     {
-      fullName: "Mike Dean",
+      userId  : "4",
+      name: "Mike Dean",
       email: "mike@gmail.com",
-      location: "New York, NY",
-      joined: "July 14, 2015",
-      permission: "Admin",
+      address: "New York, NY",
+      updatedAt: "July 14, 2015",
+      role: "Admin",
     },
     {
-      fullName: "Mateus Cunha",
+      userId: "5",
+      name: "Mateus Cunha",
       email: "mcunha@gmail.com",
-      location: "Luanda, Angola",
-      joined: "June 10, 2016",
-      permission: "Contributor",
+      address: "Luanda, Angola",
+      updatedAt: "June 10, 2016",
+      role: "Contributor",
     },
     {
-      fullName: "Nave Loma",
+      userId: "6",
+      name: "Nave Loma",
       email: "nave@gmail.com",
-      location: "Paris, FR",
-      joined: "February 13, 2018",
-      permission: "Contributor",
+      address: "Paris, FR",
+      updatedAt: "February 13, 2018",
+      role: "Contributor",
     },
     {
-      fullName: "Antony Mack",
+      userId: "7",
+      name: "Antony Mack",
       email: "antony@gmail.com",
-      location: "London, ENG",
-      joined: "June 15, 2019",
-      permission: "Contributor",
+      address: "London, ENG",
+      updatedAt: "June 15, 2019",
+      role: "Contributor",
     },
     {
-      fullName: "Adriana da Silva",
+      userId: "8",
+      name: "Adriana da Silva",
       email: "adri@gmail.com",
-      location: "Rio de Janeiro, BR",
-      joined: "March 14, 2018",
-      permission: "Contributor",
+      address: "Rio de Janeiro, BR",
+      updatedAt: "March 14, 2018",
+      role: "Contributor",
     },
     {
-      fullName: "Jorge Ferreira",
+      userId: "9",
+      name: "Jorge Ferreira",
       email: "jorge@gmail.com",
-      location: "Huambo, Angola",
-      joined: "May 16, 2018",
-      permission: "Contributor",
-    },
-    // Dữ liệu trùng lặp nếu cần
-    {
-      fullName: "Leslie Maya",
-      email: "leslie@gmail.com",
-      location: "Los Angeles, CA",
-      joined: "October 2, 2010",
-      permission: "Admin",
+      address: "Huambo, Angola",
+      updatedAt: "May 16, 2018",
+      role: "Contributor",
     },
     {
-      fullName: "Josie Deck",
-      email: "josie@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Alex Pfeiffer",
-      email: "alex@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Mike Dean",
-      email: "mike@gmail.com",
-      location: "New York, NY",
-      joined: "July 14, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Mateus Cunha",
+      userId: "10",
+      name: "Mateus Cunha",
       email: "mcunha@gmail.com",
-      location: "Luanda, Angola",
-      joined: "June 10, 2016",
-      permission: "Contributor",
+      address: "Luanda, Angola",
+      updatedAt: "June 10, 2016",
+      role: "Contributor",
     },
     {
-      fullName: "Nave Loma",
+      userId: "11",
+      name: "Nave Loma",
       email: "nave@gmail.com",
-      location: "Paris, FR",
-      joined: "February 13, 2018",
-      permission: "Contributor",
+      address: "Paris, FR",
+      updatedAt: "February 13, 2018",
+      role: "Contributor",
     },
     {
-      fullName: "Antony Mack",
+      userId: "12",
+      name: "Antony Mack",
       email: "antony@gmail.com",
-      location: "London, ENG",
-      joined: "June 15, 2019",
-      permission: "Contributor",
+      address: "London, ENG",
+      updatedAt: "June 15, 2019",
+      role: "Contributor",
     },
     {
-      fullName: "Adriana da Silva",
+      userId: "13",
+      name: "Adriana da Silva",
       email: "adri@gmail.com",
-      location: "Rio de Janeiro, BR",
-      joined: "March 14, 2018",
-      permission: "Contributor",
+      address: "Rio de Janeiro, BR",
+      updatedAt: "March 14, 2018",
+      role: "Contributor",
     },
     {
-      fullName: "Jorge Ferreira",
+      userId: "14",
+      name: "Jorge Ferreira",
       email: "jorge@gmail.com",
-      location: "Huambo, Angola",
-      joined: "May 16, 2018",
-      permission: "Contributor",
-    },
+      address: "Huambo, Angola",
+      updatedAt: "May 16, 2018",
+      role: "Contributor",
+    }
+    
   ];
 
   // Lấy username từ localStorage (nếu có)
@@ -165,22 +152,22 @@ export default function UserManagementPage() {
   };
 
   // Lọc người dùng theo tìm kiếm, quyền và năm gia nhập
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = usersData.filter((user) => {
     const inSearch =
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.location.toLowerCase().includes(searchTerm.toLowerCase());
+      user.address.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!inSearch) return false;
 
     // Lọc theo quyền nếu khác "All"
-    if (permissionFilter !== "All" && user.permission !== permissionFilter) {
+    if (permissionFilter !== "All" && user.role !== permissionFilter) {
       return false;
     }
 
     // Lọc theo năm gia nhập nếu khác "Anytime"
     if (joinedFilter !== "Anytime") {
-      const userYear = getYearFromDate(user.joined);
+      const userYear = getYearFromDate(user.updatedAt);
       if (userYear !== joinedFilter) {
         return false;
       }
@@ -193,7 +180,7 @@ export default function UserManagementPage() {
   // Đảm bảo có "Anytime" và chỉ hiển thị năm có trong filteredUsers
   const joinedYears = [
     "Anytime",
-    ...new Set(filteredUsers.map((user) => getYearFromDate(user.joined))),
+    ...new Set(filteredUsers.map((user) => getYearFromDate(user.updatedAt))),
   ];
 
 
@@ -252,6 +239,13 @@ export default function UserManagementPage() {
         console.error("Lỗi khi xóa người dùng:", error);
     }
   };
+
+
+  const toggleSelectUser = (userId: string) => {
+    setSelectedUsers((prev) =>
+        prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+};
   return (
     <div className="container">
       
@@ -299,16 +293,20 @@ export default function UserManagementPage() {
           >
             Add
           </button>
-      
+        <button onClick={handleDeleteUsers} disabled={selectedUsers.length === 0}
+        className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+        >Delete</button>
         
 
       </div>
 
       {/* Bảng hiển thị danh sách người dùng */}
+      
       <div className="tableContainer" >
         <table className="userTable">
           <thead>
             <tr>
+              <th> box</th>
               <th>Full Name</th>
               <th>Email Address</th>
               <th>Location</th>
@@ -317,32 +315,39 @@ export default function UserManagementPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.length > 0 ? (
+          {filteredUsers.length > 0 ? (
               filteredUsers.map((user, index) => (
                 <tr key={index}>
-                  <td>{user.fullName}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.userId)}
+                      onChange={() => toggleSelectUser(user.userId)}
+                       className="w-4 h-4"
+                    />
+                  </td>
+                  <td>{user.name}</td>
                   <td>{user.email}</td>
-                  <td>{user.location}</td>
-                  <td>{user.joined}</td>
+                  <td>{user.address}</td>
+                  <td>{user.updatedAt}</td>
                   <td>
                     {/* Badge màu cho quyền */}
-                    <span className={`permissionBadge ${user.permission.toLowerCase()}`}>
-                      {user.permission}
+                    <span className={`permissionBadge ${user.role.toLowerCase()}`}>
+                      {user.role}
                     </span>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="noResults">
+                <td colSpan={6} className="noResults">
                   No matching users found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
-            
+      </div>   
       {showAddForm && (
         <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
           <label>
@@ -411,7 +416,7 @@ export default function UserManagementPage() {
             <button onClick={() => setShowAddForm(false)}
             className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
             >Cancel</button>
-
+           
           </div>
         </PopupModal>
       )}
