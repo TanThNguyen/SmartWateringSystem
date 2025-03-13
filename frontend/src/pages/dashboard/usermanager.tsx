@@ -2,14 +2,21 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { userAPI } from "../../axios/user.api";
 import PopupModal from "../../layout/popupmodal";
-import { AllUsersType, UsersRequestType, CreateUserType, UpdateUserType } from "../../types/user.type";
+import {  UpdateUserType } from "../../types/user.type";
 
 
 export default function UserManagementPage() {
   const [username, setUsername] = useState("User");
   const [searchTerm, setSearchTerm] = useState("");
+
   const [permissionFilter, setPermissionFilter] = useState("All");
   const [joinedFilter, setJoinedFilter] = useState("Anytime");
+
+
+
+  // Người dùng được chọn để cập nhậ, để xóa
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -27,6 +34,7 @@ export default function UserManagementPage() {
       userId: "1",
       name: "Leslie Maya",
       email: "leslie@gmail.com",
+      phone: "1234567890",
       address: "Los Angeles, CA",
       updatedAt: "October 2, 2010",
       role: "Admin",
@@ -35,6 +43,7 @@ export default function UserManagementPage() {
       userId: "2",
       name: "Josie Deck",
       email: "josie@gmail.com",
+      phone: "1234567890",
       address: "Cheyenne, WY",
       updatedAt: "May 20, 2015",
       role: "Admin",
@@ -43,6 +52,7 @@ export default function UserManagementPage() {
       userId: "3",
       name: "Alex Pfeiffer",
       email: "alex@gmail.com",
+      phone: "1234567890",
       address: "Cheyenne, WY",
       updatedAt: "May 20, 2015",
       role: "Admin",
@@ -51,6 +61,7 @@ export default function UserManagementPage() {
       userId  : "4",
       name: "Mike Dean",
       email: "mike@gmail.com",
+      phone: "1234567890",
       address: "New York, NY",
       updatedAt: "July 14, 2015",
       role: "Admin",
@@ -59,81 +70,91 @@ export default function UserManagementPage() {
       userId: "5",
       name: "Mateus Cunha",
       email: "mcunha@gmail.com",
+      phone: "1234567890",
       address: "Luanda, Angola",
       updatedAt: "June 10, 2016",
-      role: "Contributor",
+      role: "Gardener",
     },
     {
       userId: "6",
       name: "Nave Loma",
       email: "nave@gmail.com",
+      phone: "1234567890",
       address: "Paris, FR",
       updatedAt: "February 13, 2018",
-      role: "Contributor",
+      role: "Gardener",
     },
     {
       userId: "7",
       name: "Antony Mack",
       email: "antony@gmail.com",
+      phone: "1234567890",
       address: "London, ENG",
       updatedAt: "June 15, 2019",
-      role: "Contributor",
+      role: "Gardener",
     },
     {
       userId: "8",
       name: "Adriana da Silva",
       email: "adri@gmail.com",
+      phone: "1234567890",
       address: "Rio de Janeiro, BR",
       updatedAt: "March 14, 2018",
-      role: "Contributor",
+      role: "Gardener",
     },
     {
       userId: "9",
       name: "Jorge Ferreira",
       email: "jorge@gmail.com",
+      phone: "1234567890",
       address: "Huambo, Angola",
       updatedAt: "May 16, 2018",
-      role: "Contributor",
+      role: "INACTIVE",
     },
     {
       userId: "10",
       name: "Mateus Cunha",
       email: "mcunha@gmail.com",
+      phone: "1234567890",
       address: "Luanda, Angola",
       updatedAt: "June 10, 2016",
-      role: "Contributor",
+      role: "INACTIVE",
     },
     {
       userId: "11",
       name: "Nave Loma",
       email: "nave@gmail.com",
+      phone: "1234567890",
       address: "Paris, FR",
       updatedAt: "February 13, 2018",
-      role: "Contributor",
+      role: "INACTIVE",
     },
     {
       userId: "12",
       name: "Antony Mack",
       email: "antony@gmail.com",
+      phone: "1234567890",
       address: "London, ENG",
       updatedAt: "June 15, 2019",
-      role: "Contributor",
+      role: "INACTIVE",
     },
     {
       userId: "13",
       name: "Adriana da Silva",
       email: "adri@gmail.com",
+      phone: "1234567890",
       address: "Rio de Janeiro, BR",
       updatedAt: "March 14, 2018",
-      role: "Contributor",
+      role: "INACTIVE",
     },
     {
       userId: "14",
       name: "Jorge Ferreira",
       email: "jorge@gmail.com",
+      phone: "1234567890",
       address: "Huambo, Angola",
       updatedAt: "May 16, 2018",
-      role: "Contributor",
+      role: "INACTIVE",
     }
     
   ];
@@ -218,16 +239,15 @@ export default function UserManagementPage() {
       toast.error("Lỗi khi tạo người dùng");
     }
   };
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   // hàm chọn
-  const handleSelectUser = (userId: string) => {
-    setSelectedUsers((prevSelected) =>
-      prevSelected.includes(userId)
-        ? prevSelected.filter((id) => id !== userId)
-        : [...prevSelected, userId] 
-    );
-  };
+  // const handleSelectUser = (userId: string) => {
+  //   setSelectedUsers((prevSelected) =>
+  //     prevSelected.includes(userId)
+  //       ? prevSelected.filter((id) => id !== userId)
+  //       : [...prevSelected, userId] 
+  //   );
+  // };
   // hàm xóa
   const handleDeleteUsers = async () => {
     if (selectedUsers.length === 0) return;
@@ -240,12 +260,33 @@ export default function UserManagementPage() {
     }
   };
 
+  const handleUpdateUsertest = async (userId: string) => {
+     const updatedUser: UpdateUserType = {
+         userId: userId,
+         name: "Tên cập nhật",
+         email: `newuser${Date.now()}@example.com`,
+         address: "Địa chỉ cập nhật",
+         phone: "0987654321",
+         password: "newpassword123",
+         role: "ADMIN",
+     };
+     try {
+         await userAPI.updateUser(updatedUser);
+         fetchUsers();
+     } catch (error) {
+         console.error("Lỗi khi cập nhật người dùng:", error);
+     }
+ };
 
   const toggleSelectUser = (userId: string) => {
     setSelectedUsers((prev) =>
         prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
     );
 };
+
+
+
+
   return (
     <div className="container">
       
@@ -258,10 +299,10 @@ export default function UserManagementPage() {
         {/* //thanh tìm kiếm */}
         <input
           type="text"
-          placeholder="Search items..."
+          placeholder="Search (tên,email, địa chỉ)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/2 lg:w-1/3 px-4 py-2 text-lg"
+          className="h-8 px-4 py-2 text-lg"
         />
 
         {/* //thanh lọc theo quyền */}
@@ -270,9 +311,11 @@ export default function UserManagementPage() {
           onChange={(e) => setPermissionFilter(e.target.value)}
           className="selectInput"
         >
-          <option value="All">Permissions All</option>
-          <option value="Admin">Permissions Admin</option>
-          <option value="Contributor">Permissions Contributor</option>
+          {/*     role: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL' */}
+          <option value="All">Role</option>
+          <option value="Admin">Role Admin</option>
+          <option value="GARDENER">Role GARDENER</option>
+          <option value="INACTIVE">Role INACTIVE</option>
         </select>
 
         {/* //thanh lọc theo năm gia nhập */}
@@ -306,12 +349,13 @@ export default function UserManagementPage() {
         <table className="userTable">
           <thead>
             <tr>
-              <th> box</th>
-              <th>Full Name</th>
-              <th>Email Address</th>
-              <th>Location</th>
-              <th>Joined</th>
-              <th>Permissions</th>
+              <th>  </th>
+              <th>Tên</th> {/* name: string; */}
+              <th>Email</th> {/* email: string; */}
+              <th>Địa chỉ</th> {/* address: string; */}
+              <th>Số điện thoại</th>  {/* phone: string; */}
+              <th>Ngày vào</th> {/*  updatedAt: Date; */}
+              <th>Vai trò</th> {/* role: string; */}
             </tr>
           </thead>
           <tbody>
@@ -323,24 +367,36 @@ export default function UserManagementPage() {
                       type="checkbox"
                       checked={selectedUsers.includes(user.userId)}
                       onChange={() => toggleSelectUser(user.userId)}
-                       className="w-4 h-4"
+                       className="w-5 h-5"
                     />
                   </td>
-                  <td>{user.name}</td>
+                  <td>
+                    <button
+                      onClick={() => handleUpdateUsertest(user.userId)}
+                      className="text-blue-500 hover:underline hover:text-blue-700"
+                    >
+                      {user.name}
+                    </button>
+                  </td>
                   <td>{user.email}</td>
                   <td>{user.address}</td>
+                  <td>{user.phone}</td>
                   <td>{user.updatedAt}</td>
+
                   <td>
                     {/* Badge màu cho quyền */}
                     <span className={`permissionBadge ${user.role.toLowerCase()}`}>
                       {user.role}
                     </span>
                   </td>
+
+                  
+
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="noResults">
+                <td colSpan={7} className="noResults">
                   No matching users found.
                 </td>
               </tr>
@@ -351,7 +407,8 @@ export default function UserManagementPage() {
       {showAddForm && (
         <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
           <label>
-            Name:
+            Tên:
+            {/* name: string */}
             <input
               type="text"
               name="name"
@@ -361,6 +418,7 @@ export default function UserManagementPage() {
           </label>
           <label>
             Email:
+            {/* email: string */}
             <input
               type="email"
               name="email"
@@ -369,7 +427,8 @@ export default function UserManagementPage() {
             />
           </label>
           <label>
-            Address:
+            Địa chỉ:
+            {/* address: string */}
             <input
               type="text"
               name="address"
@@ -378,7 +437,8 @@ export default function UserManagementPage() {
             />
           </label>
           <label>
-            Phone:
+            Số điện thoại:
+            {/* phone: string */}
             <input
               type="text"
               name="phone"
@@ -387,6 +447,7 @@ export default function UserManagementPage() {
             />
           </label>
           <label>
+            {/* pasword: string */}
             Password:
             <input
               type="password"
@@ -397,14 +458,15 @@ export default function UserManagementPage() {
           </label>
           <label>
             Role:
+            {/* role: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL' */}
             <select
               name="role"
               value={newUser.role}
               onChange={handleNewUserChange}
             >
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
-              <option value="CONTRIBUTOR">Contributor</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="GARDENER">GARDENER</option>
+              <option value="INACTIVE">INACTIVE</option>
             </select>
           </label>
           <div className="flex justify-between mt-4 w-full">
@@ -562,8 +624,12 @@ export default function UserManagementPage() {
         .permissionBadge.admin {
           color: #e74c3c;
         }
-        .permissionBadge.contributor {
-          color: #52b45f; 
+
+        .permissionBadge.gardener {
+          color: #3498db;
+        }
+        .permissionBadge.inactive {
+          color: #f39c12;
         }
 
         /* Responsive */
