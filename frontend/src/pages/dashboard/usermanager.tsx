@@ -13,7 +13,9 @@ export default function UserManagementPage() {
   const [joinedFilter, setJoinedFilter] = useState("Anytime");
 
 
-
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [updatedUser, setUpdatedUser] = useState<UpdateUserType | null>(null);
+  
   // Người dùng được chọn để cập nhậ, để xóa
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
@@ -278,6 +280,34 @@ export default function UserManagementPage() {
      }
  };
 
+
+ const handleUpdateUser = async ( updatedUser: UpdateUserType) => {
+  
+  try {
+      await userAPI.updateUser(updatedUser);
+      fetchUsers();
+  } catch (error) {
+      console.error("Lỗi khi cập nhật người dùng:", error);
+  }
+};
+
+
+  const handleOpenUpdateForm = (user: UpdateUserType) => {
+    setUpdatedUser(user);
+    setShowUpdateForm(true); 
+  };
+
+  const handleSubmit = () => {
+    if (updatedUser) {
+      handleUpdateUser(updatedUser); // Gọi API cập nhật
+      setShowUpdateForm(false); // Đóng form sau khi cập nhật
+    }
+  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (!updatedUser) return;
+    setUpdatedUser({ ...updatedUser, [e.target.name]: e.target.value });
+  };
+
   const toggleSelectUser = (userId: string) => {
     setSelectedUsers((prev) =>
         prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
@@ -372,7 +402,20 @@ export default function UserManagementPage() {
                   </td>
                   <td>
                     <button
-                      onClick={() => handleUpdateUsertest(user.userId)}
+                      // onClick={() => handleUpdateUsertest(user.userId)}
+                      onClick={() => {
+                        const upuser: UpdateUserType = {
+                          userId: user.userId,
+                          name: user.name,
+                          email: user.email,
+                          address: user.address,
+                          phone: user.phone,
+                          role: user.role,
+                          password: "password123",
+                        };
+                  
+                        handleOpenUpdateForm(upuser);
+                      }}
                       className="text-blue-500 hover:underline hover:text-blue-700"
                     >
                       {user.name}
@@ -405,7 +448,7 @@ export default function UserManagementPage() {
         </table>
       </div>   
       {showAddForm && (
-        <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
+        <PopupModal title="Thêm người dùng" onClose={() => setShowAddForm(false)}>
           <label>
             Tên:
             {/* name: string */}
@@ -479,6 +522,83 @@ export default function UserManagementPage() {
             className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
             >Cancel</button>
            
+          </div>
+        </PopupModal>
+      )}
+
+
+
+      {showUpdateForm && updatedUser && (
+        <PopupModal
+          title="Cập nhật người dùng"
+          onClose={() => setShowUpdateForm(false)}
+        >
+          <label>
+            Tên:
+            <input
+              type="text"
+              name="name"
+              value={updatedUser.name}
+              onChange={handleChange}
+            />
+          </label>
+          <label>
+            Email:
+            <input
+              type="email"
+              name="email"
+              value={updatedUser.email}
+              onChange={handleChange}
+            />
+          </label>
+          <label>
+            Địa chỉ:
+            <input
+              type="text"
+              name="address"
+              value={updatedUser.address}
+              onChange={handleChange}
+            />
+          </label>
+          <label>
+            Số điện thoại:
+            <input
+              type="text"
+              name="phone"
+              value={updatedUser.phone}
+              onChange={handleChange}
+            />
+          </label>
+          <label>
+            Mật khẩu (đã tự động reset thành mặc định):
+            <input
+              type="password"
+              name="password"
+              value={updatedUser.password}
+              onChange={handleChange}
+            />
+          </label>
+          <label>
+            Vai trò:
+            <select name="role" value={updatedUser.role} onChange={handleChange}>
+              <option value="ADMIN">ADMIN</option>
+              <option value="GARDENER">GARDENER</option>
+              <option value="INACTIVE">INACTIVE</option>
+            </select>
+          </label>
+          <div className="flex justify-between mt-4">
+            <button
+              onClick={handleSubmit}
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Cập nhật
+            </button>
+            <button
+              onClick={() => setShowUpdateForm(false)}
+              className="px-4 py-2 bg-gray-300 rounded"
+            >
+              Hủy
+            </button>
           </div>
         </PopupModal>
       )}
