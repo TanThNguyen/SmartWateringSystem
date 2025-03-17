@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto, FindByEmailDto, DeleteUsersDto, UpdateUserDto, FindAllUsersDto, InfoUsersDto, GetUsersRequestDto } from './dto';
-import { Role } from '@prisma/client';
+import { Role} from '@prisma/client';
 import { handlerHashPassword } from 'src/helper/util';
 
 @Injectable()
@@ -44,22 +44,23 @@ export class UserService {
             console.error('Lỗi tạo user:', error.message);
             throw new InternalServerErrorException('Lỗi khi tạo người dùng!');
         }
-    }async update(updateUserDto: UpdateUserDto): Promise<string> {
+    }
+    async update(updateUserDto: UpdateUserDto): Promise<string> {
         try {
             const { userId, name, email, address, phone, role, password } = updateUserDto;
-    
+
             const user = await this.prismaService.user.findUnique({
                 where: { userId },
             });
             if (!user) {
                 throw new BadRequestException(`Không tìm thấy người dùng với ID: ${userId}`);
             }
-    
+
             const passwordHash = await handlerHashPassword(password);
             if (!passwordHash) {
                 throw new InternalServerErrorException("Không thể tạo hash cho mật khẩu!");
             }
-    
+
             const updateData = {
                 name,
                 email,
@@ -68,19 +69,19 @@ export class UserService {
                 passwordHash,
                 role,
             };
-    
+
             await this.prismaService.user.update({
                 where: { userId },
                 data: updateData,
             });
-    
+
             return 'User updated successfully!';
         } catch (error) {
             console.error('Lỗi cập nhật người dùng:', error);
             throw new InternalServerErrorException('Có lỗi xảy ra khi cập nhật người dùng!');
         }
     }
-    
+
 
 
     async deleteMany(deleteUsersDto: DeleteUsersDto): Promise<string> {
@@ -99,7 +100,7 @@ export class UserService {
         const items_per_page = Number(query.items_per_page) || 5;
         const { order, search, role } = query;
         const skip = (page - 1) * items_per_page;
-    
+
         const [users, total] = await Promise.all([
             this.prismaService.user.findMany({
                 where: {
@@ -119,7 +120,7 @@ export class UserService {
                 take: items_per_page,
                 skip: skip,
                 select: {
-                    userId:true,
+                    userId: true,
                     name: true,
                     email: true,
                     phone: true,
@@ -142,11 +143,11 @@ export class UserService {
                 },
             }),
         ]);
-    
+
         const lastPage = Math.ceil(total / items_per_page);
         const nextPage = page + 1 > lastPage ? null : page + 1;
         const prevPage = page - 1 < 1 ? null : page - 1;
-    
+
         const formattedUsers: InfoUsersDto[] = users.map(user => ({
             userId: user.userId,
             name: user.name,
@@ -156,7 +157,7 @@ export class UserService {
             role: user.role,
             updatedAt: user.updatedAt,
         }));
-    
+
         return {
             users: formattedUsers,
             total,

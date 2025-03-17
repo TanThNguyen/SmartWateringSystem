@@ -17,15 +17,27 @@ export default function LoginPage() {
       return;
     }
 
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailPattern.test(email)) {
+      toast.error("Email không hợp lệ!");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await authApi.login({ email, password });
       if (response.success) {
-        const { accessToken } = response.data;
-        // Lưu token vào localStorage
+        const now = new Date().getTime();
+        const expiration = now + 6 * 60 * 60 * 1000;
+        const { accessToken, role } = response.data;
+
         localStorage.setItem("token", JSON.stringify(accessToken));
-        toast.success("Đăng nhập thành công!");
+        localStorage.setItem(
+          role === "ADMIN" ? "adminLogin" : "gardenerLogin",
+          JSON.stringify({ status: true, expiration })
+        );
         navigate("/dashboard");
+        toast.success("Đăng nhập thành công!");
       } else {
         toast.error(response.data.message || "Đăng nhập thất bại!");
       }
@@ -38,7 +50,6 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-screen">
-      {/* Left Side - Form */}
       <div className="w-1/2 flex flex-col justify-center px-16">
         <h1 className="text-3xl font-bold">Welcome back!</h1>
         <p className="text-gray-500 mt-2">Enter your credentials to access your account</p>
@@ -56,16 +67,14 @@ export default function LoginPage() {
 
         <div className="mt-4">
           <label className="block text-sm font-medium">Password</label>
-          <div className="flex justify-between">
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="w-full border px-4 py-2 rounded mt-1"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <a href="#" className="text-sm text-blue-600 mt-3 ml-2">Forgot password?</a>
-          </div>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="w-full border px-4 py-2 rounded mt-1"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <a href="#" className="text-sm text-blue-600 mt-3 block">Forgot password?</a>
         </div>
 
         <div className="mt-4 flex items-center">
@@ -93,7 +102,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Image */}
       <div className="w-1/2 h-full">
         <img src="/src/assets/image.png" alt="Login Image" className="w-full h-full object-cover" />
       </div>

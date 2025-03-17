@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { userAPI } from "../../axios/user.api";
+import { userApi } from "../../axios/user.api";
 import PopupModal from "../../layout/popupmodal";
 
 
@@ -28,126 +28,6 @@ export default function UserManagementPage() {
       location: "Los Angeles, CA",
       joined: "October 2, 2010",
       permission: "Admin",
-    },
-    {
-      fullName: "Josie Deck",
-      email: "josie@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Alex Pfeiffer",
-      email: "alex@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Mike Dean",
-      email: "mike@gmail.com",
-      location: "New York, NY",
-      joined: "July 14, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Mateus Cunha",
-      email: "mcunha@gmail.com",
-      location: "Luanda, Angola",
-      joined: "June 10, 2016",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Nave Loma",
-      email: "nave@gmail.com",
-      location: "Paris, FR",
-      joined: "February 13, 2018",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Antony Mack",
-      email: "antony@gmail.com",
-      location: "London, ENG",
-      joined: "June 15, 2019",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Adriana da Silva",
-      email: "adri@gmail.com",
-      location: "Rio de Janeiro, BR",
-      joined: "March 14, 2018",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Jorge Ferreira",
-      email: "jorge@gmail.com",
-      location: "Huambo, Angola",
-      joined: "May 16, 2018",
-      permission: "Contributor",
-    },
-    // Dữ liệu trùng lặp nếu cần
-    {
-      fullName: "Leslie Maya",
-      email: "leslie@gmail.com",
-      location: "Los Angeles, CA",
-      joined: "October 2, 2010",
-      permission: "Admin",
-    },
-    {
-      fullName: "Josie Deck",
-      email: "josie@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Alex Pfeiffer",
-      email: "alex@gmail.com",
-      location: "Cheyenne, WY",
-      joined: "May 20, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Mike Dean",
-      email: "mike@gmail.com",
-      location: "New York, NY",
-      joined: "July 14, 2015",
-      permission: "Admin",
-    },
-    {
-      fullName: "Mateus Cunha",
-      email: "mcunha@gmail.com",
-      location: "Luanda, Angola",
-      joined: "June 10, 2016",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Nave Loma",
-      email: "nave@gmail.com",
-      location: "Paris, FR",
-      joined: "February 13, 2018",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Antony Mack",
-      email: "antony@gmail.com",
-      location: "London, ENG",
-      joined: "June 15, 2019",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Adriana da Silva",
-      email: "adri@gmail.com",
-      location: "Rio de Janeiro, BR",
-      joined: "March 14, 2018",
-      permission: "Contributor",
-    },
-    {
-      fullName: "Jorge Ferreira",
-      email: "jorge@gmail.com",
-      location: "Huambo, Angola",
-      joined: "May 16, 2018",
-      permission: "Contributor",
     },
   ];
 
@@ -214,7 +94,7 @@ export default function UserManagementPage() {
   // Hàm tạo người dùng mới khi submit form
   const handleCreateUser = async () => {
     try {
-      await userAPI.createUser(newUser);
+      await userApi.createUser(newUser);
       fetchUsers();
       setShowAddForm(false);
       setNewUser({
@@ -245,7 +125,7 @@ export default function UserManagementPage() {
   const handleDeleteUsers = async () => {
     if (selectedUsers.length === 0) return;
     try {
-        await userAPI.deleteUsers(selectedUsers);
+        await userApi.deleteUsers(selectedUsers);
         setSelectedUsers([]);
         fetchUsers();
     } catch (error) {
@@ -415,7 +295,7 @@ export default function UserManagementPage() {
           </div>
         </PopupModal>
       )}
-      <style jsx>{`
+      <style>{`
         /* Container chính: đặt background, canh giữa, v.v. */
         .container {
           /* Thay link ảnh nền thật của bạn vào đây */

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AllUsersType, UsersRequestType, CreateUserType, UpdateUserType } from "../../types/user.type";
-import { userAPI } from "../../axios/user.api";
+import { userApi } from "../../axios/user.api";
+
 
 const UserList = () => {
     const [usersData, setUsersData] = useState<AllUsersType | null>(null);
@@ -19,7 +20,7 @@ const UserList = () => {
                 role: "ALL",
                 order: "asc",
             };
-            const data = await userAPI.getAllUsers(params);
+            const data = await userApi.getAllUsers(params);
             setUsersData(data);
         } catch (error) {
             console.error("Lỗi khi lấy danh sách người dùng:", error);
@@ -43,7 +44,7 @@ const UserList = () => {
             role: "USER",
         };
         try {
-            await userAPI.createUser(newUser);
+            await userApi.createUser(newUser);
             fetchUsers();
         } catch (error) {
             console.error("Lỗi khi tạo người dùng:", error);
@@ -61,7 +62,7 @@ const UserList = () => {
             role: "ADMIN",
         };
         try {
-            await userAPI.updateUser(updatedUser);
+            await userApi.updateUser(updatedUser);
             fetchUsers();
         } catch (error) {
             console.error("Lỗi khi cập nhật người dùng:", error);
@@ -71,7 +72,7 @@ const UserList = () => {
     const handleDeleteUsers = async () => {
         if (selectedUsers.length === 0) return;
         try {
-            await userAPI.deleteUsers(selectedUsers);
+            await userApi.deleteUsers(selectedUsers);
             setSelectedUsers([]);
             fetchUsers();
         } catch (error) {

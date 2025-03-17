@@ -9,7 +9,8 @@ const HomePage = lazy(() => import('./pages/dashboard/home'));
 const SettingPage = lazy(() => import('./pages/dashboard/setting'));
 const DevicePage = lazy(() => import('./pages/dashboard/device'));
 const HistoryPage = lazy(() => import('./pages/dashboard/history'));
-const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
+// const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
+const UserManagementPage = lazy(() => import('./pages/userManagement/userManager'));
 const TestAPI = lazy(() => import('./pages/userManagement/testApi'));
 
 

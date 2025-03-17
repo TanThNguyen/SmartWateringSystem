@@ -2,7 +2,7 @@ import { AllUsersType, CreateUserType, UpdateUserType, UsersRequestType } from "
 import axiosClient from "./axiosConfigs";
 import environment from "../environment";
 
-export const userAPI = {
+export const userApi = {
     getAllUsers: async (params: UsersRequestType): Promise<AllUsersType> => {
         try {
             const response = await axiosClient.get<AllUsersType>("/api/user/all", { params });
