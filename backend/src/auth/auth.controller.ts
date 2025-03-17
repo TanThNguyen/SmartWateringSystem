@@ -12,7 +12,6 @@ export class AuthController {
     @Post('login')
     @Public()
     async signIn(@Body() loginDto: LoginDto): Promise<any> {
-      console.log('SignIn', loginDto);
         return await this.authService.signIn(
             loginDto.email,
             loginDto.password

@@ -30,7 +30,7 @@ export default function LoginPage() {
         const now = new Date().getTime();
         const expiration = now + 6 * 60 * 60 * 1000;
         const { accessToken, role } = response.data;
-
+        console.log(response);
         localStorage.setItem("token", JSON.stringify(accessToken));
         localStorage.setItem(
           role === "ADMIN" ? "adminLogin" : "gardenerLogin",
