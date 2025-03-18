@@ -1,9 +1,82 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import PopupModal from "../../layout/popupmodal";
+import { DeviceType } from "../../types/device.type";
+import { deviceAPI } from "../../axios/device.api";
 
-export default function SettingPage() {
+
+export default function UserManagementPage() {
   const [username, setUsername] = useState("User");
-  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [permissionFilter, setPermissionFilter] = useState("All");
+
+
+  
+  // thiết bị được chọn để xóa
+  const [selectedDevice, setSelectedDevice] = useState<string[]>([]);
+
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newDevice, setNewDevice] = useState({
+    name: "",
+    type: DeviceType.MOISTURE_SENSOR,
+    location: "",
+    status: true,
+  });
+
+  // Dữ liệu thiêt bị
+
+
+
+
+  const usersDevice = [
+    {
+      deviceId: "1",
+      name: "Soil Moisture Sensor",
+      type: DeviceType.MOISTURE_SENSOR,
+      location: "Khu 1",
+      status: true,
+    },
+    {
+      deviceId: "2",
+      name: "Water Pump",
+      type: DeviceType.PUMP,
+      location: "Khu 1",
+      status: true,
+    },
+    {
+      deviceId: "3",
+      name: "Temperature Sensor",
+      type: DeviceType.DHT20_SENSOR,
+      location: "Khu 2",
+      status: true,
+    },
+    {
+      deviceId: "4",
+      name: "LCD Display",
+      type: DeviceType.LCD,
+      location: "Khu  2",
+      status: true,
+    },
+    {
+      deviceId: "5",
+      name: "Water Valve A",
+      type: DeviceType.RELAY,
+      location: "Khu 2",
+      status: true,
+    },
+    {
+          deviceId: "6",
+          name: "Soil Moisture Sensor",
+          type: DeviceType.MOISTURE_SENSOR,
+          location: "Khu 2",
+          status: true,
+      
+    },
+  ];
+
+  
 
   // Lấy username từ localStorage (nếu có)
   useEffect(() => {
@@ -13,192 +86,260 @@ export default function SettingPage() {
     }
   }, []);
 
-  // Danh sách thiết bị cho hệ thống tưới nước tự động (ví dụ)
-  const devices = [
-    {
-      id: 1,
-      name: "Soil Moisture Sensor",
-      info: "Độ ẩm đất: 45%",
-      icon: "🌱",
-    },
-    {
-      id: 2,
-      name: "Temperature Sensor",
-      info: "Nhiệt độ không khí: 28°C",
-      icon: "🌡️",
-    },
-    {
-      id: 3,
-      name: "Water Pump",
-      info: "Trạng thái: OFF",
-      icon: "💧",
-    },
-    {
-      id: 4,
-      name: "Water Valve A",
-      info: "Độ mở van: 50%",
-      icon: "🚰",
-      hasSlider: true, // Có thanh trượt điều chỉnh độ mở
-    },
-    {
-      id: 5,
-      name: "pH Sensor",
-      info: "pH: 6.5",
-      icon: "🧪",
-    },
-    {
-      id: 6,
-      name: "EC Sensor",
-      info: "EC: 1.2 mS/cm",
-      icon: "🔬",
-    },
-    {
-      id: 7,
-      name: "Rain Sensor",
-      info: "Mưa: Không",
-      icon: "🌧️",
-    },
-    {
-      id: 8,
-      name: "Fertilizer Mixer",
-      info: "Trạng thái: Idle",
-      icon: "⚗️",
-    },
-    {
-      id: 9,
-      name: "Flow Meter",
-      info: "Lưu lượng: 0 L/min",
-      icon: "🔃",
-    },
-    {
-      id: 10,
-      name: "Humidity Sensor",
-      info: "Độ ẩm không khí: 60%",
-      icon: "💦",
-    },
-    {
-      id: 11,
-      name: "Irrigation Timer",
-      info: "Thời gian tưới: 30 phút",
-      icon: "⏲️",
-      hasSlider: true, // Có thể điều chỉnh thời lượng tưới
-    },
-  ];
+
+
+  // Lọc theo tên, địa điểm
+  const filteredUsers = usersDevice.filter((device) => {
+    const inSearch =
+    device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    device.location.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!inSearch) return false;
+
+    // Lọc theo loại
+    if (permissionFilter !== "All" && device.type !== permissionFilter) {
+      return false;
+    }
+
+    return true;
+  });
+
+
+
+  const fetchUsers = () => {
+    console.log("Fetching users...");
+  };
+
+
+  // Xử lý thay đổi giá trị của form thêm user
+  const handleNewDeviceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewDevice((prev) => ({ ...prev, [name]: value }));
+  };
+
+  //= chưa xong
+  const handleCreateDevice = async () => {
+    try {
+       await deviceAPI.createDevice(newDevice);
+      fetchUsers();
+      setShowAddForm(false);
+      setNewDevice({
+        name: "",
+        location: "",
+        type: DeviceType.MOISTURE_SENSOR,
+        status: true,
+      });
+      toast.success("Thiết bị được tạo thành công!");
+    } catch (error) {
+      console.error("Lỗi khi tạo thiết bị:", error);
+      toast.error("Lỗi khi tạo thiết bị");
+    }
+  };
+
+
+  // chưa xong
+  const handleDeleteDevice = async () => {
+    if (selectedDevice.length === 0) return;
+    try {
+         await deviceAPI.deleteDevice(selectedDevice);
+        setSelectedDevice([]);
+        fetchUsers();
+    } catch (error) {
+        console.error("Lỗi khi xóa người dùng:", error);
+    }
+  };
+
+
+
+
+
+
+
+
+  const toggleSelectUser = (userId: string) => {
+    setSelectedDevice((prev) =>
+        prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+};
+
+
+
 
   return (
     <div className="container">
-      {/* Sidebar bên trái (bỏ comment nếu muốn hiển thị) */}
-      {/*
-      <div className="sidebar">
-        <ul>
-          <li onClick={() => navigate("/")}>🏠 Home</li>
-          <li onClick={() => navigate("/setting")}>⚙️ Setting</li>
-          <li onClick={() => navigate("/history")}>🕒 History</li>
-          <li onClick={() => alert("More...")}>➕ More</li>
-        </ul>
+      
+      {/* Nếu muốn giữ lại lời chào: */}
+      {/* <h2 className="welcome">Welcome, {username}!</h2> */}
+
+      {/* Thanh tìm kiếm + lọc + logo + nút Add */}
+      <div className="filterContainer">
+        {/* <div className="logoCircle">1</div> */}
+        {/* //thanh tìm kiếm */}
+        <input
+          type="text"
+          placeholder="Search (tên,khu vực)"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="h-8 px-4 py-2 text-lg"
+        />
+
+        {/* //thanh lọc theo type */}
+        <select
+          value={permissionFilter}
+          onChange={(e) => setPermissionFilter(e.target.value)}
+          className="selectInput"
+        >
+          {/*  PUMP = "PUMP",
+                MOISTURE_SENSOR = "MOISTURE_SENSOR",
+                DHT20_SENSOR = "DHT20_SENSOR",
+                LCD = "LCD",
+                RELAY = "RELAY"
+     */}
+            <option value="All">Type</option>
+            <option value="PUMP">PUMP</option>
+            <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
+            <option value="DHT20_SENSOR">DHT20_SENSOR</option>
+            <option value="LCD">LCD</option>
+            <option value="RELAY">RELAY</option>
+        </select>
+
+
+            {/* chưa có tác dụng */}
+        <button onClick={() => setShowAddForm(true)}
+          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          >
+            Add
+          </button>
+        <button onClick={handleDeleteDevice} disabled={selectedDevice.length === 0}
+        className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+        >Delete</button>
+        
+
       </div>
-      */}
 
-      {/* Nội dung chính */}
-      <div className="mainContent">
-        {/* Thanh trên cùng */}
-        <div className="topBar">
-          <div className="logoCircle">1</div>
-          <div className="titleAndTime">
-            <div className="welcomeText">Welcome Farm, {username}!</div>
-            <div className="dateTime">
-              <div>10:00 AM</div>
-              <div>Sunday, 17 Sept 2023</div>
-            </div>
+      {/* Bảng hiển thị danh sách người dùng */}
+      
+      <div className="tableContainer" >
+        <table className="userTable">
+          <thead>
+            <tr>
+              <th>  </th>
+              <th>Tên</th> {/* name: string; */}
+              <th>Địa điểm</th> {/* address: string; */}
+              <th>Loại</th> {/* role: string; */}
+            </tr>
+          </thead>
+          <tbody>
+          {filteredUsers.length > 0 ? (
+              filteredUsers.map((device, index) => (
+                <tr key={index}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedDevice.includes(device.deviceId)}
+                      onChange={() => toggleSelectUser(device.deviceId)}
+                       className="w-5 h-5"
+                    />
+                  </td>
+                  <td>{device.name}</td>
+                  <td>{device.location}</td>
+                  <td>{device.type}</td>
+  
+
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="noResults">
+                  No matching device found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>   
+      {showAddForm && (
+        <PopupModal title="Thêm thiết bị" onClose={() => setShowAddForm(false)}>
+          <label>
+            Tên:
+            {/* name: string */}
+            <input
+              type="text"
+              name="name"
+              value={newDevice.name}
+              onChange={handleNewDeviceChange}
+            />
+          </label>
+
+          <label>
+            Khu vực:
+            {/* location: string */}
+            <input
+              type="text"
+              name="location"
+              value={newDevice.location}
+              onChange={handleNewDeviceChange}
+            />
+          </label>
+          
+          <label>
+            Type:
+            {/*    PUMP = "PUMP",
+                    MOISTURE_SENSOR = "MOISTURE_SENSOR",
+                    DHT20_SENSOR = "DHT20_SENSOR",
+                    LCD = "LCD",
+                    RELAY = "RELAY" 
+            */}
+            <select
+              name="type"
+              value={newDevice.type}
+              onChange={handleNewDeviceChange}
+            >
+            <option value="All">Type</option>
+            <option value="PUMP">PUMP</option>
+            <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
+            <option value="DHT20_SENSOR">DHT20_SENSOR</option>
+            <option value="LCD">LCD</option>
+            <option value="RELAY">RELAY</option>
+            </select>
+          </label>
+          <div className="flex justify-between mt-4 w-full">
+
+            <button onClick={handleCreateDevice} 
+            className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
+            >Create</button>
+
+            <button onClick={() => setShowAddForm(false)}
+            className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
+            >Cancel</button>
+           
           </div>
-        </div>
+        </PopupModal>
+      )}
 
-        {/* Khu vực hiển thị các thiết bị */}
-        <div className="deviceContainer">
-          {devices.map((device) => (
-            <div key={device.id} className="deviceCard">
-              <div className="deviceIcon">{device.icon}</div>
-              <div className="deviceInfo">
-                <h3>{device.name}</h3>
-                <p>{device.info}</p>
-                {device.hasSlider && (
-                  <div className="sliderRow">
-                    <input type="range" min="0" max="100" defaultValue="50" />
-                    <span>50%</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
 
-          {/* Thêm nút Add device (tùy ý) */}
-          <div className="deviceCard addDeviceCard">
-            <button onClick={() => alert("Add new device!")}>+ Add device</button>
-          </div>
-        </div>
-      </div>
 
+      
+      
       <style jsx>{`
-        /* Toàn màn hình, đặt ảnh nền */
+        /* Container chính: đặt background, canh giữa, v.v. */
         .container {
+          /* Thay link ảnh nền thật của bạn vào đây */
           background: url("https://images.unsplash.com/photo-1562075219-5356a05c8db5?fit=crop&w=1600&q=80")
             no-repeat center center fixed;
           background-size: cover;
-          min-height: 100vh;
-          font-family: Arial, sans-serif;
-          display: flex;
-        }
-
-        /* (Tuỳ chọn) Sidebar bên trái */
-        .sidebar {
-          width: 60px;
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(8px);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding-top: 20px;
-        }
-        .sidebar ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        .sidebar li {
-          color: #fff;
-          margin: 20px 0;
-          cursor: pointer;
-          text-align: center;
-          font-size: 1.2rem;
-        }
-        .sidebar li:hover {
-          color: #ddd;
-        }
-
-        /* Khu vực nội dung chính */
-        .mainContent {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
           padding: 20px;
+          font-family: Arial, sans-serif;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
 
-        /* Thanh trên cùng */
-        .topBar {
-          width: 90%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(8px);
-          padding: 10px 20px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-        }
+        /* Logo hình tròn góc trái (nếu muốn) */
         .logoCircle {
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           background-color: #e74c3c;
           color: #fff;
           border-radius: 50%;
@@ -206,112 +347,177 @@ export default function SettingPage() {
           align-items: center;
           justify-content: center;
           font-weight: bold;
-          font-size: 1.1rem;
           margin-right: 10px;
         }
-        .titleAndTime {
-          flex: 1;
-          margin-left: 10px;
+
+        /* Nếu muốn hiển thị tiêu đề chào */
+        .welcome {
+          margin-bottom: 20px;
+          color: #fff;
+          text-shadow: 1px 1px 2px #000;
+        }
+
+        /* Thanh chứa filter và nút Add */
+        .filterContainer {
+          margin-bottom: 15px;
           display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .welcomeText {
-          color: #fff;
-          font-size: 1.3rem;
-          font-weight: 600;
-        }
-        .dateTime {
-          color: #fff;
-          font-size: 0.9rem;
-          line-height: 1.2;
-        }
-
-        /* Khu vực chứa các thiết bị */
-        .deviceContainer {
-          /* 3 cột cố định */
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-
-          /* Thanh cuộn dọc khi thiết bị nhiều */
-          max-height: 500px; /* Chiều cao tối đa, bạn tùy chỉnh theo ý */
-          overflow-y: auto;
-
-          /* Kích thước ngang co theo chiều rộng 90% */
+          align-items: center;
+          gap: 10px;
           width: 90%;
-        }
-
-        /* Card mỗi thiết bị */
-        .deviceCard {
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
+          padding: 10px;
+          background-color: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(8px);
           border-radius: 8px;
-          padding: 15px;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-          color: #333;
-        }
-        .deviceIcon {
-          font-size: 2rem;
-          margin-right: 10px;
-        }
-        .deviceInfo h3 {
-          margin: 0;
-          font-size: 1.1rem;
-          color: #333;
-        }
-        .deviceInfo p {
-          margin: 4px 0 0;
-          color: #555;
-          font-size: 0.9rem;
-        }
-        .sliderRow {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-top: 8px;
-        }
-        .sliderRow input[type="range"] {
-          flex: 1;
-        }
-        .sliderRow span {
-          min-width: 30px;
-          text-align: right;
         }
 
-        /* Card Add device */
-        .addDeviceCard {
-          justify-content: center;
-          align-items: center;
+        /* Input tìm kiếm */
+        .searchInput {
+          flex: 1;
+           padding: 6px 30px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 14px;
         }
-        .addDeviceCard button {
-          background: #3498db;
+
+        /* Dropdown chung */
+        .selectInput {
+          padding: 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 14px;
+          background-color: #fff;
+          cursor: pointer;
+        }
+
+        /* Nút Add */
+        .addButton {
+          background-color: #2ecc71;
           color: #fff;
           border: none;
-          padding: 8px 12px;
-          border-radius: 6px;
+          padding: 8px 14px;
+          border-radius: 4px;
           cursor: pointer;
-          font-size: 0.9rem;
+          font-weight: bold;
         }
-        .addDeviceCard button:hover {
-          background: #2980b9;
+        .addButton:hover {
+          background-color: #27ae60;
         }
 
-        /* Responsive: nếu muốn 3 cột cố định cho mọi màn hình, bỏ 2 media query dưới.
-           Nếu vẫn muốn giao diện linh hoạt, giữ lại chúng: */
+        /* Vùng chứa bảng */
+        .tableContainer {
+          background: rgba(255, 255, 255, 0.652);
+          backdrop-filter: blur(10px);
+          border-radius: 8px;
+          overflow-y: auto;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          height: 570px; 
+          width: 90%;
+          margin-bottom: 20px;
+
+        }
+
+        .userTable {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .userTable th,
+        .userTable td {
+          padding: 12px 15px;
+          text-align: left;
+          border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Cố định header khi cuộn */
+        .userTable thead {
+          position: sticky;
+          top: 0;
+          background-color: #f7f7f7;
+          z-index: 1;
+        }
+
+        .userTable thead th {
+          font-weight: 600;
+          color: #333;
+        }
+
+        .userTable tbody tr:hover {
+          background-color: #f1f1f1;
+          cursor: pointer;
+        }
+
+        .noResults {
+          text-align: center;
+          padding: 20px;
+          color: #888;
+        }
+
+        /* Badge màu cho cột Permissions */
+        .permissionBadge {
+          display: inline-block;
+          padding: 4px 8px;
+          border-radius: 12px;
+          color: #fff;
+          font-weight: bold;
+        }
+        .permissionBadge.admin {
+          color: #e74c3c;
+        }
+
+        .permissionBadge.gardener {
+          color: #3498db;
+        }
+        .permissionBadge.inactive {
+          color: #f39c12;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-          .deviceContainer {
-            grid-template-columns: repeat(2, 1fr);
+          .filterContainer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+          .tableContainer {
+            width: 100%;
+            height: auto; /* Cho mobile dễ xem hơn */
+            max-height: 591px;
           }
         }
-        @media (max-width: 480px) {
-          .deviceContainer {
-            grid-template-columns: 1fr;
-          }
+
+        /* Popup Modal */
+        .addButton {
+          background-color: #2ecc71;
+          color: #fff;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
         }
+        .addButton:hover {
+          background-color: #27ae60;
+        }
+        .modalActions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        label {
+          display: block;
+          margin-bottom: 10px;
+        }
+        input,
+        select {
+          width: 100%;
+          padding: 8px;
+          margin-top: 4px;
+          margin-bottom: 12px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+        
       `}</style>
     </div>
   );
