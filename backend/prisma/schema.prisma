@@ -8,18 +8,28 @@ datasource db {
 }
 
 model User {
-  userId       String   @id @default(uuid()) @db.VarChar(36)
-  name         String   @db.VarChar(100)
-  email        String   @unique(map: "email_UNIQUE") @db.VarChar(100)
-  phone        String?  @db.VarChar(20)
-  address      String?  @db.VarChar(255)
-  role         Role
-  passwordHash String   @db.VarChar(255)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  notifications Notification[]
+  userId        String                  @id @default(uuid())
+  name          String                  @db.VarChar(100)
+  email         String                  @unique(map: "email_UNIQUE") @db.VarChar(100)
+  phone         String?                 @db.VarChar(20)
+  role          Role
+  passwordHash  String                  @db.VarChar(255)
+  locationId    String?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  location      Location?               @relation(fields: [locationId], references: [locationId], onDelete: SetNull)
+  notifications NotificationRecipient[]
   logs          Log[]
+}
+
+model Location {
+  locationId     String          @id @default(uuid())
+  name           String          @unique @db.VarChar(100)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  users          User[]
+  devices        Device[]
+  configurations Configuration[]
 }
 
 enum Role {
@@ -29,124 +39,131 @@ enum Role {
 }
 
 model Notification {
-  notificationId  String   @id @default(uuid())
-  recipientUserId String
-  message         String
-  severity        Severity
-  isRead          Boolean  @default(false)
-  timestamp       DateTime @default(now())
+  notificationId String                  @id @default(uuid())
+  senderId       String?                 @db.VarChar(36)
+  message        String
+  severity       Severity
+  createdAt      DateTime                @default(now())
+  recipients     NotificationRecipient[]
+}
 
-  recipientUser User @relation(fields: [recipientUserId], references: [userId], onDelete: Cascade)
+model NotificationRecipient {
+  notificationId String
+  userId         String
+  isRead         Boolean      @default(false)
+  notification   Notification @relation(fields: [notificationId], references: [notificationId], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@id([notificationId, userId])
 }
 
 enum Severity {
-  Info
-  Warning
-  Error
+  INFO
+  WARNING
+  ERROR
 }
 
 model Configuration {
-  configId    String   @id @default(uuid())
-  name        String   @db.VarChar(100)
-  value       Float
-  location    String   @db.VarChar(100)
-  lastUpdated DateTime @updatedAt
+  configId        String           @id @default(uuid())
+  name            String           @db.VarChar(100)
+  value           Float
+  locationId      String
+  deviceType      DeviceType
+  lastUpdated     DateTime         @updatedAt
+  location        Location         @relation(fields: [locationId], references: [locationId], onDelete: Cascade)
+  moistureSensors MoistureSensor[]
+  dht20SensorsMin DHT20Sensor[]    @relation(name: "TempMin")
+  dht20SensorsMax DHT20Sensor[]    @relation(name: "TempMax")
+  dht20SensorsHum DHT20Sensor[]    @relation(name: "HumidityThreshold")
+  pumps           Pump[]
 }
 
 model Device {
-  deviceId    String       @id @default(uuid())
-  name        String       @db.VarChar(100)
-  status      DeviceStatus
-  type        DeviceType
-  location    String
-  lastUpdated DateTime     @updatedAt
-
+  deviceId       String          @id @default(uuid())
+  name           String          @db.VarChar(100)
+  status         DeviceStatus
+  type           DeviceType
+  locationId     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  location       Location?       @relation(fields: [locationId], references: [locationId], onDelete: SetNull)
   moistureSensor MoistureSensor?
   dht20Sensor    DHT20Sensor?
   pump           Pump?
   logs           Log[]
-  // commandQueue   CommandQueue[]
 }
 
 enum DeviceStatus {
-  Active
-  Inactive
+  ACTIVE
+  INACTIVE
 }
 
 enum DeviceType {
-  Pump
-  MoistureSensor
-  DHT20Sensor
+  PUMP
+  MOISTURE_SENSOR
+  DHT20_SENSOR
   LCD
-  Relay
+  RELAY
 }
 
 model MoistureSensor {
-  sensorId         String    @id
+  sensorId         String           @id
   calibrationValue Float?
-  threshold        Float
-  soilType         SoilType?
-  lastCalibrated   DateTime  @default(now())
-
-  device          Device           @relation(fields: [sensorId], references: [deviceId], onDelete: Cascade)
-  moistureRecords MoistureRecord[]
-}
-
-enum SoilType {
-  Cat
-  Set
-  Mun
-  Dat_thit
+  thresholdId      String
+  lastCalibrated   DateTime         @default(now())
+  device           Device           @relation(fields: [sensorId], references: [deviceId], onDelete: Cascade)
+  threshold        Configuration    @relation(fields: [thresholdId], references: [configId], onDelete: Restrict)
+  moistureRecords  MoistureRecord[]
 }
 
 model DHT20Sensor {
-  sensorId            String       @id
-  temperatureRangeMin Float
-  temperatureRangeMax Float
-  humidityAccuracy    Float
-  locationType        LocationType
-
-  device       Device        @relation(fields: [sensorId], references: [deviceId], onDelete: Cascade)
-  dht20Records DHT20Record[]
-}
-
-enum LocationType {
-  Trong_nha
-  Ngoai_troi
+  sensorId            String        @id
+  tempMinId           String
+  tempMaxId           String
+  humidityThresholdId String
+  device              Device        @relation(fields: [sensorId], references: [deviceId], onDelete: Cascade)
+  temperatureMin      Configuration @relation(name: "TempMin", fields: [tempMinId], references: [configId], onDelete: Restrict)
+  temperatureMax      Configuration @relation(name: "TempMax", fields: [tempMaxId], references: [configId], onDelete: Restrict)
+  humidityThreshold   Configuration @relation(name: "HumidityThreshold", fields: [humidityThresholdId], references: [configId], onDelete: Restrict)
+  dht20Records        DHT20Record[]
 }
 
 model Pump {
-  pumpId            String   @id
-  isRunning         Boolean  @default(false)
-  autoMode          Boolean  @default(false)
-  maxRuntime        Int
-  flowRate          Float
-  pressure          Float
-  energyConsumption Float
-  lastServiced      DateTime @default(now())
-
+  pumpId              String               @id
+  isRunning           Boolean              @default(false)
+  mode                Mode                 @default(AUTO)
+  maxRuntimeId        String
+  flowRate            Float
+  pressure            Float
+  energyConsumption   Float
+  lastServiced        DateTime             @default(now())
   device              Device               @relation(fields: [pumpId], references: [deviceId], onDelete: Cascade)
+  maxRuntime          Configuration        @relation(fields: [maxRuntimeId], references: [configId], onDelete: Restrict)
   waterUsages         WaterUsage[]
   irrigationSchedules IrrigationSchedule[]
 }
 
-model MoistureRecord {
-  moistureRecordId String   @id @default(uuid())
-  sensorId         String
-  timestamp        DateTime @default(now())
-  soilMoisture     Float
+enum Mode {
+  MANUAL
+  AUTO
+  SCHEDULED
+}
 
-  sensor MoistureSensor @relation(fields: [sensorId], references: [sensorId], onDelete: Cascade)
+model MoistureRecord {
+  moistureRecordId String         @id @default(uuid())
+  sensorId         String
+  timestamp        DateTime       @default(now())
+  soilMoisture     Float
+  sensor           MoistureSensor @relation(fields: [sensorId], references: [sensorId], onDelete: Cascade)
 }
 
 model DHT20Record {
-  dht20RecordId String   @id @default(uuid())
+  dht20RecordId String      @id @default(uuid())
   sensorId      String
-  timestamp     DateTime @default(now())
+  timestamp     DateTime    @default(now())
   temperature   Float
   humidity      Float
-
-  sensor DHT20Sensor @relation(fields: [sensorId], references: [sensorId], onDelete: Cascade)
+  sensor        DHT20Sensor @relation(fields: [sensorId], references: [sensorId], onDelete: Cascade)
 }
 
 model WaterUsage {
@@ -155,8 +172,7 @@ model WaterUsage {
   startTime   DateTime
   endTime     DateTime
   waterAmount Float
-
-  pump Pump @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
+  pump        Pump     @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
 }
 
 model IrrigationSchedule {
@@ -164,44 +180,18 @@ model IrrigationSchedule {
   deviceId   String
   startTime  DateTime
   endTime    DateTime
-  repeatDays String   @db.VarChar(50)
+  repeatDays Int      @default(0) // Bitmask lưu ngày trong tuần (CN-T7)
   isActive   Boolean  @default(true)
-
-  pump Pump @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
+  pump       Pump     @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
 }
-
-// model CommandQueue {
-//   commandId   String        @id @default(uuid())
-//   deviceId    String
-//   commandType CommandType
-//   status      CommandStatus @default(Dang_cho)
-//   timestamp   DateTime      @default(now())
-//   retryCount  Int           @default(0)
-
-//   device Device @relation(fields: [deviceId], references: [deviceId], onDelete: Cascade)
-// }
-
-// enum CommandType {
-//   Bat_bom
-//   Tat_bom
-//   Cap_nhat_cau_hinh
-// }
-
-// enum CommandStatus {
-//   Dang_cho
-//   Da_gui
-//   Thanh_cong
-//   That_bai
-// }
 
 model Log {
   logId       String   @id @default(uuid())
   userId      String?
   deviceId    String?
-  eventType   String   @db.VarChar(100)
+  eventType   Severity
   description String
-  timestamp   DateTime @default(now())
-
-  user   User?   @relation(fields: [userId], references: [userId], onDelete: SetNull)
-  device Device? @relation(fields: [deviceId], references: [deviceId], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [userId], onDelete: SetNull)
+  device      Device?  @relation(fields: [deviceId], references: [deviceId], onDelete: SetNull)
 }

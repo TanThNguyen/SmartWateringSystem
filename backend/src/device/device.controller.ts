@@ -9,24 +9,24 @@ export class DeviceController {
         private readonly deviceService: DeviceService,
     ) { }
 
-    @Post('add')
-    @UseGuards(RoleGuard)
-    @SetMetadata('roles', ['ADMIN'])
-    add(@Body() addDeviceDto: AddDeviceDto): Promise<String> {
-        return this.deviceService.add(addDeviceDto);
-    }
+    // @Post('add')
+    // @UseGuards(RoleGuard)
+    // @SetMetadata('roles', ['ADMIN'])
+    // add(@Body() addDeviceDto: AddDeviceDto): Promise<String> {
+    //     return this.deviceService.add(addDeviceDto);
+    // }
 
-    @Delete('delete')
-    @UseGuards(RoleGuard)
-    @SetMetadata('roles', ['ADMIN'])
-    delete(@Body() deleteDevicesDto: DeleteDevicesDto): Promise<String> {
-        return this.deviceService.deleteMany(deleteDevicesDto);
-    }
+    // @Delete('delete')
+    // @UseGuards(RoleGuard)
+    // @SetMetadata('roles', ['ADMIN'])
+    // delete(@Body() deleteDevicesDto: DeleteDevicesDto): Promise<String> {
+    //     return this.deviceService.deleteMany(deleteDevicesDto);
+    // }
 
-    @Get('all')
-    async getAllDevices(@Query() query: GetDevicesRequestDto): Promise<FindAllDevicesDto> {
-        return await this.deviceService.getAllDevices(query);
-    }
+    // @Get('all')
+    // async getAllDevices(@Query() query: GetDevicesRequestDto): Promise<FindAllDevicesDto> {
+    //     return await this.deviceService.getAllDevices(query);
+    // }
 
 
 

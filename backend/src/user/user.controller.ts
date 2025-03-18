@@ -41,7 +41,7 @@ export class UserController {
     @UseGuards(RoleGuard)
     @SetMetadata('roles', ['ADMIN'])
     async getAllUsers(@Query() query: GetUsersRequestDto): Promise<FindAllUsersDto> {
-        return await this.userService.getAllUsers(query);
+        return this.userService.getAllUsers(query);
     }
 }
 

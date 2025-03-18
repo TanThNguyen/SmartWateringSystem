@@ -28,9 +28,10 @@ export class CreateUserDto {
     @IsString()
     email: string;
 
+    @IsUUID()
     @IsString()
     @IsNotEmpty()
-    address: string;
+    locationId: string;
 
     @IsString()
     @IsNotEmpty()
@@ -58,9 +59,10 @@ export class UpdateUserDto {
     @IsString()
     email: string;
 
+    @IsUUID()
     @IsString()
     @IsNotEmpty()
-    address: string;
+    locationId: string;
 
     @IsString()
     @IsNotEmpty()
@@ -114,7 +116,7 @@ export class InfoUsersDto {
     @IsString()
     @IsNotEmpty()
     userId: string;
-    
+
     @IsString()
     @IsNotEmpty()
     name: string;
@@ -123,8 +125,10 @@ export class InfoUsersDto {
     @IsString()
     email: string;
 
+    @IsUUID()
     @IsString()
-    address: string;
+    @IsNotEmpty()
+    locationName: string;
 
     @IsString()
     phone: string;
