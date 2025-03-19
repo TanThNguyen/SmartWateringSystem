@@ -159,9 +159,14 @@ export default function UserManagementPage() {
 
 
   const handleUpdateUser = async (updatedUser: UpdateUserType) => {
-
     try {
-      await userApi.updateUser(updatedUser);
+      // Cập nhật locationId thay vì locationName
+      const updatedUserWithLocationId = {
+        ...updatedUser,
+        locationId: updatedUser.locationId, // Chắc chắn rằng locationId được truyền vào
+      };
+
+      await userApi.updateUser(updatedUserWithLocationId);
       fetchUsers();
     } catch (error) {
       console.error("Lỗi khi cập nhật người dùng:", error);
@@ -169,17 +174,25 @@ export default function UserManagementPage() {
   };
 
 
+
   const handleOpenUpdateForm = (user: UpdateUserType) => {
     setUpdatedUser(user);
     setShowUpdateForm(true);
   };
 
+
   const handleSubmit = () => {
     if (updatedUser) {
-      handleUpdateUser(updatedUser); // Gọi API cập nhật
+      // Gửi locationId thay vì locationName
+      const updatedUserWithLocationId = {
+        ...updatedUser,
+        locationId: updatedUser.locationId, // Đây là locationId bạn cần gửi khi cập nhật
+      };
+      handleUpdateUser(updatedUserWithLocationId); // Gọi API cập nhật
       setShowUpdateForm(false); // Đóng form sau khi cập nhật
     }
   };
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (!updatedUser) return;
     setUpdatedUser({ ...updatedUser, [e.target.name]: e.target.value });
@@ -438,14 +451,14 @@ export default function UserManagementPage() {
               <th>  </th>
               <th>Tên</th> {/* name: string; */}
               <th>Email</th> {/* email: string; */}
-              <th>Địa chỉ</th> {/* address: string; */}
+              <th>Khu vực</th> {/* address: string; */}
               <th>Số điện thoại</th>  {/* phone: string; */}
               {/* <th>Ngày vào</th>  updatedAt: Date; */}
               <th>Vai trò</th> {/* role: string; */}
             </tr>
           </thead>
           <tbody>
-          {users.length > 0 ? (
+            {users.length > 0 ? (
               users.map((user, index) => (
                 <tr key={index}>
                   <td>
@@ -453,7 +466,7 @@ export default function UserManagementPage() {
                       type="checkbox"
                       checked={selectedUsers.includes(user.userId)}
                       onChange={() => toggleSelectUser(user.userId)}
-                       className="w-5 h-5"
+                      className="w-5 h-5"
                     />
                   </td>
                   <td>
@@ -469,7 +482,6 @@ export default function UserManagementPage() {
                           role: user.role,
                           password: "password123",
                         };
-                  
                         handleOpenUpdateForm(upuser);
                       }}
                       className="text-blue-500 hover:underline hover:text-blue-700"
@@ -481,16 +493,12 @@ export default function UserManagementPage() {
                   <td>{user.locationName}</td>
                   <td>{user.phone}</td>
                   {/* <td>{user.updatedAt}</td> */}
-
                   <td>
                     {/* Badge màu cho quyền */}
                     <span className={`permissionBadge ${user.role.toLowerCase()}`}>
                       {user.role}
                     </span>
                   </td>
-
-                  
-
                 </tr>
               ))
             ) : (
@@ -602,9 +610,8 @@ export default function UserManagementPage() {
           </label>
           <select
             name="locationId"
-            value={newUser.locationId}
-            onChange={handleNewUserChange}
-          // placeholder="Location"
+            value={updatedUser.locationId}  // Đảm bảo sử dụng locationId
+            onChange={handleChange}
           >
             {locations.map((location) => (
               <option key={location.locationId} value={location.locationId}>
@@ -612,6 +619,7 @@ export default function UserManagementPage() {
               </option>
             ))}
           </select>
+
           <label>
             Số điện thoại:
             <input

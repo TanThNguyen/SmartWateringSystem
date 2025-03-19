@@ -11,6 +11,8 @@ import { LogModule } from './log/log.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { DeviceModule } from './device/device.module';
 import { LocationModule } from './location/location.module';
+// import { AdafruitMqttModule } from './adafruit-mqtt/adafruit-mqtt.module';
+import { AdafruitModule } from './adafruit/adafruit.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { LocationModule } from './location/location.module';
     ConfigurationModule,
     DeviceModule,
     LocationModule,
+    // AdafruitMqttModule,
+    AdafruitModule,
   ],
   controllers: [AppController],
   providers: [
