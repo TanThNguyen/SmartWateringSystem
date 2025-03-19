@@ -16,7 +16,7 @@ export type InfoUsersType = {
     userId: string;
     name: string;
     email: string;
-    address: string;
+    locationName: string;
     phone: string;
     role: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL'
     updatedAt: Date;
@@ -42,7 +42,7 @@ export type CreateUserType = {
 
     name: string;
     email: string;
-    address: string;
+    locationId: string;
     phone: string;
     role: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL'
     password: string;
@@ -55,7 +55,7 @@ export type UpdateUserType = {
     userId: string;
     name: string;
     email: string;
-    address: string;
+    locationId: string;
     phone: string;
     role: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL'
     password: string;
