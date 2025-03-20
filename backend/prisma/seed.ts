@@ -137,7 +137,6 @@ async function main() {
           prisma.moistureSensor.create({
             data: {
               sensorId: device.deviceId,
-              calibrationValue: Math.random() * 10,
               thresholdId: configurations[Math.floor(Math.random() * configurations.length)].configId,
             },
           })
@@ -178,10 +177,7 @@ async function main() {
               pumpId: device.deviceId,
               isRunning: false,
               mode: Mode.AUTO,
-              maxRuntimeId: configurations[Math.floor(Math.random() * configurations.length)].configId,
-              flowRate: Math.random() * 10,
-              pressure: Math.random() * 5,
-              energyConsumption: Math.random() * 50,
+              // maxRuntimeId: configurations[Math.floor(Math.random() * configurations.length)].configId,
             },
           })
         )

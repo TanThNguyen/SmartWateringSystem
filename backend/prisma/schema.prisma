@@ -75,7 +75,7 @@ model Configuration {
   dht20SensorsMin DHT20Sensor[]    @relation(name: "TempMin")
   dht20SensorsMax DHT20Sensor[]    @relation(name: "TempMax")
   dht20SensorsHum DHT20Sensor[]    @relation(name: "HumidityThreshold")
-  pumps           Pump[]
+  // pumps           Pump[]
 }
 
 model Device {
@@ -91,6 +91,7 @@ model Device {
   dht20Sensor    DHT20Sensor?
   pump           Pump?
   logs           Log[]
+  fan            Fan?
 }
 
 enum DeviceStatus {
@@ -103,17 +104,18 @@ enum DeviceType {
   MOISTURE_SENSOR
   DHT20_SENSOR
   LCD
-  RELAY
+  FAN
+  LED
 }
 
 model MoistureSensor {
-  sensorId         String           @id
-  calibrationValue Float?
-  thresholdId      String
-  lastCalibrated   DateTime         @default(now())
-  device           Device           @relation(fields: [sensorId], references: [deviceId], onDelete: Cascade)
-  threshold        Configuration    @relation(fields: [thresholdId], references: [configId], onDelete: Restrict)
-  moistureRecords  MoistureRecord[]
+  sensorId        String           @id
+  // calibrationValue Float?
+  thresholdId     String
+  // lastCalibrated   DateTime         @default(now())
+  device          Device           @relation(fields: [sensorId], references: [deviceId], onDelete: Cascade)
+  threshold       Configuration    @relation(fields: [thresholdId], references: [configId], onDelete: Restrict)
+  moistureRecords MoistureRecord[]
 }
 
 model DHT20Sensor {
@@ -132,15 +134,23 @@ model Pump {
   pumpId              String               @id
   isRunning           Boolean              @default(false)
   mode                Mode                 @default(AUTO)
-  maxRuntimeId        String
-  flowRate            Float
-  pressure            Float
-  energyConsumption   Float
+  // maxRuntimeId        String
   lastServiced        DateTime             @default(now())
   device              Device               @relation(fields: [pumpId], references: [deviceId], onDelete: Cascade)
-  maxRuntime          Configuration        @relation(fields: [maxRuntimeId], references: [configId], onDelete: Restrict)
+  // maxRuntime          Configuration        @relation(fields: [maxRuntimeId], references: [configId], onDelete: Restrict)
   waterUsages         WaterUsage[]
   irrigationSchedules IrrigationSchedule[]
+}
+
+model Fan {
+  fanId        String   @id @default(uuid())
+  isRunning    Boolean  @default(false)
+  mode         Mode     @default(AUTO)
+  // maxRuntimeId String
+  speed        Float
+  lastServiced DateTime @default(now())
+  device       Device   @relation(fields: [fanId], references: [deviceId], onDelete: Cascade)
+  // maxRuntime   Configuration @relation(fields: [maxRuntimeId], references: [configId], onDelete: Restrict)
 }
 
 enum Mode {
