@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Device, DeviceType } from '@prisma/client';
 import { DateTime } from 'luxon';
 
 @Injectable()
@@ -116,5 +117,16 @@ export class AdafruitService {
       console.log(`🛑 Stopped polling for feed '${feedName}' (module destroy).`);
     });
     this.pollingIntervals.clear();
+  }
+
+  getFeedNames(device: Device): string[] {
+    if (device.type === DeviceType.MOISTURE_SENSOR) {
+      return [device.name]; // Lấy trực tiếp từ name
+    }
+    if (device.type === DeviceType.DHT20_SENSOR) {
+      const identifier = device.name.replace(/^DHT20/, ''); // Loại bỏ tiền tố "DHT20"
+      return [`nhietdo${identifier}`, `doam${identifier}`];
+    }
+    return [];
   }
 }

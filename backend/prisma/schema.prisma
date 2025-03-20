@@ -65,7 +65,7 @@ enum Severity {
 
 model Configuration {
   configId        String           @id @default(uuid())
-  name            String           @db.VarChar(100)
+  name            String           @db.VarChar(100) @unique
   value           Float
   locationId      String
   deviceType      DeviceType
@@ -80,7 +80,7 @@ model Configuration {
 
 model Device {
   deviceId       String          @id @default(uuid())
-  name           String          @db.VarChar(100)
+  name           String          @db.VarChar(100) @unique
   status         DeviceStatus
   type           DeviceType
   locationId     String?

@@ -106,13 +106,13 @@ async function main() {
   const devices = await prisma.$transaction(
     locations.flatMap((location) => [
       prisma.device.create({
-        data: { name: 'Pump 1', status: DeviceStatus.ACTIVE, type: DeviceType.PUMP, locationId: location.locationId },
+        data: { name: `Pump${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.PUMP, locationId: location.locationId },
       }),
       prisma.device.create({
-        data: { name: 'Moisture Sensor 1', status: DeviceStatus.ACTIVE, type: DeviceType.MOISTURE_SENSOR, locationId: location.locationId },
+        data: { name: `Moisture${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.MOISTURE_SENSOR, locationId: location.locationId },
       }),
       prisma.device.create({
-        data: { name: 'DHT20 Sensor 1', status: DeviceStatus.ACTIVE, type: DeviceType.DHT20_SENSOR, locationId: location.locationId },
+        data: { name: `DHT20${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.DHT20_SENSOR, locationId: location.locationId },
       }),
     ])
   );
