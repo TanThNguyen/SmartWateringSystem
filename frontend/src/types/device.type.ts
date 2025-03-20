@@ -19,12 +19,22 @@ export type InfoDeviceType = {
     type: DeviceType;
     location: string;
     status: boolean;
-
 }
+
+export type InfovDeviceType = {
+    deviceId: string;
+    name: string;
+    type: DeviceType;
+    location: string;
+    status: boolean;
+    value: number[];  //giá trị của cảm biến
+}
+
+
 
 export type AllDeviceType = {
 
-    users: InfoDeviceType[];
+    devices: InfoDeviceType[];
     total: number;
     currentPage: number;
     nextPage: number | null;
