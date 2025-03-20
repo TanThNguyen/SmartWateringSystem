@@ -92,9 +92,14 @@ export default function UserManagementPage() {
   }, []);
 
   const generateChartData = (values: number[]) => {
-    const startHour = 5; // Giả sử bắt đầu từ 5:00 AM
-    return values.map((value, index) => ({
-      time: `${startHour + index}:00 ${startHour + index >= 12 ? "PM" : "AM"}`,
+    const startHour = 5; 
+    const limitedValues = values.slice(-10); // Lấy 10 giá trị cuối cùng
+    const startIndex = Math.max(0, values.length - 10);
+  
+    return limitedValues.map((value, index) => ({
+      time: `${startHour + startIndex + index}:00 ${
+        startHour + startIndex + index >= 12 ? "PM" : "AM"
+      }`,
       value: value,
     }));
   };
@@ -265,7 +270,7 @@ const handleOpenInfoForm = (device: InfovDeviceType) => {
                               type: device.type, 
                               location: device.location,
                               status: device.status,
-                              value: [0,1,2,3,4,5] //giá trị của cảm biến gọi API sau
+                              value: [30, 40 , 50, 60, 20, 30, 60, 70, 30, 40 , 50, 60, 20, 30, 60, 70 ] //giá trị của cảm biến gọi API sau
                           };
                                         
                           handleOpenInfoForm(deviceinfo);
@@ -356,7 +361,7 @@ const handleOpenInfoForm = (device: InfovDeviceType) => {
         <PopupModal title="Thông tin thiết bị" onClose={() => setShowInfoForm(false)}>
           <div className="p-4 bg-white/80 rounded-lg shadow-md">
 
-            {/* Biểu đồ */}
+            {/* Biểu đồ nhận một mảng giá trị, thời gian ghi lại là mặc định, tính theo giờ*/}
             {selectedDeviceInfo.value && selectedDeviceInfo.value.length > 0 && (
               <div className="w-full max-w-md h-64">
                 <ResponsiveContainer width="100%" height="100%">
