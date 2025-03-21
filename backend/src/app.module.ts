@@ -13,6 +13,7 @@ import { DeviceModule } from './device/device.module';
 import { LocationModule } from './location/location.module';
 // import { AdafruitMqttModule } from './adafruit-mqtt/adafruit-mqtt.module';
 import { AdafruitModule } from './adafruit/adafruit.module';
+import { RecordModule } from './record/record.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AdafruitModule } from './adafruit/adafruit.module';
     LocationModule,
     // AdafruitMqttModule,
     AdafruitModule,
+    RecordModule,
   ],
   controllers: [AppController],
   providers: [
