@@ -4,7 +4,7 @@ import { CreateNotiDto, FindAllNotisDto, InfoNotiDto } from './dto';
 
 @Injectable()
 export class NotificationService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: PrismaService) { }
 
   async create(data: CreateNotiDto): Promise<string> {
     const transaction = await this.prismaService.$transaction(async (prisma) => {

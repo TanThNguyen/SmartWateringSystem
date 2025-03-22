@@ -38,7 +38,7 @@ const UserList = () => {
         const newUser: CreateUserType = {
             name: "Người dùng mới",
             email: `newuser${Date.now()}@example.com`,
-            address: "Địa chỉ mới",
+            locationId: "Địa chỉ mới",
             phone: "0123456789",
             password: "password123",
             role: "USER",
@@ -56,7 +56,7 @@ const UserList = () => {
             userId: userId,
             name: "Tên cập nhật",
             email: `newuser${Date.now()}@example.com`,
-            address: "Địa chỉ cập nhật",
+            locationId: "Địa chỉ cập nhật",
             phone: "0987654321",
             password: "newpassword123",
             role: "ADMIN",

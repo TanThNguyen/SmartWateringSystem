@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { logAPI } from "../../axios/log.api";
 import { InfoLogType, Severity } from "../../types/log.type";
 import "./log.scss";
@@ -13,7 +13,7 @@ export default function HistoryPage() {
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("username");

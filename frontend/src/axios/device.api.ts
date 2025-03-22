@@ -1,12 +1,28 @@
-import { AllDeviceType, CreateDeviceType, DeviceRequestType } from "../types/device.type";
+import { handleAPIError } from "../component/utils";
+import {
+    AddDeviceType,
+    DeleteDevicesType,
+    EditDeviceType,
+    GetDevicesRequestType,
+    DeviceIdType,
+    FindAllDevicesType
+} from "../types/device.type";
 import axiosClient from "./axiosConfigs";
-import environment from "../environment";
 
-export const deviceAPI = {
-    getAllDevice: async (params: DeviceRequestType): Promise<AllDeviceType> => {
+export const deviceApi = {
+    getAllDevices: async (params: GetDevicesRequestType) => {
         try {
-            const response = await axiosClient.get<AllDeviceType>("/api/device/all", { params });
-            console.log("getAllUsers", response.data);
+            const response = await axiosClient.get("/api/device/all", { params });
+            return response.data as FindAllDevicesType;
+        } catch (error) {
+            handleAPIError(error);
+            throw error;
+        }
+    },
+
+    addDevice: async (data: AddDeviceType) => {
+        try {
+            const response = await axiosClient.post("/api/device/add", data);
             return response.data;
         } catch (error) {
             handleAPIError(error);
@@ -14,9 +30,9 @@ export const deviceAPI = {
         }
     },
 
-    createDevice: async (userData: CreateDeviceType): Promise<string> => {
+    editDevice: async (data: EditDeviceType) => {
         try {
-            const response = await axiosClient.post<string>("/api/user/create", userData);
+            const response = await axiosClient.put("/api/device/edit", data);
             return response.data;
         } catch (error) {
             handleAPIError(error);
@@ -24,26 +40,33 @@ export const deviceAPI = {
         }
     },
 
-
-
-    deleteDevice: async (deviceIds: string[]): Promise<string> => {
+    deleteDevices: async (data: DeleteDevicesType) => {
         try {
-            const response = await axiosClient.delete<string>("/api/device/delete", {
-                data: { deviceIds },
-            });
+            const response = await axiosClient.delete("/api/device/delete", { data });
             return response.data;
         } catch (error) {
             handleAPIError(error);
             throw error;
         }
     },
-};
 
-const handleAPIError = (error: any) => {
-    if (environment.dev === "true") {
-        console.error(error);
+    getOneDevice: async (params: DeviceIdType) => {
+        try {
+            const response = await axiosClient.get("/api/device/one", { params });
+            return response.data;
+        } catch (error) {
+            handleAPIError(error);
+            throw error;
+        }
+    },
+
+    toggleDeviceStatus: async (data: DeviceIdType) => {
+        try {
+            const response = await axiosClient.put("/api/device/toggle", data);
+            return response.data;
+        } catch (error) {
+            handleAPIError(error);
+            throw error;
+        }
     }
-    const message =
-        error?.response?.data?.message || "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.";
-    alert(message);
 };
