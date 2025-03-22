@@ -65,7 +65,7 @@ enum Severity {
 
 model Configuration {
   configId        String           @id @default(uuid())
-  name            String           @db.VarChar(100) @unique
+  name            String           @unique @db.VarChar(100)
   value           Float
   locationId      String
   deviceType      DeviceType
@@ -80,7 +80,7 @@ model Configuration {
 
 model Device {
   deviceId       String          @id @default(uuid())
-  name           String          @db.VarChar(100) @unique
+  name           String          @unique @db.VarChar(100)
   status         DeviceStatus
   type           DeviceType
   locationId     String?
@@ -92,6 +92,7 @@ model Device {
   pump           Pump?
   logs           Log[]
   fan            Fan?
+  Schedule       Schedule[]
 }
 
 enum DeviceStatus {
@@ -131,15 +132,15 @@ model DHT20Sensor {
 }
 
 model Pump {
-  pumpId              String               @id
-  isRunning           Boolean              @default(false)
-  mode                Mode                 @default(AUTO)
+  pumpId       String   @id
+  isRunning    Boolean  @default(false)
+  mode         Mode     @default(AUTO)
   // maxRuntimeId        String
-  lastServiced        DateTime             @default(now())
-  device              Device               @relation(fields: [pumpId], references: [deviceId], onDelete: Cascade)
+  lastServiced DateTime @default(now())
+  device       Device   @relation(fields: [pumpId], references: [deviceId], onDelete: Cascade)
   // maxRuntime          Configuration        @relation(fields: [maxRuntimeId], references: [configId], onDelete: Restrict)
-  waterUsages         WaterUsage[]
-  irrigationSchedules IrrigationSchedule[]
+  // waterUsages         WaterUsage[]
+  // irrigationSchedules IrrigationSchedule[]
 }
 
 model Fan {
@@ -176,23 +177,23 @@ model DHT20Record {
   sensor        DHT20Sensor @relation(fields: [sensorId], references: [sensorId], onDelete: Cascade)
 }
 
-model WaterUsage {
-  usageId     String   @id @default(uuid())
-  deviceId    String
-  startTime   DateTime
-  endTime     DateTime
-  waterAmount Float
-  pump        Pump     @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
-}
+// model WaterUsage {
+//   usageId     String   @id @default(uuid())
+//   deviceId    String
+//   startTime   DateTime
+//   endTime     DateTime
+//   waterAmount Float
+//   pump        Pump     @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
+// }
 
-model IrrigationSchedule {
+model Schedule {
   scheduleId String   @id @default(uuid())
   deviceId   String
   startTime  DateTime
   endTime    DateTime
   repeatDays Int      @default(0) // Bitmask lưu ngày trong tuần (CN-T7)
   isActive   Boolean  @default(true)
-  pump       Pump     @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
+  device     Device   @relation(fields: [deviceId], references: [deviceId], onDelete: Cascade)
 }
 
 model Log {

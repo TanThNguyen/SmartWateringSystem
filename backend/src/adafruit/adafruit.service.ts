@@ -21,7 +21,6 @@ export class AdafruitService {
     }
 
     const data = await response.json();
-
     // Chuyển đổi thời gian về UTC+7
     return data.map((item: any) => ({
       ...item,
@@ -34,9 +33,9 @@ export class AdafruitService {
   // Gửi dữ liệu lên Adafruit IO
   async sendFeedData(feedName: string, value: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
-  
+
     console.log(`🔹 Sending request to: ${url} with value: ${value}`);
-  
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -45,15 +44,15 @@ export class AdafruitService {
       },
       body: JSON.stringify({ value: `${value}` }), // Đảm bảo `value` là string
     });
-  
+
     if (!response.ok) {
       const errorText = await response.text(); // Lấy nội dung lỗi
       throw new Error(`❌ Failed to send feed data: ${response.status} - ${errorText}`);
     }
-  
+
     return response.json();
   }
-  
+
 
   private pollingIntervals: Map<string, NodeJS.Timeout> = new Map();
 
@@ -129,4 +128,54 @@ export class AdafruitService {
     }
     return [];
   }
+
+  async getSensorData(feedName: string): Promise<any> {
+    // Lấy dữ liệu cảm biến
+    const sensorData = await this.getFeedData(feedName);
+
+    // Lấy threshold từ metadata của feed
+    const feedConfig = await this.getFeedConfig(feedName);
+    const threshold = feedConfig ? feedConfig.threshold : null;
+    console.log(threshold);
+    return {
+      feedName,
+      data: sensorData,
+      threshold,
+    };
+  }
+
+
+  async getFeedConfig(feedName: string): Promise<any> {
+    const url = `${this.BASE_URL}/feeds/${feedName}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'X-AIO-Key': this.AIO_KEY },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`❌ API Error (${response.status}): ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+  console.log(data);
+      return {
+        name: data.name,
+        key: data.key,
+        unit: data.unit_type, // Đơn vị đo lường (nếu có)
+        last_value: data.last_value, // Giá trị cuối cùng đo được
+        status: data.status, // Trạng thái feed (active/inactive)
+        visibility: data.visibility, // Public / Private
+        metadata: data.metadata ? JSON.parse(data.metadata) : null, // Các config trong metadata
+      };
+    } catch (error) {
+      console.error(`❌ Lỗi khi lấy cấu hình feed ${feedName}:`, error);
+      return null;
+    }
+  }
+  
+
+
+
 }

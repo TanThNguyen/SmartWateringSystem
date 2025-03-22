@@ -14,6 +14,7 @@ import { LocationModule } from './location/location.module';
 // import { AdafruitMqttModule } from './adafruit-mqtt/adafruit-mqtt.module';
 import { AdafruitModule } from './adafruit/adafruit.module';
 import { RecordModule } from './record/record.module';
+// import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { RecordModule } from './record/record.module';
     // AdafruitMqttModule,
     AdafruitModule,
     RecordModule,
+    // ScheduleModule,
   ],
   controllers: [AppController],
   providers: [

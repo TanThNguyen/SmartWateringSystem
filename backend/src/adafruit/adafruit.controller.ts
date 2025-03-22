@@ -59,4 +59,10 @@ export class AdafruitController {
       this.adafruitService.stopPollingFeed(feedName);
     });
   }
+
+  @Get('sensor')
+  async getSensorData(@Query('feedName') feedName: string) {
+    return this.adafruitService.getSensorData(feedName);
+  }
+
 }

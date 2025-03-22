@@ -18,11 +18,11 @@ async function main() {
 
   console.log('🔹 Đang tạo Location...');
   const locations = await prisma.$transaction([
-    prisma.location.create({ data: { name: 'KV1' } }),
-    prisma.location.create({ data: { name: 'KV2' } }),
-    prisma.location.create({ data: { name: 'KV3' } }),
-    prisma.location.create({ data: { name: 'KV4' } }),
-    prisma.location.create({ data: { name: 'KV5' } }),
+    prisma.location.create({ data: { name: 'kv1' } }),
+    prisma.location.create({ data: { name: 'kv2' } }),
+    // prisma.location.create({ data: { name: 'KV3' } }),
+    // prisma.location.create({ data: { name: 'KV4' } }),
+    // prisma.location.create({ data: { name: 'KV5' } }),
   ]);
   console.log('✅ Đã tạo Location xong!');
 
@@ -40,11 +40,11 @@ async function main() {
     { name: 'Le Thi H', email: 'h@example.com', phone: '0667788990', role: Role.GARDENER },
     { name: 'Pham Van I', email: 'i@example.com', phone: '0778899001', role: Role.ADMIN },
     { name: 'Hoang Thi J', email: 'j@example.com', phone: '0889900112', role: Role.GARDENER },
-    { name: 'Nguyen Van K', email: 'k@example.com', phone: '0990011223', role: Role.GARDENER },
-    { name: 'Tran Thi L', email: 'l@example.com', phone: '0112233445', role: Role.GARDENER },
-    { name: 'Le Van M', email: 'm@example.com', phone: '0223344556', role: Role.GARDENER },
-    { name: 'Pham Thi N', email: 'n@example.com', phone: '0334455667', role: Role.GARDENER },
-    { name: 'Hoang Van O', email: 'o@example.com', phone: '0445566778', role: Role.GARDENER },
+    // { name: 'Nguyen Van K', email: 'k@example.com', phone: '0990011223', role: Role.GARDENER },
+    // { name: 'Tran Thi L', email: 'l@example.com', phone: '0112233445', role: Role.GARDENER },
+    // { name: 'Le Van M', email: 'm@example.com', phone: '0223344556', role: Role.GARDENER },
+    // { name: 'Pham Thi N', email: 'n@example.com', phone: '0334455667', role: Role.GARDENER },
+    // { name: 'Hoang Van O', email: 'o@example.com', phone: '0445566778', role: Role.GARDENER },
   ];
 
   const passwordHash = await bcrypt.hash('password123', 10);
@@ -106,10 +106,10 @@ async function main() {
   const devices = await prisma.$transaction(
     locations.flatMap((location) => [
       prisma.device.create({
-        data: { name: `Pump${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.PUMP, locationId: location.locationId },
+        data: { name: `pump${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.PUMP, locationId: location.locationId },
       }),
       prisma.device.create({
-        data: { name: `Moisture${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.MOISTURE_SENSOR, locationId: location.locationId },
+        data: { name: `moisture${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.MOISTURE_SENSOR, locationId: location.locationId },
       }),
       prisma.device.create({
         data: { name: `DHT20${location.name}`, status: DeviceStatus.ACTIVE, type: DeviceType.DHT20_SENSOR, locationId: location.locationId },
