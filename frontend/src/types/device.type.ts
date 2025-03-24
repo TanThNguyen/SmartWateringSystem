@@ -8,7 +8,10 @@ export enum DeviceType {
 }
 
 // Các loại trạng thái thiết bị, dựa trên enum DeviceStatus từ backend
-export type DeviceStatus = 'ACTIVE' | 'INACTIVE';
+export enum DeviceStatus {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE'
+}
 
 // Loại cho các thuộc tính của thiết bị Pump
 export type PumpAttributes = {
