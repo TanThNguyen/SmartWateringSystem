@@ -10,6 +10,11 @@ import { NotificationModule } from './notification/notification.module';
 import { LogModule } from './log/log.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { DeviceModule } from './device/device.module';
+import { LocationModule } from './location/location.module';
+// import { AdafruitMqttModule } from './adafruit-mqtt/adafruit-mqtt.module';
+import { AdafruitModule } from './adafruit/adafruit.module';
+import { RecordModule } from './record/record.module';
+// import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -22,6 +27,11 @@ import { DeviceModule } from './device/device.module';
     LogModule,
     ConfigurationModule,
     DeviceModule,
+    LocationModule,
+    // AdafruitMqttModule,
+    AdafruitModule,
+    RecordModule,
+    // ScheduleModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { userAPI } from "../../axios/user.api";
+import { userApi } from "../../axios/user.api";
 import PopupModal from "../../layout/popupmodal";
 import {  UpdateUserType } from "../../types/user.type";
 
@@ -158,7 +158,6 @@ export default function UserManagementPage() {
       updatedAt: "May 16, 2018",
       role: "INACTIVE",
     }
-    
   ];
 
   // Lấy username từ localStorage (nếu có)
@@ -224,7 +223,7 @@ export default function UserManagementPage() {
   // Hàm tạo người dùng mới khi submit form
   const handleCreateUser = async () => {
     try {
-      await userAPI.createUser(newUser);
+      await userApi.createUser(newUser);
       fetchUsers();
       setShowAddForm(false);
       setNewUser({
@@ -254,7 +253,7 @@ export default function UserManagementPage() {
   const handleDeleteUsers = async () => {
     if (selectedUsers.length === 0) return;
     try {
-        await userAPI.deleteUsers(selectedUsers);
+        await userApi.deleteUsers(selectedUsers);
         setSelectedUsers([]);
         fetchUsers();
     } catch (error) {
@@ -273,7 +272,7 @@ export default function UserManagementPage() {
          role: "ADMIN",
      };
      try {
-         await userAPI.updateUser(updatedUser);
+         await userApi.updateUser(updatedUser);
          fetchUsers();
      } catch (error) {
          console.error("Lỗi khi cập nhật người dùng:", error);
@@ -284,7 +283,7 @@ export default function UserManagementPage() {
  const handleUpdateUser = async ( updatedUser: UpdateUserType) => {
   
   try {
-      await userAPI.updateUser(updatedUser);
+      await userApi.updateUser(updatedUser);
       fetchUsers();
   } catch (error) {
       console.error("Lỗi khi cập nhật người dùng:", error);
@@ -602,7 +601,7 @@ export default function UserManagementPage() {
           </div>
         </PopupModal>
       )}
-      <style jsx>{`
+      <style>{`
         /* Container chính: đặt background, canh giữa, v.v. */
         .container {
           /* Thay link ảnh nền thật của bạn vào đây */

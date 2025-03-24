@@ -8,9 +8,11 @@ const DashboardLayout = lazy(() => import('./layout/dashboard_layout'));
 const HomePage = lazy(() => import('./pages/dashboard/home'));
 const SettingPage = lazy(() => import('./pages/dashboard/setting'));
 const DevicePage = lazy(() => import('./pages/dashboard/device'));
-const HistoryPage = lazy(() => import('./pages/dashboard/history'));
-const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
-const TestAPI = lazy(() => import('./pages/userManagement/testApi'));
+// const HistoryPage = lazy(() => import('./pages/dashboard/history'));
+const HistoryPage = lazy(() => import('./pages/log/log'));
+// const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
+const UserManagementPage = lazy(() => import('./pages/userManagement/userManager'));
+const TestAPI = lazy(() => import('./pages/TestAPI/testNotificationAPI'));
 
 
 const LoginPage = lazy(() => import('./pages/auth/login'));

@@ -18,7 +18,7 @@ const PopupModal: React.FC<PopupModalProps> = ({ title, children, onClose }) => 
         </div>
         <div className="popupBody">{children}</div>
       </div>
-      <style jsx>{`
+      <style>{`
         .popupOverlay {
           position: fixed;
           top: 0;
