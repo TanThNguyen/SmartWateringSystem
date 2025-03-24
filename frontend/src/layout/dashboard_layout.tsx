@@ -1,21 +1,33 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
-import { FaHome, FaCog, FaSignOutAlt, FaUsers, FaHistory, FaShower } from "react-icons/fa";
+import { FaHome, FaCog, FaSignOutAlt, FaUsers, FaHistory, FaShower, FaBell } from "react-icons/fa";
+import { notiApi } from "../axios/notification.api";
 
 export default function DashboardLayout() {
   const [username, setUsername] = useState("User");
+  const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
   const navigate = useNavigate();
 
   // Lấy username từ localStorage (nếu có)
   useEffect(() => {
+    fetchUnreadNotiCount();
     const storedUser = localStorage.getItem("username");
     if (storedUser) {
       setUsername(storedUser);
     }
   }, []);
 
+  const fetchUnreadNotiCount = async () => {
+    const response = await notiApi.getUnreadCount();
+    console.log(response);
+    if (response?.success) {
+      setUnreadNotifications(response?.data);
+
+    }
+  };
+
   const handleLogout = () => {
-    localStorage.removeItem("username");
+    localStorage.clear();
     navigate("/login");
   };
 
@@ -86,17 +98,36 @@ export default function DashboardLayout() {
         <button
           onClick={handleLogout}
           className="text-white hover:text-gray-400 transition-colors duration-200 ease-in-out"
-          
+
         >
           <FaSignOutAlt size={24} />
         </button>
       </div>
 
-    <main className='flex w-full flex-1 items-center justify-center z-10'>
-		<div className='w-full max-w-7xl'>
-			<Outlet />
-		</div>
-	</main>
+      <main className='flex w-full flex-1 items-center justify-center z-10'>
+        <div className='w-full max-w-7xl'>
+          <div className="absolute top-4 left-4 flex items-center bg-white/80 backdrop-blur-sm p-3 rounded-md shadow-md text-sm text-gray-800">
+
+            {/* //thông báo, lấy data sau */}
+            <div className="relative">
+              <FaBell size={24} />
+
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                  {unreadNotifications}
+                </span>
+              )}
+            </div>
+
+            {/* Nội dung thông báo */}
+
+            <span className="ml-2 font-semibold">
+              Hoạt động bất thường, kiểm tra bơm
+            </span>
+          </div>
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }

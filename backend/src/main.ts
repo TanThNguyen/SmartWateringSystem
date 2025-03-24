@@ -10,10 +10,12 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 5050;
-  app.setGlobalPrefix('/api', {exclude: ['']});
+  const frontApi = configService.get<string>('FRONT_API') || 'http://localhost:5173';
+  const globalPrefix = configService.get<string>('GLOBAL_PREFIX') || '/';
+  app.setGlobalPrefix(globalPrefix, {exclude: ['']});
 
   app.enableCors({
-    origin: ['http://localhost:5173'],
+    origin: [frontApi],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

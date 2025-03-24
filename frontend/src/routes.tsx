@@ -8,8 +8,25 @@ const DashboardLayout = lazy(() => import('./layout/dashboard_layout'));
 const HomePage = lazy(() => import('./pages/dashboard/home'));
 const SettingPage = lazy(() => import('./pages/dashboard/setting'));
 const DevicePage = lazy(() => import('./pages/dashboard/device'));
-const HistoryPage = lazy(() => import('./pages/dashboard/history'));
-const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
+// const HistoryPage = lazy(() => import('./pages/dashboard/history'));
+const HistoryPage = lazy(() => import('./pages/log/log'));
+// const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
+const UserManagementPage = lazy(() => import('./pages/userManagement/userManager'));
+const TestAPI = lazy(() => import('./pages/TestAPI/testNotificationAPI'));
+
+
+const LoginPage = lazy(() => import('./pages/auth/login'));
+
+//thêm hàm tự chuyển về login nếu chưa đăng nhập, hiện tại dùng link để vào các trang khác
+
+// const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+// 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
+
+// 	if (!isAuthenticated) {
+// 		return <Navigate to='/' replace />;
+// 	}
+// 	return children;
+// };
 
 const LoadingSpinner = () => (
 	<div className='flex min-h-screen items-center justify-center'>
@@ -40,11 +57,19 @@ const gardenerRoutes: RouteObject[] = [
 const routes: RouteObject[] = [
   {
     path: "/",
-    lazy: lazya(() => import("./pages/auth/login")),
+    element: (
+		<Suspense fallback={<LoadingSpinner />}>
+			  <LoginPage />
+		</Suspense>
+	),
   },
   {
     path: "login",
-    lazy: lazya(() => import("./pages/auth/login")),
+    element: (
+		<Suspense fallback={<LoadingSpinner />}>
+			  <LoginPage />
+		</Suspense>
+	),
   },
   {
     path: 'dashboard',
@@ -58,7 +83,7 @@ const routes: RouteObject[] = [
 					index: true,
 					element: <Navigate to="home" replace />,
 				},
-        {
+        		{
           
 					path: 'home',
 					element: (
@@ -75,7 +100,7 @@ const routes: RouteObject[] = [
 						</Suspense>
 					),
 				},
-        {
+{
 					path: 'usermanager',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -83,7 +108,7 @@ const routes: RouteObject[] = [
 						</Suspense>
 					),
 				},
-        {
+        		{
 					path: 'history',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -91,7 +116,7 @@ const routes: RouteObject[] = [
 						</Suspense>
 					),
 				},
-        {
+        		{
 					path: 'setting',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -100,7 +125,7 @@ const routes: RouteObject[] = [
 					),
 				},
 			],
-  },
+  	},
   {
     path: "/admin",
     children: adminRoutes,
@@ -118,7 +143,11 @@ const routes: RouteObject[] = [
   // Test api
   {
     path: "/api",
-    lazy: lazya(() => import("./pages/userManagement/testApi")),
+	element: (
+		<Suspense fallback={<LoadingSpinner />}>
+			<TestAPI />
+		</Suspense>
+	),
   },
 ];
 

@@ -6,6 +6,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 @Module({
   imports: [PrismaModule],
   controllers: [DeviceController],
-  providers: [DeviceService]
+  providers: [DeviceService],
+  exports:[DeviceService],
 })
 export class DeviceModule {}

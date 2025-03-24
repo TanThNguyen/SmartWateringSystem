@@ -8,6 +8,7 @@
  - `types`: định nghĩa các interface hoặc type
 ## Hướng dẫn chạy
  - `npm run dev`: chạy dev server
+ -  `npm install recharts`: thư viện chart
  - `npm run build`: build ra dist/ (run build sử dụng npx server dist)
  - `npm run test`: test
  - `npm run fmt`: format sử dụng prettier
