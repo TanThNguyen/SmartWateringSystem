@@ -24,7 +24,7 @@ export default function UserManagementPage() {
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
-    address: "",
+    locationId: "",
     phone: "",
     password: "",
     role: "USER",
@@ -37,7 +37,7 @@ export default function UserManagementPage() {
       name: "Leslie Maya",
       email: "leslie@gmail.com",
       phone: "1234567890",
-      address: "Los Angeles, CA",
+      locationId: "Los Angeles, CA",
       updatedAt: "October 2, 2010",
       role: "Admin",
     },
@@ -46,7 +46,7 @@ export default function UserManagementPage() {
       name: "Josie Deck",
       email: "josie@gmail.com",
       phone: "1234567890",
-      address: "Cheyenne, WY",
+      locationId: "Cheyenne, WY",
       updatedAt: "May 20, 2015",
       role: "Admin",
     },
@@ -55,7 +55,7 @@ export default function UserManagementPage() {
       name: "Alex Pfeiffer",
       email: "alex@gmail.com",
       phone: "1234567890",
-      address: "Cheyenne, WY",
+      locationId: "Cheyenne, WY",
       updatedAt: "May 20, 2015",
       role: "Admin",
     },
@@ -64,7 +64,7 @@ export default function UserManagementPage() {
       name: "Mike Dean",
       email: "mike@gmail.com",
       phone: "1234567890",
-      address: "New York, NY",
+      locationId: "New York, NY",
       updatedAt: "July 14, 2015",
       role: "Admin",
     },
@@ -73,7 +73,7 @@ export default function UserManagementPage() {
       name: "Mateus Cunha",
       email: "mcunha@gmail.com",
       phone: "1234567890",
-      address: "Luanda, Angola",
+      locationId: "Luanda, Angola",
       updatedAt: "June 10, 2016",
       role: "Gardener",
     },
@@ -82,7 +82,7 @@ export default function UserManagementPage() {
       name: "Nave Loma",
       email: "nave@gmail.com",
       phone: "1234567890",
-      address: "Paris, FR",
+      locationId: "Paris, FR",
       updatedAt: "February 13, 2018",
       role: "Gardener",
     },
@@ -91,7 +91,7 @@ export default function UserManagementPage() {
       name: "Antony Mack",
       email: "antony@gmail.com",
       phone: "1234567890",
-      address: "London, ENG",
+      locationId: "London, ENG",
       updatedAt: "June 15, 2019",
       role: "Gardener",
     },
@@ -100,7 +100,7 @@ export default function UserManagementPage() {
       name: "Adriana da Silva",
       email: "adri@gmail.com",
       phone: "1234567890",
-      address: "Rio de Janeiro, BR",
+      locationId: "Rio de Janeiro, BR",
       updatedAt: "March 14, 2018",
       role: "Gardener",
     },
@@ -109,7 +109,7 @@ export default function UserManagementPage() {
       name: "Jorge Ferreira",
       email: "jorge@gmail.com",
       phone: "1234567890",
-      address: "Huambo, Angola",
+      locationId: "Huambo, Angola",
       updatedAt: "May 16, 2018",
       role: "INACTIVE",
     },
@@ -118,7 +118,7 @@ export default function UserManagementPage() {
       name: "Mateus Cunha",
       email: "mcunha@gmail.com",
       phone: "1234567890",
-      address: "Luanda, Angola",
+      locationId: "Luanda, Angola",
       updatedAt: "June 10, 2016",
       role: "INACTIVE",
     },
@@ -127,7 +127,7 @@ export default function UserManagementPage() {
       name: "Nave Loma",
       email: "nave@gmail.com",
       phone: "1234567890",
-      address: "Paris, FR",
+      locationId: "Paris, FR",
       updatedAt: "February 13, 2018",
       role: "INACTIVE",
     },
@@ -136,7 +136,7 @@ export default function UserManagementPage() {
       name: "Antony Mack",
       email: "antony@gmail.com",
       phone: "1234567890",
-      address: "London, ENG",
+      locationId: "London, ENG",
       updatedAt: "June 15, 2019",
       role: "INACTIVE",
     },
@@ -145,7 +145,7 @@ export default function UserManagementPage() {
       name: "Adriana da Silva",
       email: "adri@gmail.com",
       phone: "1234567890",
-      address: "Rio de Janeiro, BR",
+      locationId: "Rio de Janeiro, BR",
       updatedAt: "March 14, 2018",
       role: "INACTIVE",
     },
@@ -154,7 +154,7 @@ export default function UserManagementPage() {
       name: "Jorge Ferreira",
       email: "jorge@gmail.com",
       phone: "1234567890",
-      address: "Huambo, Angola",
+      locationId: "Huambo, Angola",
       updatedAt: "May 16, 2018",
       role: "INACTIVE",
     }
@@ -178,7 +178,7 @@ export default function UserManagementPage() {
     const inSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.address.toLowerCase().includes(searchTerm.toLowerCase());
+      user.locationId.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!inSearch) return false;
 
@@ -229,7 +229,7 @@ export default function UserManagementPage() {
       setNewUser({
         name: "",
         email: "",
-        address: "",
+        locationId: "",
         phone: "",
         password: "",
         role: "USER",
@@ -266,7 +266,7 @@ export default function UserManagementPage() {
          userId: userId,
          name: "Tên cập nhật",
          email: `newuser${Date.now()}@example.com`,
-         address: "Địa chỉ cập nhật",
+         locationId: "Địa chỉ cập nhật",
          phone: "0987654321",
          password: "newpassword123",
          role: "ADMIN",
@@ -381,7 +381,7 @@ export default function UserManagementPage() {
               <th>  </th>
               <th>Tên</th> {/* name: string; */}
               <th>Email</th> {/* email: string; */}
-              <th>Địa chỉ</th> {/* address: string; */}
+              <th>Địa chỉ</th> {/* locationId: string; */}
               <th>Số điện thoại</th>  {/* phone: string; */}
               <th>Ngày vào</th> {/*  updatedAt: Date; */}
               <th>Vai trò</th> {/* role: string; */}
@@ -407,7 +407,7 @@ export default function UserManagementPage() {
                           userId: user.userId,
                           name: user.name,
                           email: user.email,
-                          address: user.address,
+                          locationId: user.locationId,
                           phone: user.phone,
                           role: user.role,
                           password: "password123",
@@ -421,7 +421,7 @@ export default function UserManagementPage() {
                     </button>
                   </td>
                   <td>{user.email}</td>
-                  <td>{user.address}</td>
+                  <td>{user.locationId}</td>
                   <td>{user.phone}</td>
                   <td>{user.updatedAt}</td>
 
@@ -470,11 +470,11 @@ export default function UserManagementPage() {
           </label>
           <label>
             Địa chỉ:
-            {/* address: string */}
+            {/* locationId: string */}
             <input
               type="text"
-              name="address"
-              value={newUser.address}
+              name="locationId"
+              value={newUser.locationId}
               onChange={handleNewUserChange}
             />
           </label>
@@ -555,7 +555,7 @@ export default function UserManagementPage() {
             <input
               type="text"
               name="address"
-              value={updatedUser.address}
+              value={updatedUser.locationId}
               onChange={handleChange}
             />
           </label>
