@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { deviceApi } from "../../axios/device.api"; // Giả sử bạn đã tạo file device.api.ts
+import { deviceApi } from "../../axios/device.api";
 import { FindAllDevicesType, InfoDevicesType } from "../../types/device.type"; // Loại dữ liệu từ device.type
 
 const DeviceDataComponent: React.FC = () => {
