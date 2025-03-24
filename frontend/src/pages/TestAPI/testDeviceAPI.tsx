@@ -21,7 +21,15 @@ const DeviceDataComponent: React.FC = () => {
                 setData(response); // response chứa danh sách thiết bị
                 console.log(response);
             } catch (err) {
+
+                if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError("Failed to fetch devices.");
+                }
+
                 setError("Failed to fetch devices.");
+
             } finally {
                 setLoading(false);
             }
@@ -38,6 +46,8 @@ const DeviceDataComponent: React.FC = () => {
         <div>
             <h2>Device Data</h2>
             <div>
+                {data?.devices?.map((device: InfoDevicesType) => (
+                    <div key={device.deviceId}>
                 {data?.devices?.map((device: InfoDevicesType, index: number) => (
                     <div key={index}>
                         <p>Device ID: {device.deviceId}</p>
