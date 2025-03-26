@@ -19,14 +19,17 @@ const LoginPage = lazy(() => import('./pages/auth/login'));
 
 //thêm hàm tự chuyển về login nếu chưa đăng nhập, hiện tại dùng link để vào các trang khác
 
-// const AuthGuard = ({ children }: { children: React.ReactNode }) => {
-// 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
-
-// 	if (!isAuthenticated) {
-// 		return <Navigate to='/' replace />;
-// 	}
-// 	return children;
-// };
+const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+	const isAuthenticated =
+	  localStorage.getItem("isAuthenticated") === "true" ||
+	  sessionStorage.getItem("isAuthenticated") === "true";
+  
+	if (!isAuthenticated) {
+	  return <Navigate to="/login" replace />;
+	}
+	return <>{children}</>;
+  };
+  
 
 const LoadingSpinner = () => (
 	<div className='flex min-h-screen items-center justify-center'>
@@ -74,9 +77,11 @@ const routes: RouteObject[] = [
   {
     path: 'dashboard',
 			element: (
+				<AuthGuard>
 				<Suspense fallback={<LoadingSpinner />}>
-          			<DashboardLayout />
+					<DashboardLayout />
 				</Suspense>
+				</AuthGuard>
 			),
 			children: [
 				{
