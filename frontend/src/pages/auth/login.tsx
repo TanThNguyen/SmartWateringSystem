@@ -35,16 +35,26 @@ export default function LoginPage() {
         console.log(response);
         localStorage.setItem("token", JSON.stringify(accessToken));
         localStorage.setItem("isAuthenticated", "true"); 
-        localStorage.setItem(
-          role === "ADMIN" ? "adminLogin" : "gardenerLogin",
-          JSON.stringify({ status: true, expiration })
-        );
+        if (role === "ADMIN") {
+          localStorage.setItem("adminLogin", JSON.stringify({ status: true, expiration }));
+        } else if (role === "GARDENER") {
+          localStorage.setItem("gardenerLogin", JSON.stringify({ status: true, expiration }));
+        } else {
+          localStorage.removeItem("token");
+          localStorage.removeItem("isAuthenticated");
+          toast.error("Vai trò không hợp lệ");
+          setLoading(false); 
+          return; 
+        }
+
+        
         navigate("/dashboard");
         toast.success("Đăng nhập thành công!");
       } else {
         toast.error(response.data.message || "Đăng nhập thất bại!");
       }
     } catch (error) {
+      console.error(error);
       toast.error("Lỗi không xác định, vui lòng thử lại!");
     } finally {
       setLoading(false);

@@ -146,7 +146,7 @@ export default function UserManagementPage() {
 
 
   ////////////////////////////////
-  // UPDATE USER
+  //Delete
   const handleDeleteUsers = async () => {
     if (selectedUsers.length === 0) return;
     try {
@@ -159,13 +159,13 @@ export default function UserManagementPage() {
   };
 
 
+  // UPDATE USER
 
   const handleUpdateUser = async (updatedUser: UpdateUserType) => {
     try {
-      // Cập nhật locationId thay vì locationName
       const updatedUserWithLocationId = {
         ...updatedUser,
-        locationId: updatedUser.locationId, // Chắc chắn rằng locationId được truyền vào
+        locationId: updatedUser.locationId, 
       };
 
       await userApi.updateUser(updatedUserWithLocationId);
@@ -294,7 +294,7 @@ export default function UserManagementPage() {
                           userId: user.userId,
                           name: user.name,
                           email: user.email,
-                          locationId: user.locationName,
+                          locationId: "",
                           phone: user.phone,
                           role: user.role,
                           password: "password123",
@@ -431,15 +431,19 @@ export default function UserManagementPage() {
           </label>
           <select
             name="locationId"
-            value={updatedUser.locationId}  // Đảm bảo sử dụng locationId
+            value={updatedUser.locationId}  
             onChange={handleChange}
           >
+            <option value="" disabled hidden>
+              Chọn khu vực
+            </option>
             {locations.map((location) => (
               <option key={location.locationId} value={location.locationId}>
                 {location.name}
               </option>
             ))}
           </select>
+
 
           <label>
             Số điện thoại:
