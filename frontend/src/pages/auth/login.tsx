@@ -34,6 +34,7 @@ export default function LoginPage() {
         const { accessToken, role } = response.data;
         console.log(response);
         localStorage.setItem("token", JSON.stringify(accessToken));
+        localStorage.setItem("isAuthenticated", "true"); 
         localStorage.setItem(
           role === "ADMIN" ? "adminLogin" : "gardenerLogin",
           JSON.stringify({ status: true, expiration })

@@ -4,7 +4,9 @@ import PopupModal from "../../layout/popupmodal";
 import { CreateUserType, InfoUsersType, UpdateUserType, UsersRequestType } from "../../types/user.type";
 import { userApi } from "../../axios/user.api";
 import { Paginator } from "primereact/paginator";
-import { Dropdown } from "primereact/dropdown";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { FaChevronDown } from "react-icons/fa"; 
+
 import { GetLocationsRequestType } from "../../types/location.type";
 import { locationApi } from "../../axios/location.api";
 import "./user.scss"
@@ -14,7 +16,7 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<InfoUsersType[]>([]);
 
-  const [username, setUsername] = useState("User");
+  // const [username, setUsername] = useState("User");
   const [first, setFirst] = useState<number>(0);
   const [rows, setRows] = useState<number>(10);
   const [totalRecords, setTotalRecords] = useState<number>(0);
@@ -22,6 +24,7 @@ export default function UserManagementPage() {
   const [searchText, setSearchText] = useState("");
   const [permissionFilter, setPermissionFilter] = useState("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [locationIdFilter, setLocationIdFilter] = useState("ALL");
 
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -45,7 +48,7 @@ export default function UserManagementPage() {
     // if (storedUser) setUsername(storedUser);
     fetchLocations();
     fetchUsers();
-  }, [first, rows, order]);
+  }, [first, rows, order,permissionFilter,locationIdFilter]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -93,16 +96,31 @@ export default function UserManagementPage() {
     options: { label: string; value: any }[],
     onChange: (e: any) => void
   ) => (
-    <Dropdown
-
-      value={value}
-      options={options}
-      onChange={onChange}
-      placeholder={label}
-      className='selectInput'
-      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-    />
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger className="flex items-center justify-between px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-32">
+        <span className="truncate">{options.find((option) => option.value === value)?.label || label}</span>
+        <FaChevronDown className="ml-2 text-sm" />
+      </DropdownMenu.Trigger>
+  
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="bg-white border border-gray-200 rounded-md shadow-lg py-2"
+          sideOffset={5}
+        >
+          {options.map((option) => (
+            <DropdownMenu.Item
+              key={option.value}
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              onSelect={() => onChange({ value: option.value })}
+            >
+              {option.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
+  
 
   const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -140,23 +158,6 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleUpdateUsertest = async (userId: string) => {
-    const updatedUser: UpdateUserType = {
-      userId: userId,
-      name: "Tên cập nhật",
-      email: `newuser${Date.now()}@example.com`,
-      locationId: "Địa chỉ cập nhật",
-      phone: "0987654321",
-      password: "newpassword123",
-      role: "ADMIN",
-    };
-    try {
-      await userApi.updateUser(updatedUser);
-      fetchUsers();
-    } catch (error) {
-      console.error("Lỗi khi cập nhật người dùng:", error);
-    }
-  };
 
 
   const handleUpdateUser = async (updatedUser: UpdateUserType) => {
@@ -217,7 +218,8 @@ export default function UserManagementPage() {
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           className="w-full md:w-1/2 px-4 py-2 text-lg"
         />
-        {renderDropdown(
+   
+         {renderDropdown(
           "Vai trò",
           permissionFilter,
           [
@@ -227,6 +229,8 @@ export default function UserManagementPage() {
           ],
           (e) => setPermissionFilter(e.value)
         )}
+
+        
         {renderDropdown(
           "Sắp xếp",
           order,
@@ -235,8 +239,20 @@ export default function UserManagementPage() {
             { label: "Lâu nhất", value: "asc" },
           ],
           (e) => setOrder(e.value)
-        )}
+        )} 
 
+      {renderDropdown(
+        "Khu vực",
+        locationIdFilter,
+        [
+          { label: "Tất cả", value: "ALL" },
+          { label: "Khu vực 1", value: "KV1" },
+          { label: "Khu vực 2", value: "KV2" },         
+        ],
+        (e) => setLocationIdFilter(e.value),
+      )}
+
+        
         <button onClick={() => setShowAddForm(true)}
           className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
@@ -254,9 +270,8 @@ export default function UserManagementPage() {
               <th>  </th>
               <th>Tên</th> {/* name: string; */}
               <th>Email</th> {/* email: string; */}
-              <th>Khu vực</th> {/* address: string; */}
+              <th>Khu vực</th> {/* locationID: string; */}
               <th>Số điện thoại</th>  {/* phone: string; */}
-              {/* <th>Ngày vào</th>  updatedAt: Date; */}
               <th>Vai trò</th> {/* role: string; */}
             </tr>
           </thead>
@@ -274,7 +289,6 @@ export default function UserManagementPage() {
                   </td>
                   <td>
                     <button
-                      // onClick={() => handleUpdateUsertest(user.userId)}
                       onClick={() => {
                         const upuser: UpdateUserType = {
                           userId: user.userId,
@@ -307,7 +321,7 @@ export default function UserManagementPage() {
             ) : (
               <tr>
                 <td colSpan={7} className="noResults">
-                  No matching users found.
+                  Không tìm được người dùng.
                 </td>
               </tr>
             )}
@@ -345,14 +359,18 @@ export default function UserManagementPage() {
             name="locationId"
             value={newUser.locationId}
             onChange={handleNewUserChange}
-          // placeholder="Location"
           >
+            <option value="" disabled hidden>
+              Chọn khu vực
+            </option>
             {locations.map((location) => (
               <option key={location.locationId} value={location.locationId}>
                 {location.name}
               </option>
             ))}
           </select>
+
+
           <input
             type="text"
             name="phone"
