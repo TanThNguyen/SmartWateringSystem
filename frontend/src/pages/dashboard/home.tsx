@@ -1,30 +1,31 @@
 import { useEffect, useState } from "react";
 import { LONG_DATE_FORMAT, TIME_FORMAT } from "../../types/date.type";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { recordApi } from "../../axios/record.api"; 
 
 export default function DashboardPage() {
+  // Khởi tạo areaData ban đầu là rỗng
+  const [areaData, setAreaData] = useState<Record<number, { weather: string, temp: number, humidity: number, ac: number, soil: number }>>({});
+  const [activeArea, setActiveArea] = useState<number | null>(null);
   const [username, setUsername] = useState("User");
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeArea, setActiveArea] = useState(1);
   
-  const [areaData, setAreaData] = useState({
-    1: { weather: "Sunny Day", temp: 21, humidity: 80, ac: 18 },
-    2: { weather: "Cloudy",    temp: 22, humidity: 75, ac: 20 },
-    3: { weather: "Rainy",     temp: 20, humidity: 85, ac: 17 },
-    4: { weather: "Windy",     temp: 23, humidity: 70, ac: 19 },
-  });
-
   const [showModal, setShowModal] = useState(false);
-  const [newAreaData, setNewAreaData] = useState({
-    name: "",
-    temp: 0,
-    humidity: 0,
-    ac: 0,
-  });
+  const [newAreaData, setNewAreaData] = useState({ name: "" });
 
   const [showAreaList, setShowAreaList] = useState(false);
   const [editingArea, setEditingArea] = useState<number | null>(null);
-  const [editingAreaData, setEditingAreaData] = useState({ name: "", temp: 0, humidity: 0, ac: 0 });
+  const [editingAreaData, setEditingAreaData] = useState({ name: "", temp: 0, humidity: 0, ac: 0, soil: 50 });
 
+  const [temperatureChartData, setTemperatureChartData] = useState<Record<number, Array<{ time: number, temp: number }>>>({});
+  const [humidityChartData, setHumidityChartData] = useState<Record<number, Array<{ time: number, humidity: number }>>>({});
+  const [soilChartData, setSoilChartData] = useState<Record<number, Array<{ time: number, soil: number }>>>({});
+
+  const [showChartModal, setShowChartModal] = useState(false);
+  const [selectedChart, setSelectedChart] = useState("");
+  const [timeFilter, setTimeFilter] = useState(7); // days (min:1, max:7)
+
+  // Lấy username từ localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("username");
     if (storedUser) {
@@ -32,12 +33,64 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Cập nhật thời gian mỗi giây
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Call API lấy dữ liệu khu vực khi component mount
+  useEffect(() => {
+    async function fetchAreaData() {
+      try {
+        // Ví dụ: truyền params nếu cần, cấu trúc SensorDataRequestType phụ thuộc dự án
+        const params = { /* truyền các tham số cần thiết */ };
+        const response = await recordAPI.getDeviceRecords(params);
+        // Giả sử response trả về là mảng các record, chuyển đổi sang object:
+        // Ví dụ: response = [{ weather: "Kv1", temp: 35, humidity: 80, ac: 18, soil: 50 }, ...]
+        const mappedData = response.reduce((acc: any, record: any, index: number) => {
+          acc[index + 1] = record;
+          return acc;
+        }, {});
+        setAreaData(mappedData);
+        // Nếu có dữ liệu, set activeArea là khu vực đầu tiên
+        if (Object.keys(mappedData).length > 0) {
+          setActiveArea(Number(Object.keys(mappedData)[0]));
+        }
+      } catch (error) {
+        console.error("Failed to fetch device records", error);
+      }
+    }
+    fetchAreaData();
+  }, []);
+
+  // Cập nhật dữ liệu biểu đồ dựa vào thời gian và khu vực đang active
+  useEffect(() => {
+    if (activeArea && areaData[activeArea]) {
+      const newTimestamp = currentTime.getTime();
+      const threshold = currentTime.getTime() - 7 * 24 * 60 * 60 * 1000;
+      setTemperatureChartData(prev => {
+        const data = prev[activeArea] || [];
+        const updated = [...data, { time: newTimestamp, temp: areaData[activeArea].temp }]
+          .filter(d => d.time >= threshold);
+        return { ...prev, [activeArea]: updated };
+      });
+      setHumidityChartData(prev => {
+        const data = prev[activeArea] || [];
+        const updated = [...data, { time: newTimestamp, humidity: areaData[activeArea].humidity }]
+          .filter(d => d.time >= threshold);
+        return { ...prev, [activeArea]: updated };
+      });
+      setSoilChartData(prev => {
+        const data = prev[activeArea] || [];
+        const updated = [...data, { time: newTimestamp, soil: areaData[activeArea].soil }]
+          .filter(d => d.time >= threshold);
+        return { ...prev, [activeArea]: updated };
+      });
+    }
+  }, [currentTime, activeArea, areaData]);
 
   const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
   const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
@@ -52,18 +105,19 @@ export default function DashboardPage() {
       ...areaData,
       [newIndex]: {
         weather: newAreaData.name || "New Area",
-        temp: newAreaData.temp,
-        humidity: newAreaData.humidity,
-        ac: newAreaData.ac,
+        temp: 0,       // default value
+        humidity: 0,   // default value
+        ac: 0,         // default value
+        soil: 50,      // default value
       },
     });
     setActiveArea(newIndex);
-    setNewAreaData({ name: "", temp: 0, humidity: 0, ac: 0 });
+    setNewAreaData({ name: "" });
     setShowModal(false);
   };
 
   const handleCancelNewArea = () => {
-    setNewAreaData({ name: "", temp: 0, humidity: 0, ac: 0 });
+    setNewAreaData({ name: "" });
     setShowModal(false);
   };
 
@@ -79,7 +133,7 @@ export default function DashboardPage() {
   const handleEditArea = (area: number) => {
     setEditingArea(area);
     const data = areaData[area];
-    setEditingAreaData({ name: data.weather, temp: data.temp, humidity: data.humidity, ac: data.ac });
+    setEditingAreaData({ name: data.weather, temp: data.temp, humidity: data.humidity, ac: data.ac, soil: data.soil });
     setShowAreaList(false);
   };
 
@@ -91,6 +145,7 @@ export default function DashboardPage() {
         temp: editingAreaData.temp,
         humidity: editingAreaData.humidity,
         ac: editingAreaData.ac,
+        soil: editingAreaData.soil,
       },
     });
     setEditingArea(null);
@@ -110,6 +165,22 @@ export default function DashboardPage() {
     }
   };
 
+  const openChartModal = (chartType: string) => {
+    setSelectedChart(chartType);
+    setShowChartModal(true);
+  };
+
+  const getFilteredChartData = () => {
+    const threshold = currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000;
+    let data: Array<any> = [];
+    if (activeArea) {
+      if (selectedChart === "temperature") data = temperatureChartData[activeArea] || [];
+      else if (selectedChart === "humidity") data = humidityChartData[activeArea] || [];
+      else if (selectedChart === "soil") data = soilChartData[activeArea] || [];
+    }
+    return data.filter(d => d.time >= threshold);
+  };
+
   return (
     <div
       className="relative min-h-screen bg-cover bg-center"
@@ -119,10 +190,8 @@ export default function DashboardPage() {
     >
       {/* Thanh trên cùng */}
       <div className="absolute top-0 left-0 w-full flex items-center justify-between p-4 bg-black/40">
-        {/* Phần bên trái: icon hoặc nút menu, thông báo */}
         <div className="flex items-center space-x-4">
           <div className="relative">
-            {/* Thông báo (badge) */}
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
               1
             </span>
@@ -130,23 +199,20 @@ export default function DashboardPage() {
               <i className="fas fa-bell"></i>
             </button>
           </div>
-          {/* Tên trang hoặc logo */}
           <span className="text-white text-lg font-semibold">
             Welcome Farm, {username}
           </span>
         </div>
-
-        {/* Phần bên phải: thời gian */}
         <div className="text-white text-right">
           <div className="text-sm font-medium">{dateString}</div>
           <div className="text-sm">{timeString}</div>
         </div>
       </div>
 
-      {/* Khối nội dung chính, có hiệu ứng mờ (glassmorphism) */}
+      {/* Nội dung chính */}
       <div className="absolute inset-0 flex items-center justify-center mt-16">
         <div className="bg-white/30 backdrop-blur-md rounded-xl w-11/12 max-w-5xl p-6">
-          {/* Thanh chọn các khu vực (Area) */}
+          {/* Thanh chọn các khu vực */}
           <div className="flex space-x-4 mb-6">
             {Object.keys(areaData).map((areaKey) => {
               const area = Number(areaKey);
@@ -156,7 +222,7 @@ export default function DashboardPage() {
                   onClick={() => setActiveArea(area)}
                   className={`px-4 py-2 rounded-lg shadow-sm font-semibold ${activeArea === area ? "bg-white/40 text-gray-800" : "bg-white/10 text-gray-800"}`}
                 >
-                  Area {area}
+                  {areaData[area]?.weather || `Area ${area}`}
                 </button>
               );
             })}
@@ -175,96 +241,86 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Hàng hiển thị thông tin (thời tiết, độ ẩm, thiết bị) */}
+          {/* Hiển thị thông tin khu vực */}
           {activeArea && areaData[activeArea] ? (
             <div className="flex flex-wrap justify-between gap-4 mb-6">
               <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-                <div className="text-xl font-semibold mb-1">{areaData[activeArea].weather}</div>
+                <div className="text-xl font-semibold mb-1">Nhiệt độ</div>
                 <div className="text-3xl font-bold">{areaData[activeArea].temp}°C</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  Nhiệt độ ngoài trời
+                  Temperature
                 </div>
               </div>
               <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
                 <div className="text-xl font-semibold mb-1">Độ ẩm</div>
                 <div className="text-3xl font-bold">{areaData[activeArea].humidity}%</div>
-                <div className="text-sm text-gray-600 mt-1">Độ ẩm không khí</div>
+                <div className="text-sm text-gray-600 mt-1">Air humidity</div>
               </div>
               <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-                <div className="text-xl font-semibold mb-1">Air Conditioner</div>
-                <div className="text-3xl font-bold">{areaData[activeArea].ac}°C</div>
-                <div className="text-sm text-gray-600 mt-1">Cooling mode</div>
+                <div className="text-xl font-semibold mb-1">Độ ẩm đất</div>
+                <div className="text-3xl font-bold">{areaData[activeArea].soil}%</div>
+                <div className="text-sm text-gray-600 mt-1">Soil moisture</div>
               </div>
             </div>
           ) : (
             <div className="text-center py-6">No area selected</div>
           )}
 
-          {/* Khu vực biểu đồ (placeholder) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white/80 rounded-lg p-4">
+          {/* Biểu đồ */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div onClick={() => openChartModal("temperature")} className="cursor-pointer bg-white/80 rounded-lg p-4">
               <div className="text-lg font-semibold mb-2">Average Temperature</div>
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border-b py-2 px-4">Area</th>
-                    <th className="border-b py-2 px-4">Temperature (°C)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 1</td>
-                    <td className="border-b py-2 px-4">22</td>
-                  </tr>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 2</td>
-                    <td className="border-b py-2 px-4">24</td>
-                  </tr>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 3</td>
-                    <td className="border-b py-2 px-4">23</td>
-                  </tr>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 4</td>
-                    <td className="border-b py-2 px-4">21</td>
-                  </tr>
-                </tbody>
-              </table>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={temperatureChartData[activeArea || 0] || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="time" 
+                    tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" })}
+                  />
+                  <YAxis domain={['dataMin - 2', 'dataMax + 2']} />
+                  <Tooltip labelFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" })} />
+                  <Legend />
+                  <Line type="monotone" dataKey="temp" stroke="#8884d8" activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-            <div className="bg-white/80 rounded-lg p-4">
+            <div onClick={() => openChartModal("humidity")} className="cursor-pointer bg-white/80 rounded-lg p-4">
               <div className="text-lg font-semibold mb-2">Average Humidity</div>
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border-b py-2 px-4">Area</th>
-                    <th className="border-b py-2 px-4">Humidity (%)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 1</td>
-                    <td className="border-b py-2 px-4">75</td>
-                  </tr>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 2</td>
-                    <td className="border-b py-2 px-4">80</td>
-                  </tr>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 3</td>
-                    <td className="border-b py-2 px-4">78</td>
-                  </tr>
-                  <tr>
-                    <td className="border-b py-2 px-4">Area 4</td>
-                    <td className="border-b py-2 px-4">82</td>
-                  </tr>
-                </tbody>
-              </table>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={humidityChartData[activeArea || 0] || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="time" 
+                    tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" })}
+                  />
+                  <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
+                  <Tooltip labelFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" })} />
+                  <Legend />
+                  <Line type="monotone" dataKey="humidity" stroke="#82ca9d" activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div onClick={() => openChartModal("soil")} className="cursor-pointer bg-white/80 rounded-lg p-4">
+              <div className="text-lg font-semibold mb-2">Soil Moisture</div>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={soilChartData[activeArea || 0] || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="time" 
+                    tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" })}
+                  />
+                  <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
+                  <Tooltip labelFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" })} />
+                  <Legend />
+                  <Line type="monotone" dataKey="soil" stroke="#FF8042" activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Modal for adding a new area */}
+      {/* Modal thêm khu vực */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded-lg w-80">
@@ -274,46 +330,19 @@ export default function DashboardPage() {
               <input 
                 type="text" 
                 value={newAreaData.name} 
-                onChange={(e) => setNewAreaData({ ...newAreaData, name: e.target.value })} 
-                className="w-full border rounded p-1" 
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-sm">Nhiệt độ ngoài trời</label>
-              <input 
-                type="number" 
-                value={newAreaData.temp} 
-                onChange={(e) => setNewAreaData({ ...newAreaData, temp: Number(e.target.value) })} 
-                className="w-full border rounded p-1" 
-              />
-            </div>
-            <div className="mb-2">
-              <label className="block text-sm">Độ ẩm không khí</label>
-              <input 
-                type="number" 
-                value={newAreaData.humidity} 
-                onChange={(e) => setNewAreaData({ ...newAreaData, humidity: Number(e.target.value) })} 
-                className="w-full border rounded p-1" 
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm">Cooling mode</label>
-              <input 
-                type="number" 
-                value={newAreaData.ac} 
-                onChange={(e) => setNewAreaData({ ...newAreaData, ac: Number(e.target.value) })} 
+                onChange={(e) => setNewAreaData({ name: e.target.value })} 
                 className="w-full border rounded p-1" 
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <button onClick={handleCancelNewArea} className="px-4 py-1 bg-gray-300 rounded">Hủy</button>
+              <button onClick={() => { setNewAreaData({ name: "" }); setShowModal(false); }} className="px-4 py-1 bg-gray-300 rounded">Hủy</button>
               <button onClick={handleSaveNewArea} className="px-4 py-1 bg-blue-500 text-white rounded">Lưu</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* New Modal for listing areas with edit/delete */}
+      {/* Modal danh sách areas */}
       {showAreaList && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded-lg w-96">
@@ -322,7 +351,6 @@ export default function DashboardPage() {
               <thead>
                 <tr>
                   <th className="border-b py-2">Area</th>
-                  {/* Removed the "Tên" column */}
                   <th className="border-b py-2">Actions</th>
                 </tr>
               </thead>
@@ -348,7 +376,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* New modal for editing an area */}
+      {/* Modal chỉnh sửa area */}
       {editingArea !== null && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded-lg w-80">
@@ -363,7 +391,7 @@ export default function DashboardPage() {
               />
             </div>
             <div className="mb-2">
-              <label className="block text-sm">Nhiệt độ ngoài trời</label>
+              <label className="block text-sm">Temperature</label>
               <input 
                 type="number" 
                 value={editingAreaData.temp} 
@@ -372,7 +400,7 @@ export default function DashboardPage() {
               />
             </div>
             <div className="mb-2">
-              <label className="block text-sm">Độ ẩm không khí</label>
+              <label className="block text-sm">Air humidity</label>
               <input 
                 type="number" 
                 value={editingAreaData.humidity} 
@@ -380,7 +408,7 @@ export default function DashboardPage() {
                 className="w-full border rounded p-1" 
               />
             </div>
-            <div className="mb-4">
+            <div className="mb-2">
               <label className="block text-sm">Cooling mode</label>
               <input 
                 type="number" 
@@ -389,9 +417,72 @@ export default function DashboardPage() {
                 className="w-full border rounded p-1" 
               />
             </div>
+            <div className="mb-4">
+              <label className="block text-sm">Độ ẩm đất</label>
+              <input 
+                type="number" 
+                value={editingAreaData.soil} 
+                onChange={(e) => setEditingAreaData({ ...editingAreaData, soil: Number(e.target.value) })}
+                className="w-full border rounded p-1" 
+              />
+            </div>
             <div className="flex justify-end space-x-2">
               <button onClick={() => handleSaveEditArea(editingArea)} className="px-4 py-1 bg-blue-500 text-white rounded">Save</button>
               <button onClick={handleCancelEditArea} className="px-4 py-1 bg-gray-300 rounded">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal biểu đồ đầy đủ với bộ lọc thời gian */}
+      {showChartModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-lg w-11/12 max-w-3xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                {selectedChart === "temperature" ? "Temperature" : selectedChart === "humidity" ? "Humidity" : "Soil Moisture"} Chart
+              </h2>
+              <button onClick={() => setShowChartModal(false)} className="px-4 py-1 bg-gray-300 rounded">Close</button>
+            </div>
+            <div className="flex space-x-2 mb-4">
+              <button onClick={() => setTimeFilter(1)} className={`px-3 py-1 rounded ${timeFilter === 1 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}>24 giờ gần nhất</button>
+              <button onClick={() => setTimeFilter(3)} className={`px-3 py-1 rounded ${timeFilter === 3 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}>3 ngày trước</button>
+              <button onClick={() => setTimeFilter(7)} className={`px-3 py-1 rounded ${timeFilter === 7 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}>1 tuần trước</button>
+              <button onClick={() => setTimeFilter(30)} className={`px-3 py-1 rounded ${timeFilter === 30 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}>1 tháng trước</button>
+            </div>
+            <div className="bg-white/80 rounded-lg p-4">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={getFilteredChartData()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="time" 
+                    domain={[currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000, currentTime.getTime()]}
+                    tickFormatter={time => {
+                      const d = new Date(time);
+                      return d.toLocaleDateString("vi-VN", { day:"2-digit", month:"2-digit", year:"numeric" }) + " " +
+                             d.toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+                    }} 
+                  />
+                  <YAxis />
+                  <Tooltip 
+                    labelFormatter={time => {
+                      const d = new Date(time);
+                      return d.toLocaleDateString("vi-VN", { day:"2-digit", month:"2-digit", year:"numeric" }) + " " +
+                             d.toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+                    }} 
+                  />
+                  <Legend />
+                  {selectedChart === "temperature" && (
+                    <Line type="monotone" dataKey="temp" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  )}
+                  {selectedChart === "humidity" && (
+                    <Line type="monotone" dataKey="humidity" stroke="#82ca9d" activeDot={{ r: 8 }} />
+                  )}
+                  {selectedChart === "soil" && (
+                    <Line type="monotone" dataKey="soil" stroke="#FF8042" activeDot={{ r: 8 }} />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
