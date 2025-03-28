@@ -131,13 +131,14 @@ export default function UserManagementPage() {
   const handleDeleteDevice = async () => {
     if (selectedDevice.length === 0) return;
     try {
-      await deviceApi.deleteDevices({ deviceIds: selectedDevice }); // 🔥 Sửa ở đây
+      await deviceApi.deleteDevices({ deviceIds: selectedDevice }); 
       setSelectedDevice([]);
       fetchDevice();
     } catch (error) {
       console.error("Lỗi khi xóa thiết bị:", error);
     }
   };
+
   const toggleSelectUser = (userId: string) => {
     setSelectedDevice((prev) =>
       prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
@@ -206,6 +207,7 @@ export default function UserManagementPage() {
               <th>Tên</th> {/* name: string; */}
               <th>Địa điểm</th> {/* address: string; */}
               <th>Loại</th> {/* role: string; */}
+              <th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -242,13 +244,14 @@ export default function UserManagementPage() {
                   </td>
                   <td>{device.locationName}</td>
                   <td>{device.type}</td>
+                  <td> {device.status}</td>
 
 
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="noResults">
+                <td colSpan={5} className="noResults">
                   No matching device found.
                 </td>
               </tr>
@@ -286,7 +289,6 @@ export default function UserManagementPage() {
               value={newDevice.type}
               onChange={handleNewDeviceChange}
             >
-              <option value="All">Type</option>
               <option value="PUMP">PUMP</option>
               <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
               <option value="DHT20_SENSOR">DHT20_SENSOR</option>
