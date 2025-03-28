@@ -1,20 +1,29 @@
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DeviceStatus, DeviceType, InfoDevicesType } from "../../types/device.type";
+// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { DeviceStatus, DeviceType, InfoDevicesType,  GetDevicesRequestType, PumpAttributes, FanAttributes, MoistureSensorAttributes, DHT20SensorAttributes, FindAllDevicesType, AddDeviceType, DeleteDevicesType, EditDeviceType, DeviceIdType} from "../../types/device.type";
 import { deviceApi } from "../../axios/device.api";
 import "./device.scss"
 
 
 export default function UserManagementPage() {
+  const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("User");
   const [searchTerm, setSearchTerm] = useState("");
+  const [first, setFirst] = useState<number>(0);
+  const [rows, setRows] = useState<number>(10);
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [searchText, setSearchText] = useState("");
+  const [locationIdFilter, setLocationIdFilter] = useState("");
+  const [devices, setDevices] = useState<InfoDevicesType[]>([]);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+
 
   // Hiển thị form thêm thông tin chi tiết của device
   const [showInfoForm, setShowInfoForm] = useState(false);
 
-  const [permissionFilter, setPermissionFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const [selectedDevice, setSelectedDevice] = useState<string[]>([]);
   const [selectedDeviceInfo, setSelectedDeviceInfo] = useState<InfoDevicesType | null>(null);
@@ -28,36 +37,55 @@ export default function UserManagementPage() {
     status: DeviceStatus.ACTIVE,
   });
 
-  const usersDevice = [
-    {
-      deviceId: "1",
-      name: "Soil Moisture Sensor",
-      type: DeviceType.MOISTURE_SENSOR,
-      locationName: "Khu 1",
-      status: DeviceStatus.ACTIVE,
-    },
-  ];
-  useEffect(() => {
-    const storedUser = localStorage.getItem("username");
-    if (storedUser) {
-      setUsername(storedUser);
-    }
-  }, []);
 
-  const generateChartData = (values: number[]) => {
-    const startHour = 5;
-    const limitedValues = values.slice(-10); // Lấy 10 giá trị cuối cùng
-    const startIndex = Math.max(0, values.length - 10);
 
-    return limitedValues.map((value, index) => ({
-      time: `${startHour + startIndex + index}:00 ${startHour + startIndex + index >= 12 ? "PM" : "AM"
-        }`,
-      value: value,
-    }));
-  };
 
-  // Lọc theo tên, địa điểm
-  const filteredUsers = usersDevice.filter((device) => {
+  const fetchDevice = async () => {
+      setLoading(true);
+      const validStatus: DeviceStatus | 'ALL' | undefined =
+      statusFilter === "All" ? "ALL" : (statusFilter as DeviceStatus); 
+      const request: GetDevicesRequestType = {
+        page: Math.ceil(first / rows) + 1, // Tính trang hiện tại
+        items_per_page: rows, // Số thiết bị trên mỗi trang
+        search: searchText.trim(), // Tìm kiếm theo chuỗi người dùng nhập
+        status: validStatus,  
+        locationName: locationIdFilter, 
+        order, 
+      };
+      try {
+        const response = await deviceApi.getAllDevices(request);
+        setDevices(response.devices);
+        setTotalRecords(response.total);
+        setFirst((response.currentPage - 1) * rows);
+      } catch (error) {
+        toast.error("Lỗi khi tải danh sách người dùng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+
+    useEffect(() => {
+      // const storedUser = localStorage.getItem("username");
+      // // if (storedUser) {
+      // //   setUsername(storedUser);
+      // // }
+      fetchDevice();
+    }, [first, rows, statusFilter, order, searchText, locationIdFilter]);
+
+  // const generateChartData = (values: number[]) => {
+  //   const startHour = 5;
+  //   const limitedValues = values.slice(-10); // Lấy 10 giá trị cuối cùng
+  //   const startIndex = Math.max(0, values.length - 10);
+
+  //   return limitedValues.map((value, index) => ({
+  //     time: `${startHour + startIndex + index}:00 ${startHour + startIndex + index >= 12 ? "PM" : "AM"
+  //       }`,
+  //     value: value,
+  //   }));
+  // };
+
+  const filteredUsers = devices.filter((device) => {
     const inSearch =
       device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.locationName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -65,21 +93,17 @@ export default function UserManagementPage() {
     if (!inSearch) return false;
 
     // Lọc theo loại
-    if (permissionFilter !== "All" && device.type !== permissionFilter) {
-      return false;
-    }
+    // if (statusFilter !== "All" && device.type !== statusFilter) {
+    //   return false;
+    // }
 
     return DeviceStatus.ACTIVE;
   });
 
 
-  /// chưa xong,  API
-  const fetchDevice = () => {
-    console.log("Fetching users...");
-  };
 
 
-  // Xử lý thay đổi giá trị của form thêm user
+
   const handleNewDeviceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewDevice((prev) => ({ ...prev, [name]: value }));
@@ -128,6 +152,8 @@ export default function UserManagementPage() {
 
   return (
     <div className="container">
+
+      {/* search */}
       <div className="filterContainer">
         <input
           type="text"
@@ -135,22 +161,30 @@ export default function UserManagementPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-8 px-4 py-2 text-lg"
+          
         />
 
         {/* //thanh lọc theo type */}
         <select
-          value={permissionFilter}
-          onChange={(e) => setPermissionFilter(e.target.value)}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
           className="selectInput"
         >
-          <option value="All">Type</option>
-          <option value="PUMP">PUMP</option>
-          <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
-          <option value="DHT20_SENSOR">DHT20_SENSOR</option>
-          <option value="LCD">LCD</option>
-          <option value="RELAY">RELAY</option>
+          <option value="All">All</option>
+          <option value={DeviceStatus.ACTIVE}>ACTIVE</option>
+          <option value={DeviceStatus.INACTIVE}>INACTIVE</option>
         </select>
 
+
+        {/* thanh lọc theo order */}
+        <select
+          value={order}
+          onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
+          className="selectInput"
+        >
+          <option value="asc">Mới nhất</option>
+          <option value="desc">Lâu nhất</option>
+         </select>
 
         {/* chưa có tác dụng */}
         <button onClick={() => setShowAddForm(true)}
