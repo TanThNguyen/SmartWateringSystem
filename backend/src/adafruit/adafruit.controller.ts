@@ -9,10 +9,33 @@ export class AdafruitController {
 
   @Get('feed')
   @Public()
-  async getFeedData(@Query('feedName') feedName: string) {
+  async getFeedData(
+    @Query('feedName') feedName: string,
+  ) {
     console.log(feedName);
     return this.adafruitService.getFeedData(feedName);
   }
+
+  @Get('moisture')
+  @Public()
+  async getMoistureData(
+    @Query('feedName') feedName: string,
+    @Query('deviceId') deviceId: string
+  ) {
+    console.log(feedName, deviceId);
+    return this.adafruitService.fetchMoistureData(feedName, deviceId);
+  }
+
+  @Get('dht20')
+  @Public()
+  async getDHT20Data(
+    @Query('feedName') feedName: string,
+    @Query('deviceId') deviceId: string
+  ) {
+    console.log(feedName, deviceId);
+    return this.adafruitService.fetchDHT20Data(feedName, deviceId);
+  }
+
   @Post('set')
   @Public()
   async sendFeedData(@Body() body: { feedName: string; value: string }) {
@@ -61,7 +84,9 @@ export class AdafruitController {
   }
 
   @Get('sensor')
-  async getSensorData(@Query('feedName') feedName: string) {
+  async getSensorData(
+    @Query('feedName') feedName: string,
+  ) {
     return this.adafruitService.getSensorData(feedName);
   }
 

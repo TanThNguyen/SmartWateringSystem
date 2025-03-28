@@ -19,8 +19,8 @@ export const scheduleWorker = new Worker(
     console.log(`🔹 Executing job for device ${deviceId}: ${action}`);
 
     // Gửi lệnh đến Adafruit IO
-    const adafruitService = new (await import("../adafruit/adafruit.service")).AdafruitService();
-    await adafruitService.sendFeedData(deviceId, action);
+    // const adafruitService = new (await import("../adafruit/adafruit.service")).AdafruitService();
+    // await adafruitService.sendFeedData(deviceId, action);
 
     console.log(`✅ Device ${deviceId} - Action: ${action} executed`);
   },

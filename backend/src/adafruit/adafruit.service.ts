@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Device, DeviceType } from '@prisma/client';
 import { DateTime } from 'luxon';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AdafruitService {
@@ -8,6 +9,9 @@ export class AdafruitService {
   private readonly AIO_KEY = 'aio_geGY19NFH3nv6m1rAj3unlge1M1q';
   private readonly BASE_URL = `https://io.adafruit.com/api/v2/${this.AIO_USERNAME}`;
 
+  constructor(
+    private prismaService: PrismaService,
+  ) { }
   // Lấy dữ liệu từ một feed và chuyển đổi thời gian về Asia/Ho_Chi_Minh (UTC+7)
   async getFeedData(feedName: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
@@ -28,6 +32,111 @@ export class AdafruitService {
         .setZone('Asia/Ho_Chi_Minh')
         .toFormat('yyyy-MM-dd HH:mm:ss'),
     }));
+  }
+
+  async fetchMoistureData(feedName: string, deviceId: string): Promise<any> {
+    const url = `${this.BASE_URL}/feeds/${feedName}/data`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'X-AIO-Key': this.AIO_KEY },
+    });
+
+    if (!response.ok) {
+      throw new Error(`❌ Failed to fetch moisture data: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    const formattedData = data.map((item: any) => ({
+      sensorId: deviceId,
+      timestamp: DateTime.fromISO(item.created_at, { zone: 'utc' })
+        .setZone('Asia/Ho_Chi_Minh')
+        .toJSDate(),
+      soilMoisture: parseFloat(item.value),
+    }));
+
+    await this.prismaService.moistureRecord.createMany({
+      data: formattedData,
+      skipDuplicates: true,
+    });
+
+    console.log(`✅ Moisture data stored successfully for ${feedName}`);
+    return formattedData;
+  }
+
+  async fetchDHT20Data(feedName: string, deviceId: string): Promise<any> {
+    const nhietDoFeed = feedName.replace(/^DHT20/, 'nhietdo');
+    const doAmFeed = feedName.replace(/^DHT20/, 'doam');
+
+    const [nhietDoData, doAmData] = await Promise.all([
+      this.fetchAdafruitFeed(nhietDoFeed),
+      this.fetchAdafruitFeed(doAmFeed),
+    ]);
+
+    const nhietDoMap = new Map(
+      nhietDoData.map((item: any) => [
+        DateTime.fromISO(item.created_at, { zone: 'utc' })
+          .setZone('Asia/Ho_Chi_Minh')
+          .toMillis(),
+        parseFloat(item.value),
+      ])
+    );
+
+    const doAmMap = new Map(
+      doAmData.map((item: any) => [
+        DateTime.fromISO(item.created_at, { zone: 'utc' })
+          .setZone('Asia/Ho_Chi_Minh')
+          .toMillis(),
+        parseFloat(item.value),
+      ])
+    );
+
+    type DHT20RecordType = {
+      sensorId: string;
+      timestamp: Date;
+      temperature: number;
+      humidity: number;
+    };
+    
+    const matchedRecords: DHT20RecordType[] = [];
+    
+    for (const [timestamp, temperature] of nhietDoMap) {
+      if (doAmMap.has(timestamp)) {
+        matchedRecords.push({
+          sensorId: deviceId,
+          timestamp: new Date(timestamp),
+          temperature,
+          humidity: doAmMap.get(timestamp) ?? 0,
+        });
+      }
+    }
+
+    if (matchedRecords.length > 0) {
+      await this.prismaService.dHT20Record.createMany({
+        data: matchedRecords,
+        skipDuplicates: true,
+      });
+      console.log(`✅ DHT20 data stored successfully for ${feedName}`);
+    } else {
+      console.log(`⚠️ No matching DHT20 records found for ${feedName}`);
+    }
+
+    return matchedRecords;
+  }
+
+  private async fetchAdafruitFeed(feedName: string): Promise<any[]> {
+    const url = `${this.BASE_URL}/feeds/${feedName}/data`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'X-AIO-Key': this.AIO_KEY },
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Failed to fetch ${feedName}: ${response.statusText}`);
+      return [];
+    }
+
+    return response.json();
   }
 
   // Gửi dữ liệu lên Adafruit IO
@@ -147,19 +256,19 @@ export class AdafruitService {
 
   async getFeedConfig(feedName: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}`;
-  
+
     try {
       const response = await fetch(url, {
         method: 'GET',
         headers: { 'X-AIO-Key': this.AIO_KEY },
       });
-  
+
       if (!response.ok) {
         throw new Error(`❌ API Error (${response.status}): ${response.statusText}`);
       }
-  
+
       const data = await response.json();
-  console.log(data);
+      console.log(data);
       return {
         name: data.name,
         key: data.key,
@@ -174,7 +283,7 @@ export class AdafruitService {
       return null;
     }
   }
-  
+
 
 
 
