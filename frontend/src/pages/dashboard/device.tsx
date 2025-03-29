@@ -1,12 +1,12 @@
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
 // import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DeviceStatus, DeviceType, InfoDevicesType,  GetDevicesRequestType} from "../../types/device.type";
+import { DeviceStatus, DeviceType, InfoDevicesType, GetDevicesRequestType } from "../../types/device.type";
 import { deviceApi } from "../../axios/device.api";
 import "./device.scss"
-import { recordAPI } from "../../axios/record.api";  
-import { SensorDataResponseType, SensorDataRequestType }  from "../../types/record.type";
+import { recordAPI } from "../../axios/record.api";
+import { SensorDataResponseType, SensorDataRequestType } from "../../types/record.type";
 import {
   LineChart,
   Line,
@@ -30,7 +30,7 @@ export default function UserManagementPage() {
   const [devices, setDevices] = useState<InfoDevicesType[]>([]);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
- 
+
   // Hiển thị form thêm thông tin chi tiết của device
   const [showInfoForm, setShowInfoForm] = useState(false);
 
@@ -44,11 +44,11 @@ export default function UserManagementPage() {
   const [recordData, setRecordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const [temperatureChartData, setTemperatureChartData] = useState<Record<string, Array<{ time: number, temp: number }>>>({});
-  const [humidityChartData, setHumidityChartData] = useState<Record<string, Array<{ time: number, humidity: number }>>>({});
-  const [soilChartData, setSoilChartData] = useState<Record<string, Array<{ time: number, soil: number }>>>({});
+  const [temperatureChartData, setTemperatureChartData] = useState<Array<{ time: number, temp: number }>>([]);
+  const [humidityChartData, setHumidityChartData] = useState<Array<{ time: number, humidity: number }>>([]);
+  const [soilChartData, setSoilChartData] = useState<Array<{ time: number, soil: number }>>([]);
   const [timeFilter, setTimeFilter] = useState(30); // days (min:1, max:7)
-  
+
   const [newDevice, setNewDevice] = useState({
     name: "",
     type: DeviceType.MOISTURE_SENSOR,
@@ -60,90 +60,99 @@ export default function UserManagementPage() {
 
 
   const fetchDevice = async () => {
-      setLoading(true);
-      const validStatus: DeviceStatus | 'ALL' | undefined =
-      statusFilter === "All" ? "ALL" : (statusFilter as DeviceStatus); 
-      const request: GetDevicesRequestType = {
-        page: Math.ceil(first / rows) + 1, // Tính trang hiện tại
-        items_per_page: rows, // Số thiết bị trên mỗi trang
-        search: searchText.trim(), // Tìm kiếm theo chuỗi người dùng nhập
-        status: validStatus,  
-        locationName: locationIdFilter, 
-        order, 
-      };
-      try {
-        const response = await deviceApi.getAllDevices(request);
-        setDevices(response.devices);
-        setTotalRecords(response.total);
-        setFirst((response.currentPage - 1) * rows);
-      } catch (error) {
-        toast.error("Lỗi khi tải danh sách người dùng");
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    const validStatus: DeviceStatus | 'ALL' | undefined =
+      statusFilter === "All" ? "ALL" : (statusFilter as DeviceStatus);
+    const request: GetDevicesRequestType = {
+      page: Math.ceil(first / rows) + 1, // Tính trang hiện tại
+      items_per_page: rows, // Số thiết bị trên mỗi trang
+      search: searchText.trim(), // Tìm kiếm theo chuỗi người dùng nhập
+      status: validStatus,
+      locationName: locationIdFilter,
+      order,
     };
-
-    //sửa lỗi không lấy được dữ liệu từ API
-  const fetchDeviceData = async (selectedDevice: string): Promise<Record<string, { temp: number; humidity: number; soil: number }>> => {
-      try {
-          const params: SensorDataRequestType = {
-              deviceId: selectedDevice,
-              start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),  // 60
-              stop: new Date().toISOString(),
-          };
-          
-          const response: SensorDataResponseType = await recordAPI.getDeviceRecords(params);
-          if (!response) return {};
-          
-          const newRecordData: Record<string, { temp: number; humidity: number; soil: number }> = {};
-          
-          response.dht20?.forEach(record => {
-              const timestamp = new Date(record.timestamp).getTime();
-              newRecordData[timestamp] = {
-                  temp: record._avg.temperature ?? 0,
-                  humidity: record._avg.humidity ?? 0,
-                  soil: 0, 
-              };
-          });
-          
-          response.moisture?.forEach(record => {
-              const timestamp = new Date(record.timestamp).getTime();
-              if (newRecordData[timestamp]) {
-                  newRecordData[timestamp].soil = record._avg.soilMoisture ?? 0;
-              } else {
-                  newRecordData[timestamp] = { temp: 0, humidity: 0, soil: record._avg.soilMoisture ?? 0 };
-              }
-          });
-          console.log("newRecordData", newRecordData);
-
-          return newRecordData;
-      } catch (error) {
-          console.error("Error fetching device data:", error);
-          return {};
-      }
+    try {
+      const response = await deviceApi.getAllDevices(request);
+      setDevices(response.devices);
+      setTotalRecords(response.total);
+      setFirst((response.currentPage - 1) * rows);
+    } catch (error) {
+      toast.error("Lỗi khi tải danh sách người dùng");
+    } finally {
+      setLoading(false);
+    }
   };
-  
-    useEffect(() => {
-      
-      fetchDevice();
-    }, [first, rows, statusFilter, order, searchText, locationIdFilter]);
-    //sửa lỗi không lấy được dữ liệu từ API
 
-    useEffect(() => {
+  //sửa lỗi không lấy được dữ liệu từ API
+  const fetchDeviceData = async (selectedDevice: string) => {
+    try {
+      const params: SensorDataRequestType = {
+        deviceId: selectedDevice,
+        start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 ngày
+        stop: new Date().toISOString(),
+      };
 
-      if (selectedDeviceInfo?.deviceId) {
-        fetchDeviceData(selectedDeviceInfo.deviceId).then(response => {
-              if (response) {
-                  setRecordData(response);
-              }
-          });
+      const response = await recordAPI.getDeviceRecords(params);
+      if (!response || response.length === 0) return;
+
+      console.log("Device Info: ", selectedDeviceInfo);
+
+      if (selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR) {
+        const newSoilChartData = response.map((record: { timestamp: string; soilMoisture: number }) => ({
+          time: new Date(record.timestamp).getTime(),
+          soil: record.soilMoisture ?? 0,
+        }));
+
+        setSoilChartData(newSoilChartData);
+        console.log("Soil Chart Data:", newSoilChartData);
       }
 
+      else if (selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR) {
+        const newTemperatureChartData = response.map((record: { timestamp: string; temperature: number }) => ({
+          time: new Date(record.timestamp).getTime(),
+          temp: record.temperature ?? 0,
+        }));
+
+        const newHumidityChartData = response.map((record: { timestamp: string; humidity: number }) => ({
+          time: new Date(record.timestamp).getTime(),
+          humidity: record.humidity ?? 0,
+        }));
+
+        setTemperatureChartData(newTemperatureChartData);
+        setHumidityChartData(newHumidityChartData);
+
+        console.log("Temperature Chart Data:", newTemperatureChartData);
+        console.log("Humidity Chart Data:", newHumidityChartData);
+      }
+
+    } catch (error) {
+      console.error("Error fetching device data:", error);
+    }
+  };
 
 
-  }, [selectedDeviceInfo , currentTime]);
+  useEffect(() => {
 
-      //sửa lỗi không lấy được dữ liệu từ API
+    fetchDevice();
+  }, [first, rows, statusFilter, order, searchText, locationIdFilter]);
+  //sửa lỗi không lấy được dữ liệu từ API
+
+  useEffect(() => {
+
+    if (selectedDeviceInfo?.deviceId && (selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR || selectedDeviceInfo.type === DeviceType.DHT20_SENSOR)) {
+      // fetchDeviceData(selectedDeviceInfo.deviceId).then(response => {
+      //   if (response) {
+      //     setRecordData(response);
+      //   }
+      // });
+      fetchDeviceData(selectedDeviceInfo.deviceId);
+    }
+
+
+
+  }, [selectedDeviceInfo, currentTime]);
+
+  //sửa lỗi không lấy được dữ liệu từ API
 
   useEffect(() => {
     if (!recordData || !selectedDeviceInfo) return;
@@ -152,7 +161,7 @@ export default function UserManagementPage() {
     const newTimestamp = currentTime.getTime();
     const threshold = newTimestamp - 30 * 24 * 60 * 60 * 1000;
 
-    if(!selectedDeviceInfo) return;
+    if (!selectedDeviceInfo) return;
     setTemperatureChartData(prev => ({
       ...prev,
       [selectedDeviceInfo.deviceId]: Object.entries(recordData)
@@ -221,7 +230,7 @@ export default function UserManagementPage() {
   const handleDeleteDevice = async () => {
     if (selectedDevice.length === 0) return;
     try {
-      await deviceApi.deleteDevices({ deviceIds: selectedDevice }); 
+      await deviceApi.deleteDevices({ deviceIds: selectedDevice });
       setSelectedDevice([]);
       fetchDevice();
     } catch (error) {
@@ -240,8 +249,8 @@ export default function UserManagementPage() {
     setShowInfoForm(true);
   };
 
-  
-  
+
+
 
   return (
     <div className="container">
@@ -254,7 +263,7 @@ export default function UserManagementPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-8 px-4 py-2 text-lg"
-          
+
         />
 
         {/* //thanh lọc theo type */}
@@ -277,7 +286,7 @@ export default function UserManagementPage() {
         >
           <option value="asc">Mới nhất</option>
           <option value="desc">Lâu nhất</option>
-         </select>
+        </select>
 
         {/* chưa có tác dụng */}
         <button onClick={() => setShowAddForm(true)}
@@ -456,20 +465,16 @@ export default function UserManagementPage() {
 
 
 
-            {selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR && (
-              
-              <div 
-                  //sửa lỗi không lấy được dữ liệu từ API
-
-                // onClick={() => openChartModal("soil")} className="cursor-pointer bg-white/80 rounded-lg p-4"
-              >
+            {selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR && (
+              <div className="bg-white/80 rounded-lg p-4">
                 <div className="text-lg font-semibold mb-2">Soil Moisture</div>
+
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={soilChartData[selectedDeviceInfo.deviceId] || []}>
+                  <LineChart data={soilChartData || []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="time"
-                      tickFormatter={time =>
+                      tickFormatter={(time) =>
                         new Date(time).toLocaleTimeString("vi-VN", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -477,9 +482,9 @@ export default function UserManagementPage() {
                         })
                       }
                     />
-                    <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
+                    <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
                     <Tooltip
-                      labelFormatter={time =>
+                      labelFormatter={(time) =>
                         new Date(time).toLocaleTimeString("vi-VN", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -493,6 +498,78 @@ export default function UserManagementPage() {
                 </ResponsiveContainer>
               </div>
             )}
+
+            {selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR && (
+              <>
+                {/* Biểu đồ Nhiệt độ */}
+                <div className="bg-white/80 rounded-lg p-4 mt-4">
+                  <div className="text-lg font-semibold mb-2">Temperature</div>
+
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={temperatureChartData || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="time"
+                        tickFormatter={(time) =>
+                          new Date(time).toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })
+                        }
+                      />
+                      <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
+                      <Tooltip
+                        labelFormatter={(time) =>
+                          new Date(time).toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })
+                        }
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="temp" stroke="#8884d8" activeDot={{ r: 8 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Biểu đồ Độ ẩm */}
+                <div className="bg-white/80 rounded-lg p-4 mt-4">
+                  <div className="text-lg font-semibold mb-2">Humidity</div>
+
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={humidityChartData || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="time"
+                        tickFormatter={(time) =>
+                          new Date(time).toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })
+                        }
+                      />
+                      <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
+                      <Tooltip
+                        labelFormatter={(time) =>
+                          new Date(time).toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })
+                        }
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="humidity" stroke="#82ca9d" activeDot={{ r: 8 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            )}
+
+
 
           </div>
         </PopupModal>

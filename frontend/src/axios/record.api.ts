@@ -3,9 +3,9 @@ import axiosClient from "../axios/axiosConfigs";
 import { handleAPIError } from "../component/utils";
 
 export const recordAPI = {
-    getDeviceRecords: async (params: SensorDataRequestType): Promise<SensorDataResponseType> => {
+    getDeviceRecords: async (params: SensorDataRequestType) => {
         try {
-            const response = await axiosClient.get<SensorDataResponseType>("/api/records/device", { params });
+            const response = await axiosClient.get("/api/records/device", { params });
             console.log("getDeviceRecords", response.data);
             return response.data;
         } catch (error) {
