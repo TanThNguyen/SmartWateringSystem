@@ -261,23 +261,7 @@ export default function UserManagementPage() {
     }
   };
 
-//   const handleUpdateUsertest = async (userId: string) => {
-//      const updatedUser: UpdateUserType = {
-//          userId: userId,
-//          name: "Tên cập nhật",
-//          email: `newuser${Date.now()}@example.com`,
-//          locationId: "Địa chỉ cập nhật",
-//          phone: "0987654321",
-//          password: "newpassword123",
-//          role: "ADMIN",
-//      };
-//      try {
-//          await userApi.updateUser(updatedUser);
-//          fetchUsers();
-//      } catch (error) {
-//          console.error("Lỗi khi cập nhật người dùng:", error);
-//      }
-//  };
+
 
 
  const handleUpdateUser = async ( updatedUser: UpdateUserType) => {

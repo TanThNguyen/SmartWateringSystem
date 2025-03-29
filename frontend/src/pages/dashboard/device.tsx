@@ -1,15 +1,17 @@
-import { startTransition, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
 // import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DeviceStatus, DeviceType, InfoDevicesType,  GetDevicesRequestType, PumpAttributes, FanAttributes, MoistureSensorAttributes, DHT20SensorAttributes, FindAllDevicesType, AddDeviceType, DeleteDevicesType, EditDeviceType, DeviceIdType} from "../../types/device.type";
+import { DeviceStatus, DeviceType, InfoDevicesType,  GetDevicesRequestType} from "../../types/device.type";
 import { deviceApi } from "../../axios/device.api";
 import "./device.scss"
+import { recordAPI } from "../../axios/record.api";  
+import { SensorDataResponseType, SensorDataRequestType, MoistureRecordType, DHT20RecordType }  from "../../types/record.type";
 
 
 export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState("User");
+  //const [username, setUsername] = useState("User");
   const [searchTerm, setSearchTerm] = useState("");
   const [first, setFirst] = useState<number>(0);
   const [rows, setRows] = useState<number>(10);
@@ -18,8 +20,9 @@ export default function UserManagementPage() {
   const [locationIdFilter, setLocationIdFilter] = useState("");
   const [devices, setDevices] = useState<InfoDevicesType[]>([]);
   const [totalRecords, setTotalRecords] = useState<number>(0);
+  const [deviceRecords, setDeviceRecords] = useState<SensorDataResponseType | null>(null);
 
-
+ 
   // Hiển thị form thêm thông tin chi tiết của device
   const [showInfoForm, setShowInfoForm] = useState(false);
 
@@ -109,7 +112,6 @@ export default function UserManagementPage() {
     setNewDevice((prev) => ({ ...prev, [name]: value }));
   };
 
-  //= chưa xong
   const handleCreateDevice = async () => {
     try {
       await deviceApi.addDevice(newDevice);
@@ -127,7 +129,8 @@ export default function UserManagementPage() {
       toast.error("Lỗi khi tạo thiết bị");
     }
   };
-  // chưa xong
+
+
   const handleDeleteDevice = async () => {
     if (selectedDevice.length === 0) return;
     try {
@@ -150,6 +153,8 @@ export default function UserManagementPage() {
     setShowInfoForm(true);
   };
 
+  
+  
 
   return (
     <div className="container">
@@ -294,6 +299,7 @@ export default function UserManagementPage() {
               <option value="DHT20_SENSOR">DHT20_SENSOR</option>
               <option value="LCD">LCD</option>
               <option value="RELAY">RELAY</option>
+              <option value="FAN">FAN</option>
             </select>
           </label>
           <div className="flex justify-between mt-4 w-full">
@@ -313,20 +319,6 @@ export default function UserManagementPage() {
         <PopupModal title="Thông tin thiết bị" onClose={() => setShowInfoForm(false)}>
           <div className="p-4 bg-white/80 rounded-lg shadow-md">
 
-            {/* Biểu đồ nhận một mảng giá trị, thời gian ghi lại là mặc định, tính theo giờ*/}
-            {/* {selectedDeviceInfo.value && selectedDeviceInfo.value.length > 0 && (
-              <div className="w-full max-w-md h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={generateChartData(selectedDeviceInfo.value)}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="value" stroke="#ff7300" strokeWidth={2} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )} */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="font-bold">Name</label>
