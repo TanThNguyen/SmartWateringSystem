@@ -4,7 +4,7 @@ export type CreateLocationType = {
 
 export type UpdateLocationType = {
     locationId: string;
-    name?: string;
+    name: string;
 };
 
 export type DeleteLocationType = {
