@@ -43,6 +43,11 @@
     backdrop-filter: blur(8px);
     border-radius: 8px;
   }
+
+  .filterContainer > input[type="text"] {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
   
   /* Input chung */
   .searchInput,

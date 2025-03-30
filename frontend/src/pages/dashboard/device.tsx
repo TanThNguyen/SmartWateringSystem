@@ -239,7 +239,7 @@ export default function UserManagementPage() {
       <div className="filterContainer flex items-center gap-4">
         <input
           type="text"
-          placeholder="Tìm kiếm (tên,khu vực)"
+          placeholder="Tìm kiếm (tên, khu vực)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="px-4 text-lg h-10 border border-gray-300 rounded-md"
