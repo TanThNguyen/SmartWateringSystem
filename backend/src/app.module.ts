@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config'; // ConfigService không cần import trực tiếp ở đây trừ khi dùng trong AppModule provider
 import { APP_GUARD } from '@nestjs/core';
 import { MyJwtGuard } from './auth/guard';
 import { NotificationModule } from './notification/notification.module';
@@ -14,13 +14,15 @@ import { LocationModule } from './location/location.module';
 // import { AdafruitMqttModule } from './adafruit-mqtt/adafruit-mqtt.module';
 import { AdafruitModule } from './adafruit/adafruit.module';
 import { RecordModule } from './record/record.module';
-// import { ScheduleModule } from './schedule/schedule.module';
+import { ScheduleModule as MyCustomScheduleModule } from './schedule/schedule.module'; // Đổi tên import để tránh trùng lặp (hoặc giữ nguyên nếu tên file khác)
+import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'; // <-- IMPORT GÓI LẬP LỊCH
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    NestScheduleModule.forRoot(), // <-- THÊM DÒNG NÀY ĐỂ KHỞI TẠO LẬP LỊCH
     AuthModule,
     UserModule,
     NotificationModule,
@@ -31,7 +33,7 @@ import { RecordModule } from './record/record.module';
     // AdafruitMqttModule,
     AdafruitModule,
     RecordModule,
-    // ScheduleModule,
+    MyCustomScheduleModule, // Import module chứa Service/Controller Schedule của bạn
   ],
   controllers: [AppController],
   providers: [

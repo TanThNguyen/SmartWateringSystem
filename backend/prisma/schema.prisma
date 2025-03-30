@@ -177,15 +177,6 @@ model DHT20Record {
   sensor        DHT20Sensor @relation(fields: [sensorId], references: [sensorId], onDelete: Cascade)
 }
 
-// model WaterUsage {
-//   usageId     String   @id @default(uuid())
-//   deviceId    String
-//   startTime   DateTime
-//   endTime     DateTime
-//   waterAmount Float
-//   pump        Pump     @relation(fields: [deviceId], references: [pumpId], onDelete: Cascade)
-// }
-
 model Schedule {
   scheduleId String   @id @default(uuid())
   deviceId   String
