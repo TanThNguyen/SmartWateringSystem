@@ -295,7 +295,7 @@ export default function UserManagementPage() {
                       userId: user.userId,
                       name: user.name,
                       email: user.email,
-                      locationId: user.locationId || "",
+                      locationId: user.locationName || "",
                       phone: user.phone,
                       role: user.role,
                       password: "password123",

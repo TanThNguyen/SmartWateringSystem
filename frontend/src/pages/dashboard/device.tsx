@@ -266,13 +266,13 @@ export default function UserManagementPage() {
     <div className="container">
 
       {/* search */}
-      <div className="filterContainer">
+      <div className="filterContainer flex items-center gap-x-4">
         <input
           type="text"
           placeholder="Tìm kiếm (tên,khu vực)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-8 px-4 py-2 text-lg"
+          className="h-8 px-4 py-2 text-lg self-center"
 
         />
 
@@ -280,7 +280,7 @@ export default function UserManagementPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="selectInput"
+          className="selectInput self-center"
         >
           <option value="All">Tất cả thiết bị</option>
           <option value={DeviceStatus.ACTIVE}>Hoạt động</option>
@@ -292,24 +292,24 @@ export default function UserManagementPage() {
         <select
           value={order}
           onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
-          className="selectInput"
+          className="selectInput self-center"
         >
           <option value="asc">Mới nhất</option>
           <option value="desc">Lâu nhất</option>
         </select>
 
-        {/* chưa có tác dụng */}
         <button onClick={() => setShowAddForm(true)}
-          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-8 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
           Thêm
         </button>
         <button onClick={handleDeleteDevice} disabled={selectedDevice.length === 0}
-          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-8 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >Xóa</button>
-        
-
       </div>
+
+
+
       <div className="tableContainer" >
         <table className="userTable">
           <thead>
