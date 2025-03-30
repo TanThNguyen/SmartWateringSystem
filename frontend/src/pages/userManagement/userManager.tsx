@@ -228,8 +228,8 @@ export default function UserManagementPage() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          className="px-4 text-lg h-10"
-        />
+          className="h-10 px-4 text-lg border border-gray-300 rounded-md shadow-sm focus:outline-none"
+          />
    
          {renderDropdown(
           "Vai trò",
