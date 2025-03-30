@@ -28,6 +28,9 @@ export default function DashboardPage() {
   const [showChartModal, setShowChartModal] = useState(false);
   const [selectedChart, setSelectedChart] = useState("");
   const [timeFilter, setTimeFilter] = useState(30); // days (min:1, max:7)
+  const [fixedDate, setFixedDate] = useState<string>("");
+  const [searchStart, setSearchStart] = useState<string>("");
+  const [searchEnd, setSearchEnd] = useState<string>("");
 
   const [locationData, setLocationData] = useState<FindAllLocationsType>({ locations: [] });
   const [selectedLocation, setSelectedLocation] = useState<string>("");
@@ -37,7 +40,7 @@ export default function DashboardPage() {
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
 
   const [recordData, setRecrordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
-
+  const [isDataStale, setIsDataStale] = useState(false);
 
   useEffect(() => {
     const fetchLocationData = async () => {
@@ -142,31 +145,59 @@ export default function DashboardPage() {
     if (!recordData) return;
 
     const newTimestamp = currentTime.getTime();
-    const threshold = newTimestamp - 30 * 24 * 60 * 60 * 1000;
+    // Sử dụng timeFilter để tính toán threshold (đổi từ 30 sang timeFilter cho nhất quán)
+    const threshold = newTimestamp - timeFilter * 24 * 60 * 60 * 1000;
 
     setTemperatureChartData(prev => ({
       ...prev,
       [selectedLocation]: Object.entries(recordData)
         .map(([time, data]) => ({ time: Number(time), temp: data.temp }))
-        .filter(d => d.time >= threshold),
+        .filter(d => d.time >= threshold)
+        .sort((a, b) => a.time - b.time),
     }));
 
     setHumidityChartData(prev => ({
       ...prev,
       [selectedLocation]: Object.entries(recordData)
         .map(([time, data]) => ({ time: Number(time), humidity: data.humidity }))
-        .filter(d => d.time >= threshold),
+        .filter(d => d.time >= threshold)
+        .sort((a, b) => a.time - b.time),
     }));
 
     setSoilChartData(prev => ({
       ...prev,
       [selectedLocation]: Object.entries(recordData)
         .map(([time, data]) => ({ time: Number(time), soil: data.soil }))
-        .filter(d => d.time >= threshold),
+        .filter(d => d.time >= threshold)
+        .sort((a, b) => a.time - b.time),
     }));
-
   }, [currentTime, recordData, selectedLocation, timeFilter]);
 
+  // Kiểm tra thời gian của dữ liệu backend so với currentTime
+  useEffect(() => {
+    if (selectedLocation && recordData) {
+      const timestamps = Object.keys(recordData);
+      if (timestamps.length > 0) {
+        const maxTimestamp = Math.max(...timestamps.map(Number));
+        if (currentTime.getTime() - maxTimestamp > 2 * 60 * 1000) { // chênh lệch hơn 2 phút
+          setIsDataStale(true);
+        } else {
+          setIsDataStale(false);
+        }
+      }
+    }
+  }, [recordData, currentTime, selectedLocation]);
+
+  useEffect(() => {
+    if (!showChartModal) return;
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowChartModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [showChartModal]);
 
   const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
   const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
@@ -288,7 +319,6 @@ export default function DashboardPage() {
   const getFilteredChartData = () => {
     if (!selectedLocation) return []; // Nếu không có location, trả về mảng rỗng
 
-    const threshold = currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000;
     let data: Array<any> = [];
 
     switch (selectedChart) {
@@ -305,7 +335,23 @@ export default function DashboardPage() {
         return [];
     }
 
-    return data.filter(d => new Date(d.time).getTime() >= threshold);
+    if (searchStart !== "" && searchEnd !== "") {
+      const start = new Date(searchStart);
+      const end = new Date(searchEnd);
+      return data.filter(d => d.time >= start.getTime() && d.time <= end.getTime());
+    }
+
+    if (fixedDate !== "") {
+      const start = new Date(fixedDate);
+      start.setHours(0, 1, 0, 0);
+      const end = new Date(fixedDate);
+      end.setDate(end.getDate() + 1);
+      end.setHours(0, 0, 0, 0);
+      return data.filter(d => d.time >= start.getTime() && d.time < end.getTime());
+    }
+
+    const threshold = currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000;
+    return data.filter(d => d.time >= threshold);
   };
 
 
@@ -372,7 +418,7 @@ export default function DashboardPage() {
 
           {/* Hiển thị thông tin khu vực */}
           {selectedLocation && recordData[selectedLocation] ? (
-            <div className="flex flex-wrap justify-between gap-4 mb-6">
+            <div className={`flex flex-wrap justify-between gap-4 mb-6 ${isDataStale ? "border-4 border-red-500 animate-pulse" : ""}`}>
               {/* Nhiệt độ */}
               <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
                 <div className="text-xl font-semibold mb-1">Nhiệt độ</div>
@@ -406,8 +452,10 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={temperatureChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="time"
+                  <XAxis 
+                    dataKey="time" 
+                    type="number"
+                    domain={[currentTime.getTime() - 60000, currentTime.getTime()]}
                     tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   />
                   <YAxis domain={['dataMin - 2', 'dataMax + 2']} />
@@ -423,8 +471,10 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={humidityChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="time"
+                  <XAxis 
+                    dataKey="time" 
+                    type="number"
+                    domain={[currentTime.getTime() - 60000, currentTime.getTime()]}
                     tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   />
                   <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
@@ -440,8 +490,10 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={soilChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="time"
+                  <XAxis 
+                    dataKey="time" 
+                    type="number"
+                    domain={[currentTime.getTime() - 60000, currentTime.getTime()]}
                     tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   />
                   <YAxis domain={['dataMin - 5', 'dataMax + 5']} />
@@ -538,42 +590,6 @@ export default function DashboardPage() {
                   className="w-full border rounded p-1"
                 />
               </div>
-              {/* <div className="mb-2">
-                <label className="block text-sm">Temperature</label>
-                <input
-                  type="number"
-                  value={editingAreaData.temp}
-                  onChange={(e) => setEditingAreaData({ ...editingAreaData, temp: Number(e.target.value) })}
-                  className="w-full border rounded p-1"
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block text-sm">Air humidity</label>
-                <input
-                  type="number"
-                  value={editingAreaData.humidity}
-                  onChange={(e) => setEditingAreaData({ ...editingAreaData, humidity: Number(e.target.value) })}
-                  className="w-full border rounded p-1"
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block text-sm">Cooling mode</label>
-                <input
-                  type="number"
-                  value={editingAreaData.ac}
-                  onChange={(e) => setEditingAreaData({ ...editingAreaData, ac: Number(e.target.value) })}
-                  className="w-full border rounded p-1"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm">Độ ẩm đất</label>
-                <input
-                  type="number"
-                  value={editingAreaData.soil}
-                  onChange={(e) => setEditingAreaData({ ...editingAreaData, soil: Number(e.target.value) })}
-                  className="w-full border rounded p-1"
-                />
-              </div> */}
               <div className="flex justify-end space-x-2">
                 <button onClick={() => handleSaveEditArea()} className="px-4 py-1 bg-blue-500 text-white rounded">Save</button>
                 <button onClick={handleCancelEditArea} className="px-4 py-1 bg-gray-300 rounded">Cancel</button>
@@ -618,8 +634,8 @@ export default function DashboardPage() {
       {/* Modal biểu đồ với bộ lọc thời gian */}
       {
         showChartModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="bg-white p-6 rounded-lg w-11/12 max-w-3xl">
+          <div onClick={() => setShowChartModal(false)} className="fixed inset-0 flex items-center justify-center bg-black/50">
+            <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-11/12 max-w-3xl">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
                   {selectedChart === "temperature" ? "Temperature"
@@ -627,6 +643,50 @@ export default function DashboardPage() {
                       : "Soil Moisture"} Chart
                 </h2>
                 <button onClick={() => setShowChartModal(false)} className="px-4 py-1 bg-gray-300 rounded">Close</button>
+              </div>
+
+              {/* New Date Picker for fixed date search */}
+              <div className="mb-4 flex items-center">
+                <label className="mr-2">Chọn ngày:</label>
+                <input 
+                  type="date" 
+                  value={fixedDate}
+                  onChange={(e) => setFixedDate(e.target.value)}
+                  className="border p-1 rounded" 
+                />
+                {fixedDate && (
+                  <button onClick={() => setFixedDate("")} className="ml-2 px-3 py-1 bg-gray-300 rounded">
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {/* New search range with datetime-local */}
+              <div className="mb-4 flex flex-col gap-2">
+                <div className="flex items-center">
+                  <label className="mr-2">Chọn thời gian bắt đầu:</label>
+                  <input 
+                    type="datetime-local" 
+                    value={searchStart}
+                    onChange={(e) => setSearchStart(e.target.value)}
+                    className="border p-1 rounded"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <label className="mr-2">Chọn thời gian kết thúc:</label>
+                  <input 
+                    type="datetime-local" 
+                    value={searchEnd}
+                    onChange={(e) => setSearchEnd(e.target.value)}
+                    className="border p-1 rounded"
+                  />
+                </div>
+                {(searchStart !== "" || searchEnd !== "") && (
+                  <button onClick={() => { setSearchStart(""); setSearchEnd(""); }} 
+                    className="ml-2 px-3 py-1 bg-gray-300 rounded">
+                    Clear Range
+                  </button>
+                )}
               </div>
 
               {/* Bộ lọc thời gian */}
@@ -647,8 +707,16 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={getFilteredChartData()}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="time"
+                    <XAxis 
+                      dataKey="time" 
+                      type="number"
+                      domain={
+                        searchStart !== "" && searchEnd !== ""
+                          ? [new Date(searchStart).getTime(), new Date(searchEnd).getTime()]
+                          : fixedDate !== ""
+                          ? [new Date(fixedDate).setHours(0, 0, 0, 0), new Date(fixedDate).setHours(23, 59, 59, 999)]
+                          : [currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000, currentTime.getTime()]
+                      }
                       tickFormatter={(time) => new Date(time).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                     />
                     <YAxis />
