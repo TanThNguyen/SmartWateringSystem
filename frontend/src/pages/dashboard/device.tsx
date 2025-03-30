@@ -236,12 +236,19 @@ export default function UserManagementPage() {
 
   return (
     <div className="container">
+<<<<<<< HEAD
       <div className="filterContainer flex items-center gap-4">
+=======
+
+      {/* search */}
+      <div className="filterContainer flex items-center gap-x-4">
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
         <input
           type="text"
           placeholder="Tìm kiếm (tên,khu vực)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+<<<<<<< HEAD
           className="px-4 text-lg h-10 border border-gray-300 rounded-md"
         />
 
@@ -255,6 +262,22 @@ export default function UserManagementPage() {
           ],
           (e) => setStatusFilter(e.value)
         )}
+=======
+          className="h-8 px-4 py-2 text-lg self-center"
+
+        />
+
+        {/* //thanh lọc theo type */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="selectInput self-center"
+        >
+          <option value="All">Tất cả thiết bị</option>
+          <option value={DeviceStatus.ACTIVE}>Hoạt động</option>
+          <option value={DeviceStatus.INACTIVE}>Không hoạt động</option>
+        </select>
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
 
         {renderDropdown(
           "Sắp xếp",
@@ -266,6 +289,7 @@ export default function UserManagementPage() {
           (e) => setOrder(e.value)
         )} 
 
+<<<<<<< HEAD
         {renderDropdown(
           "Khu vực",
           locationIdFilter,
@@ -276,18 +300,34 @@ export default function UserManagementPage() {
           ],
           (e) => setLocationIdFilter(e.value),
         )}
+=======
+        {/* thanh lọc theo order */}
+        <select
+          value={order}
+          onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
+          className="selectInput self-center"
+        >
+          <option value="asc">Mới nhất</option>
+          <option value="desc">Lâu nhất</option>
+        </select>
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
 
         <button onClick={() => setShowAddForm(true)}
-          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-8 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
           Thêm
         </button>
         <button onClick={handleDeleteDevice} disabled={selectedDevice.length === 0}
-          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-8 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >Xóa</button>
       </div>
 
+<<<<<<< HEAD
       
+=======
+
+
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
       <div className="tableContainer" >
         <table className="userTable">
           <thead>

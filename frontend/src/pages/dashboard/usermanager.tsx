@@ -315,7 +315,7 @@ export default function UserManagementPage() {
           placeholder="Search (tên,email, địa chỉ)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-8 px-4 py-2 text-lg"
+          className="h-8 px-4 py-2 text-lg self-center"
         />
 
         {/* //thanh lọc theo quyền */}

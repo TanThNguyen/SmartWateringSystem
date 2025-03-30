@@ -92,6 +92,7 @@
   &:hover {
     background-color: #27ae60;
   }
+<<<<<<< HEAD
 }
 
 /* Bảng hiển thị */
@@ -119,6 +120,57 @@
     th {
       font-weight: 600;
       color: #333;
+=======
+  
+  .logoCircle {
+    width: 30px;
+    height: 30px;
+    background-color: #e74c3c;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  
+  .welcome {
+    margin-bottom: 20px;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+  }
+  
+  .filterContainer {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 90%;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    
+    .searchInput {
+      flex: 1;
+      padding: 6px 30px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .selectInput {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
     }
   }
 

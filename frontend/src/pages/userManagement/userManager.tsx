@@ -213,8 +213,13 @@ export default function UserManagementPage() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+<<<<<<< HEAD
           className="px-4 text-lg h-10 border border-gray-300 rounded-md"
         />
+=======
+          className="h-10 px-4 text-lg border border-gray-300 rounded-md shadow-sm focus:outline-none"
+          />
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
    
         {renderDropdown(
           "Vai trò",
@@ -281,7 +286,11 @@ export default function UserManagementPage() {
                       userId: user.userId,
                       name: user.name,
                       email: user.email,
+<<<<<<< HEAD
                       locationId: user.locationId || (locations.find(l => l.name === user.locationName)?.locationId || ""),
+=======
+                      locationId: user.locationName || "",
+>>>>>>> c82c912ad7658d31dc8bd329769a5c0a9b4bb2c9
                       phone: user.phone,
                       role: user.role,
                       password: "password123",
