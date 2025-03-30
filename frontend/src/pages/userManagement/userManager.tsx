@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
 import { CreateUserType, InfoUsersType, UpdateUserType, UsersRequestType } from "../../types/user.type";
 import { userApi } from "../../axios/user.api";
-import { Paginator } from "primereact/paginator";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FaChevronDown } from "react-icons/fa"; 
 
@@ -16,16 +15,10 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<InfoUsersType[]>([]);
 
-  // const [username, setUsername] = useState("User");
-  const [first, setFirst] = useState<number>(0);
-  const [rows, setRows] = useState<number>(10);
-  const [totalRecords, setTotalRecords] = useState<number>(0);
-
   const [searchText, setSearchText] = useState("");
   const [permissionFilter, setPermissionFilter] = useState("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [locationIdFilter, setLocationIdFilter] = useState("ALL");
-
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUser, setNewUser] = useState<CreateUserType>({
@@ -44,13 +37,10 @@ export default function UserManagementPage() {
   const [locations, setLocations] = useState<any[]>([]);
 
   useEffect(() => {
-    // const storedUser = localStorage.getItem("username");
-    // if (storedUser) setUsername(storedUser);
     fetchLocations();
     fetchUsers();
-  }, [first, rows, order,permissionFilter,locationIdFilter]);
+  }, [order, permissionFilter, locationIdFilter, searchText]);
 
-  // Add global ESC key event listener to close modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -65,17 +55,18 @@ export default function UserManagementPage() {
   const fetchUsers = async () => {
     setLoading(true);
     const request: UsersRequestType = {
-      page: Math.ceil(first / rows) + 1,
-      items_per_page: rows,
+      page: 1,
+      items_per_page: 9999,
       search: searchText.trim(),
       role: permissionFilter,
       order,
     };
+    if (locationIdFilter !== "ALL") {
+      request.locationId = locationIdFilter;
+    }
     try {
       const response = await userApi.getAllUsers(request);
       setUsers(response.users);
-      setTotalRecords(response.total);
-      setFirst((response.currentPage - 1) * rows);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách người dùng");
     } finally {
@@ -98,7 +89,6 @@ export default function UserManagementPage() {
   };
 
   const handleSearch = () => {
-    setFirst(0);
     fetchUsers();
   };
 
@@ -109,7 +99,7 @@ export default function UserManagementPage() {
     onChange: (e: any) => void
   ) => (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-32">
+      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-80">
         <span className="truncate">{options.find((option) => option.value === value)?.label || label}</span>
         <FaChevronDown className="ml-2 text-sm" />
       </DropdownMenu.Trigger>
@@ -138,10 +128,6 @@ export default function UserManagementPage() {
     const { name, value } = e.target;
     setNewUser((prev) => ({ ...prev, [name]: value }));
   };
-
-  // const handlePreCreateUser = async () => {
-  //   fetchLocations();
-  // };
 
   const handleCreateUser = async () => {
 
@@ -197,13 +183,12 @@ export default function UserManagementPage() {
 
   const handleSubmit = () => {
     if (updatedUser) {
-      // Gửi locationId thay vì locationName
       const updatedUserWithLocationId = {
         ...updatedUser,
-        locationId: updatedUser.locationId, // Đây là locationId bạn cần gửi khi cập nhật
+        locationId: updatedUser.locationId,
       };
-      handleUpdateUser(updatedUserWithLocationId); // Gọi API cập nhật
-      setShowUpdateForm(false); // Đóng form sau khi cập nhật
+      handleUpdateUser(updatedUserWithLocationId);
+      setShowUpdateForm(false);
     }
   };
   
@@ -228,16 +213,17 @@ export default function UserManagementPage() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          className="px-4 text-lg h-10"
+          className="px-4 text-lg h-10 border border-gray-300 rounded-md"
         />
    
-         {renderDropdown(
+        {renderDropdown(
           "Vai trò",
           permissionFilter,
           [
             { label: "Công việc", value: "ALL" },
             { label: "Quản trị viên", value: "ADMIN" },
             { label: "Làm vườn", value: "GARDENER" },
+            { label: "Không hoạt động", value: "INACTIVE" },
           ],
           (e) => setPermissionFilter(e.value)
         )}
@@ -253,16 +239,16 @@ export default function UserManagementPage() {
           (e) => setOrder(e.value)
         )} 
 
-      {renderDropdown(
-        "Khu vực",
-        locationIdFilter,
-        [
-          { label: "Khu vực", value: "ALL" },
-          { label: "Khu vực 1", value: "KV1" },
-          { label: "Khu vực 2", value: "KV2" },         
-        ],
-        (e) => setLocationIdFilter(e.value),
-      )}
+        {renderDropdown(
+          "Khu vực",
+          locationIdFilter,
+          [
+            { label: "Khu vực", value: "ALL" }, 
+            { label: "Khu vực 1", value: "KV1" },
+            { label: "Khu vực 2", value: "KV2" },         
+          ],
+          (e) => setLocationIdFilter(e.value),
+        )}
 
         
         <button onClick={() => setShowAddForm(true)}
@@ -280,11 +266,11 @@ export default function UserManagementPage() {
           <thead>
             <tr>
               <th>  </th>
-              <th>Tên</th> {/* name: string; */}
-              <th>Email</th> {/* email: string; */}
-              <th>Khu vực</th> {/* locationID: string; */}
-              <th>Số điện thoại</th>  {/* phone: string; */}
-              <th>Vai trò</th> {/* role: string; */}
+              <th>Tên</th>
+              <th>Email</th>
+              <th>Địa điểm</th>
+              <th>Số điện thoại</th>
+              <th>Vai trò</th>
             </tr>
           </thead>
           <tbody>
@@ -295,7 +281,7 @@ export default function UserManagementPage() {
                       userId: user.userId,
                       name: user.name,
                       email: user.email,
-                      locationId: user.locationId || "",
+                      locationId: user.locationId || (locations.find(l => l.name === user.locationName)?.locationId || ""),
                       phone: user.phone,
                       role: user.role,
                       password: "password123",
@@ -331,16 +317,6 @@ export default function UserManagementPage() {
           </tbody>
         </table>
       </div>
-
-      <Paginator
-        first={first}
-        rows={rows}
-        totalRecords={totalRecords}
-        onPageChange={(e) => {
-          setFirst(e.first);
-          setRows(e.rows);
-        }}
-      />
 
       {showAddForm && (
         <div 
@@ -396,7 +372,6 @@ export default function UserManagementPage() {
               name="role"
               value={newUser.role}
               onChange={handleNewUserChange}
-            // placeholder="Role"
             >
               <option value="GARDENER">Gardener</option>
               <option value="ADMIN">Admin</option>
@@ -443,12 +418,10 @@ export default function UserManagementPage() {
             </label>
             <select
               name="locationId"
-              value={updatedUser.locationId}  
+              value={updatedUser.locationId}
               onChange={handleChange}
             >
-              <option value="" disabled hidden>
-                Chọn khu vực
-              </option>
+              <option value="" disabled hidden>Chọn khu vực</option>
               {locations.map((location) => (
                 <option key={location.locationId} value={location.locationId}>
                   {location.name}

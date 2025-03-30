@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
-// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DeviceStatus, DeviceType, InfoDevicesType, GetDevicesRequestType } from "../../types/device.type";
 import { deviceApi } from "../../axios/device.api";
-import "./device.scss"
 import { recordAPI } from "../../axios/record.api";
 import { SensorDataResponseType, SensorDataRequestType } from "../../types/record.type";
 import ChartWithDayBoundaries from "../../component/day";
+import "./device.scss";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { FaChevronDown } from "react-icons/fa";
 
 import {
   LineChart,
@@ -22,7 +23,6 @@ import {
 
 export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
-  //const [username, setUsername] = useState("User");
   const [searchTerm, setSearchTerm] = useState("");
   const [first, setFirst] = useState<number>(0);
   const [rows, setRows] = useState<number>(10);
@@ -32,20 +32,13 @@ export default function UserManagementPage() {
   const [devices, setDevices] = useState<InfoDevicesType[]>([]);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
-
-  // Hiển thị form thêm thông tin chi tiết của device
   const [showInfoForm, setShowInfoForm] = useState(false);
-
   const [statusFilter, setStatusFilter] = useState("All");
-
   const [selectedDevice, setSelectedDevice] = useState<string[]>([]);
   const [selectedDeviceInfo, setSelectedDeviceInfo] = useState<InfoDevicesType | null>(null);
-
-
   const [showAddForm, setShowAddForm] = useState(false);
   const [recordData, setRecordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
   const [currentTime, setCurrentTime] = useState(new Date());
-
   const [temperatureChartData, setTemperatureChartData] = useState<Array<{ time: number, temp: number }>>([]);
   const [humidityChartData, setHumidityChartData] = useState<Array<{ time: number, humidity: number }>>([]);
   const [soilChartData, setSoilChartData] = useState<Array<{ time: number, soil: number }>>([]);
@@ -58,10 +51,8 @@ export default function UserManagementPage() {
     status: DeviceStatus.ACTIVE,
   });
 
-  // Added ref for tracking the info modal element
   const infoModalRef = useRef<HTMLDivElement>(null);
 
-  // Close on Esc key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -81,9 +72,9 @@ export default function UserManagementPage() {
     const validStatus: DeviceStatus | 'ALL' | undefined =
       statusFilter === "All" ? "ALL" : (statusFilter as DeviceStatus);
     const request: GetDevicesRequestType = {
-      page: Math.ceil(first / rows) + 1, // Tính trang hiện tại
-      items_per_page: rows, // Số thiết bị trên mỗi trang
-      search: searchText.trim(), // Tìm kiếm theo chuỗi người dùng nhập
+      page: Math.ceil(first / rows) + 1,
+      items_per_page: rows,
+      search: searchText.trim(),
       status: validStatus,
       locationName: locationIdFilter,
       order,
@@ -100,18 +91,16 @@ export default function UserManagementPage() {
     }
   };
 
-  //sửa lỗi không lấy được dữ liệu từ API
   const fetchDeviceData = async (selectedDevice: string) => {
     try {
       const params: SensorDataRequestType = {
         deviceId: selectedDevice,
-        start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 ngày
+        start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
         stop: new Date().toISOString(),
       };
 
       const response = await recordAPI.getDeviceRecords(params);
       if (!response || response.length === 0) return;
-
 
       if (selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR) {
         const newSoilChartData = response.map((record: { timestamp: string; soilMoisture: number }) => ({
@@ -120,9 +109,7 @@ export default function UserManagementPage() {
         }));
 
         setSoilChartData(newSoilChartData);
-      }
-
-      else if (selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR) {
+      } else if (selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR) {
         const newTemperatureChartData = response.map((record: { timestamp: string; temperature: number }) => ({
           time: new Date(record.timestamp).getTime(),
           temp: record.temperature ?? 0,
@@ -134,70 +121,31 @@ export default function UserManagementPage() {
         }));
 
         setTemperatureChartData(newTemperatureChartData);
-        
         setHumidityChartData(newHumidityChartData);
-
-
       }
-
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
   };
 
-
   useEffect(() => {
-
     fetchDevice();
   }, [first, rows, statusFilter, order, searchText, locationIdFilter]);
-  //sửa lỗi không lấy được dữ liệu từ API
 
   useEffect(() => {
-    if (!selectedDeviceInfo?.deviceId || 
-        !(selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR || selectedDeviceInfo.type === DeviceType.DHT20_SENSOR)) {
+    if (!selectedDeviceInfo?.deviceId ||
+      !(selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR || selectedDeviceInfo.type === DeviceType.DHT20_SENSOR)) {
       return;
     }
-  
+
     fetchDeviceData(selectedDeviceInfo.deviceId);
-  
+
     const intervalId = setInterval(() => {
       fetchDeviceData(selectedDeviceInfo.deviceId);
-    }, 300000); // 5'
-  
+    }, 300000);
+
     return () => clearInterval(intervalId);
   }, [selectedDeviceInfo]);
-  
-
-
-  // useEffect(() => {
-  //   if (!recordData || !selectedDeviceInfo) return;
-
-
-  //   const newTimestamp = currentTime.getTime();
-  //   const threshold = newTimestamp - 30 * 24 * 60 * 60 * 1000;
-
-  //   if (!selectedDeviceInfo) return;
-  //   setTemperatureChartData(prev => ({
-  //     ...prev,
-  //     [selectedDeviceInfo.deviceId]: Object.entries(recordData)
-  //       .map(([time, data]) => ({ time: Number(time), temp: data.temp }))
-  //       .filter(d => d.time >= threshold),
-  //   }));
-
-  //   setHumidityChartData(prev => ({
-  //     ...prev,
-  //     [selectedDeviceInfo.deviceId]: Object.entries(recordData)
-  //       .map(([time, data]) => ({ time: Number(time), humidity: data.humidity }))
-  //       .filter(d => d.time >= threshold),
-  //   }));
-  //   setSoilChartData(prev => ({
-  //     ...prev,
-  //     [selectedDeviceInfo.deviceId]: Object.entries(recordData)
-  //       .map(([time, data]) => ({ time: Number(time), soil: data.soil }))
-  //       .filter(d => d.time >= threshold),
-  //   }));
-
-  // }, [recordData, selectedDeviceInfo, timeFilter]);
 
   const filteredUsers = devices.filter((device) => {
     const inSearch =
@@ -208,10 +156,6 @@ export default function UserManagementPage() {
 
     return DeviceStatus.ACTIVE;
   });
-
-
-
-
 
   const handleNewDeviceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -236,7 +180,6 @@ export default function UserManagementPage() {
     }
   };
 
-
   const handleDeleteDevice = async () => {
     if (selectedDevice.length === 0) return;
     try {
@@ -259,46 +202,81 @@ export default function UserManagementPage() {
     setShowInfoForm(true);
   };
 
-
-
+  const renderDropdown = (
+    label: string,
+    value: string,
+    options: { label: string; value: string }[],
+    onChange: (e: { value: string }) => void
+  ) => (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-80">
+        <span className="truncate">
+          {options.find((option) => option.value === value)?.label || label}
+        </span>
+        <FaChevronDown className="ml-2 text-sm" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="bg-white border border-gray-200 rounded-md shadow-lg py-2"
+          sideOffset={5}
+        >
+          {options.map((option) => (
+            <DropdownMenu.Item
+              key={option.value}
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              onSelect={() => onChange({ value: option.value })}
+            >
+              {option.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  );
 
   return (
     <div className="container">
-
-      {/* search */}
-      <div className="filterContainer">
+      <div className="filterContainer flex items-center gap-4">
         <input
           type="text"
           placeholder="Tìm kiếm (tên,khu vực)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-8 px-4 py-2 text-lg"
-
+          className="px-4 text-lg h-10 border border-gray-300 rounded-md"
         />
 
-        {/* //thanh lọc theo type */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="selectInput"
-        >
-          <option value="All">Tất cả thiết bị</option>
-          <option value={DeviceStatus.ACTIVE}>Hoạt động</option>
-          <option value={DeviceStatus.INACTIVE}>Không hoạt động</option>
-        </select>
+        {renderDropdown(
+          "Trạng thái",
+          statusFilter,
+          [
+            { label: "Tất cả thiết bị", value: "All" },
+            { label: "Hoạt động", value: DeviceStatus.ACTIVE },
+            { label: "Không hoạt động", value: DeviceStatus.INACTIVE },
+          ],
+          (e) => setStatusFilter(e.value)
+        )}
 
+        {renderDropdown(
+          "Sắp xếp",
+          order,
+          [
+            { label: "Mới nhất", value: "desc" },
+            { label: "Lâu nhất", value: "asc" },
+          ],
+          (e) => setOrder(e.value)
+        )} 
 
-        {/* thanh lọc theo order */}
-        <select
-          value={order}
-          onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
-          className="selectInput"
-        >
-          <option value="asc">Mới nhất</option>
-          <option value="desc">Lâu nhất</option>
-        </select>
+        {renderDropdown(
+          "Khu vực",
+          locationIdFilter,
+          [
+            { label: "Khu vực", value: "ALL" },
+            { label: "Khu vực 1", value: "KV1" },
+            { label: "Khu vực 2", value: "KV2" },         
+          ],
+          (e) => setLocationIdFilter(e.value),
+        )}
 
-        {/* chưa có tác dụng */}
         <button onClick={() => setShowAddForm(true)}
           className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
@@ -307,17 +285,17 @@ export default function UserManagementPage() {
         <button onClick={handleDeleteDevice} disabled={selectedDevice.length === 0}
           className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >Xóa</button>
-        
-
       </div>
+
+      
       <div className="tableContainer" >
         <table className="userTable">
           <thead>
             <tr>
               <th>  </th>
-              <th>Tên</th> {/* name: string; */}
-              <th>Địa điểm</th> {/* address: string; */}
-              <th>Loại</th> {/* role: string; */}
+              <th>Tên</th>
+              <th>Địa điểm</th>
+              <th>Loại</th>
               <th>Trạng thái</th>
             </tr>
           </thead>
@@ -345,7 +323,7 @@ export default function UserManagementPage() {
             ) : (
               <tr>
                 <td colSpan={5} className="noResults">
-                Không tìm thấy thiết bị phù hợp.
+                  Không tìm thấy thiết bị phù hợp.
                 </td>
               </tr>
             )}
@@ -356,7 +334,6 @@ export default function UserManagementPage() {
         <PopupModal title="Thêm thiết bị" onClose={() => setShowAddForm(false)}>
           <label>
             Tên:
-            {/* name: string */}
             <input
               type="text"
               name="name"
@@ -391,7 +368,6 @@ export default function UserManagementPage() {
             </select>
           </label>
           <div className="flex justify-between mt-4 w-full">
-
             <button onClick={handleCreateDevice}
               className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
             >Tạo</button>
@@ -399,7 +375,6 @@ export default function UserManagementPage() {
             <button onClick={() => setShowAddForm(false)}
               className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
             >Hủy</button>
-
           </div>
         </PopupModal>
       )}
@@ -408,7 +383,6 @@ export default function UserManagementPage() {
           <div ref={infoModalRef} onClick={(e) => e.stopPropagation()}>
             <PopupModal title="Thông tin thiết bị" onClose={() => setShowInfoForm(false)}>
               <div className="p-4 bg-white/80 rounded-lg shadow-md" style={{ maxHeight: "80vh", overflowY: "auto" }}>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="font-bold">Name</label>
@@ -454,10 +428,7 @@ export default function UserManagementPage() {
                   >
                     Back
                   </button>
-
                 </div>
-
-
 
                 {selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR && (
                   <div className="bg-white/80 rounded-lg p-4">
@@ -476,7 +447,6 @@ export default function UserManagementPage() {
                             })
                           }
                           interval="preserveStartEnd"
-
                         />
                         <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
                         <Tooltip
@@ -495,11 +465,8 @@ export default function UserManagementPage() {
                   </div>
                 )}
 
-
-
                 {selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR && (
                   <>
-                    {/* Biểu đồ Nhiệt độ */}
                     <div className="bg-white/80 rounded-lg p-4 mt-4">
                       <div className="text-lg font-semibold mb-2">Temperature</div>
 
@@ -508,18 +475,14 @@ export default function UserManagementPage() {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis
                             dataKey="time"
-                            // scale="time"  cần tham số thực
-
                             tickFormatter={(time) =>
                               new Date(time).toLocaleTimeString("vi-VN", {
-                                
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 second: "2-digit",
                               })
                             }
                             interval="preserveStartEnd"
-
                           />
                           <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
                           <Tooltip
@@ -537,7 +500,6 @@ export default function UserManagementPage() {
                       </ResponsiveContainer>
                     </div>
 
-                    {/* Biểu đồ Độ ẩm */}
                     <div className="bg-white/80 rounded-lg p-4 mt-4">
                       <div className="text-lg font-semibold mb-2">Humidity</div>
 
@@ -546,8 +508,6 @@ export default function UserManagementPage() {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis
                             dataKey="time"
-                            // scale="time"  cần tham số thực
-
                             tickFormatter={(time) =>
                               new Date(time).toLocaleTimeString("vi-VN", {
                                 hour: "2-digit",
@@ -556,7 +516,6 @@ export default function UserManagementPage() {
                               })
                             }
                             interval="preserveStartEnd"
-
                           />
                           <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
                           <Tooltip
@@ -575,15 +534,11 @@ export default function UserManagementPage() {
                     </div>
                   </>
                 )}
-
-
-
               </div>
             </PopupModal>
           </div>
         </div>
       )}
-
     </div>
   );
 }
