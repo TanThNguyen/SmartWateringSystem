@@ -50,6 +50,18 @@ export default function UserManagementPage() {
     fetchUsers();
   }, [first, rows, order,permissionFilter,locationIdFilter]);
 
+  // Add global ESC key event listener to close modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showAddForm) setShowAddForm(false);
+        if (showUpdateForm) setShowUpdateForm(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAddForm, showUpdateForm]);
+
   const fetchUsers = async () => {
     setLoading(true);
     const request: UsersRequestType = {
@@ -97,7 +109,7 @@ export default function UserManagementPage() {
     onChange: (e: any) => void
   ) => (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex items-center justify-between px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-32">
+      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-32">
         <span className="truncate">{options.find((option) => option.value === value)?.label || label}</span>
         <FaChevronDown className="ml-2 text-sm" />
       </DropdownMenu.Trigger>
@@ -209,21 +221,21 @@ export default function UserManagementPage() {
 
   return (
     <div className="container">
-      <div className="filterContainer">
+      <div className="filterContainer flex items-center gap-4">
         <input
           type="text"
-          placeholder="Search users..."
+          placeholder="Tìm kiếm người dùng..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          className="w-full md:w-1/2 px-4 py-2 text-lg"
+          className="px-4 text-lg h-10"
         />
    
          {renderDropdown(
           "Vai trò",
           permissionFilter,
           [
-            { label: "Tất cả", value: "ALL" },
+            { label: "Công việc", value: "ALL" },
             { label: "Quản trị viên", value: "ADMIN" },
             { label: "Làm vườn", value: "GARDENER" },
           ],
@@ -245,7 +257,7 @@ export default function UserManagementPage() {
         "Khu vực",
         locationIdFilter,
         [
-          { label: "Tất cả", value: "ALL" },
+          { label: "Khu vực", value: "ALL" },
           { label: "Khu vực 1", value: "KV1" },
           { label: "Khu vực 2", value: "KV2" },         
         ],
@@ -254,13 +266,13 @@ export default function UserManagementPage() {
 
         
         <button onClick={() => setShowAddForm(true)}
-          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
-          Add
+          Thêm
         </button>
         <button onClick={handleDeleteUsers} disabled={selectedUsers.length === 0}
-          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
-        >Delete</button>
+          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+        >Xóa</button>
       </div>
 
       <div className="tableContainer" >
@@ -278,8 +290,19 @@ export default function UserManagementPage() {
           <tbody>
             {users.length > 0 ? (
               users.map((user, index) => (
-                <tr key={index}>
-                  <td>
+                <tr key={index} onClick={() => {
+                    const upuser: UpdateUserType = {
+                      userId: user.userId,
+                      name: user.name,
+                      email: user.email,
+                      locationId: user.locationId || "",
+                      phone: user.phone,
+                      role: user.role,
+                      password: "password123",
+                    };
+                    handleOpenUpdateForm(upuser);
+                }}>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedUsers.includes(user.userId)}
@@ -287,31 +310,11 @@ export default function UserManagementPage() {
                       className="w-5 h-5"
                     />
                   </td>
-                  <td>
-                    <button
-                      onClick={() => {
-                        const upuser: UpdateUserType = {
-                          userId: user.userId,
-                          name: user.name,
-                          email: user.email,
-                          locationId: "",
-                          phone: user.phone,
-                          role: user.role,
-                          password: "password123",
-                        };
-                        handleOpenUpdateForm(upuser);
-                      }}
-                      className="text-blue-500 hover:underline hover:text-blue-700"
-                    >
-                      {user.name}
-                    </button>
-                  </td>
+                  <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>{user.locationName}</td>
                   <td>{user.phone}</td>
-                  {/* <td>{user.updatedAt}</td> */}
                   <td>
-                    {/* Badge màu cho quyền */}
                     <span className={`permissionBadge ${user.role.toLowerCase()}`}>
                       {user.role}
                     </span>
@@ -340,152 +343,162 @@ export default function UserManagementPage() {
       />
 
       {showAddForm && (
-        <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
-          <input
-            type="text"
-            name="name"
-            value={newUser.name}
-            onChange={handleNewUserChange}
-            placeholder="Name"
-          />
-          <input
-            type="email"
-            name="email"
-            value={newUser.email}
-            onChange={handleNewUserChange}
-            placeholder="Email"
-          />
-          <select
-            name="locationId"
-            value={newUser.locationId}
-            onChange={handleNewUserChange}
-          >
-            <option value="" disabled hidden>
-              Chọn khu vực
-            </option>
-            {locations.map((location) => (
-              <option key={location.locationId} value={location.locationId}>
-                {location.name}
-              </option>
-            ))}
-          </select>
-
-
-          <input
-            type="text"
-            name="phone"
-            value={newUser.phone}
-            onChange={handleNewUserChange}
-            placeholder="Phone"
-          />
-          <input
-            type="password"
-            name="password"
-            value={newUser.password}
-            onChange={handleNewUserChange}
-            placeholder="Password"
-          />
-          <select
-            name="role"
-            value={newUser.role}
-            onChange={handleNewUserChange}
-          // placeholder="Role"
-          >
-            <option value="GARDENER">Gardener</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-
-          <div className="modalActions">
-            <button onClick={handleCreateUser} className="bg-green-500 text-white px-4 py-2 rounded">
-              Create User
-            </button>
-            <button onClick={() => setShowAddForm(false)} className="bg-red-500 text-white px-4 py-2 rounded">
-              Cancel
-            </button>
-          </div>
-        </PopupModal>
-      )}
-
-      {showUpdateForm && updatedUser && (
-        <PopupModal
-          title="Cập nhật người dùng"
-          onClose={() => setShowUpdateForm(false)}
+        <div 
+          className="modalOverlay" 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}
         >
-          <label>
-            Tên:
+          <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
             <input
               type="text"
               name="name"
-              value={updatedUser.name}
-              onChange={handleChange}
+              value={newUser.name}
+              onChange={handleNewUserChange}
+              placeholder="Name"
             />
-          </label>
-          <label>
-            Email:
             <input
               type="email"
               name="email"
-              value={updatedUser.email}
-              onChange={handleChange}
+              value={newUser.email}
+              onChange={handleNewUserChange}
+              placeholder="Email"
             />
-          </label>
-          <select
-            name="locationId"
-            value={updatedUser.locationId}  
-            onChange={handleChange}
-          >
-            <option value="" disabled hidden>
-              Chọn khu vực
-            </option>
-            {locations.map((location) => (
-              <option key={location.locationId} value={location.locationId}>
-                {location.name}
+            <select
+              name="locationId"
+              value={newUser.locationId}
+              onChange={handleNewUserChange}
+            >
+              <option value="" disabled hidden>
+                Chọn khu vực
               </option>
-            ))}
-          </select>
+              {locations.map((location) => (
+                <option key={location.locationId} value={location.locationId}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
 
 
-          <label>
-            Số điện thoại:
             <input
               type="text"
               name="phone"
-              value={updatedUser.phone}
-              onChange={handleChange}
+              value={newUser.phone}
+              onChange={handleNewUserChange}
+              placeholder="Phone"
             />
-          </label>
-          <label>
-            Mật khẩu (đã tự động reset thành mặc định):
             <input
               type="password"
               name="password"
-              value={updatedUser.password}
-              onChange={handleChange}
+              value={newUser.password}
+              onChange={handleNewUserChange}
+              placeholder="Password"
             />
-          </label>
-          <label>
-            Vai trò:
-            <select name="role" value={updatedUser.role} onChange={handleChange}>
-              <option value="ADMIN">ADMIN</option>
-              <option value="GARDENER">GARDENER</option>
-              <option value="INACTIVE">INACTIVE</option>
+            <select
+              name="role"
+              value={newUser.role}
+              onChange={handleNewUserChange}
+            // placeholder="Role"
+            >
+              <option value="GARDENER">Gardener</option>
+              <option value="ADMIN">Admin</option>
             </select>
-          </label>
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
+
+            <div className="modalActions">
+              <button onClick={handleCreateUser} className="bg-green-500 text-white px-4 py-2 rounded">
+                Tạo
+              </button>
+              <button onClick={() => setShowAddForm(false)} className="bg-red-500 text-white px-4 py-2 rounded">
+                Hủy
+              </button>
+            </div>
+          </PopupModal>
+        </div>
+      )}
+
+      {showUpdateForm && updatedUser && (
+        <div 
+          className="modalOverlay" 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowUpdateForm(false); }}
+        >
+          <PopupModal
+            title="Cập nhật người dùng"
+            onClose={() => setShowUpdateForm(false)}
+          >
+            <label>
+              Tên:
+              <input
+                type="text"
+                name="name"
+                value={updatedUser.name}
+                onChange={handleChange}
+              />
+            </label>
+            <label>
+              Email:
+              <input
+                type="email"
+                name="email"
+                value={updatedUser.email}
+                onChange={handleChange}
+              />
+            </label>
+            <select
+              name="locationId"
+              value={updatedUser.locationId}  
+              onChange={handleChange}
             >
-              Cập nhật
-            </button>
-            <button
-              onClick={() => setShowUpdateForm(false)}
-              className="px-4 py-2 bg-gray-300 rounded"
-            >
-              Hủy
-            </button>
-          </div>
-        </PopupModal>
+              <option value="" disabled hidden>
+                Chọn khu vực
+              </option>
+              {locations.map((location) => (
+                <option key={location.locationId} value={location.locationId}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+
+
+            <label>
+              Số điện thoại:
+              <input
+                type="text"
+                name="phone"
+                value={updatedUser.phone}
+                onChange={handleChange}
+              />
+            </label>
+            <label>
+              Mật khẩu (đã tự động reset thành mặc định):
+              <input
+                type="password"
+                name="password"
+                value={updatedUser.password}
+                onChange={handleChange}
+              />
+            </label>
+            <label>
+              Vai trò:
+              <select name="role" value={updatedUser.role} onChange={handleChange}>
+                <option value="ADMIN">ADMIN</option>
+                <option value="GARDENER">GARDENER</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </label>
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Cập nhật
+              </button>
+              <button
+                onClick={() => setShowUpdateForm(false)}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Hủy
+              </button>
+            </div>
+          </PopupModal>
+        </div>
       )}
     </div>
   );

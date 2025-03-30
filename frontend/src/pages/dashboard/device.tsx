@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
 // import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -58,8 +58,23 @@ export default function UserManagementPage() {
     status: DeviceStatus.ACTIVE,
   });
 
+  // Added ref for tracking the info modal element
+  const infoModalRef = useRef<HTMLDivElement>(null);
 
-
+  // Close on Esc key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowInfoForm(false);
+      }
+    };
+    if (showInfoForm) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showInfoForm]);
 
   const fetchDevice = async () => {
     setLoading(true);
@@ -254,7 +269,7 @@ export default function UserManagementPage() {
       <div className="filterContainer">
         <input
           type="text"
-          placeholder="Search (tên,khu vực)"
+          placeholder="Tìm kiếm (tên,khu vực)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-8 px-4 py-2 text-lg"
@@ -267,9 +282,9 @@ export default function UserManagementPage() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="selectInput"
         >
-          <option value="All">All</option>
-          <option value={DeviceStatus.ACTIVE}>ACTIVE</option>
-          <option value={DeviceStatus.INACTIVE}>INACTIVE</option>
+          <option value="All">Tất cả thiết bị</option>
+          <option value={DeviceStatus.ACTIVE}>Hoạt động</option>
+          <option value={DeviceStatus.INACTIVE}>Không hoạt động</option>
         </select>
 
 
@@ -285,14 +300,14 @@ export default function UserManagementPage() {
 
         {/* chưa có tác dụng */}
         <button onClick={() => setShowAddForm(true)}
-          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
-          Add
+          Thêm
         </button>
         <button onClick={handleDeleteDevice} disabled={selectedDevice.length === 0}
-          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
-        >Delete</button>
-
+          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+        >Xóa</button>
+        
 
       </div>
       <div className="tableContainer" >
@@ -309,46 +324,28 @@ export default function UserManagementPage() {
           <tbody>
             {filteredUsers.length > 0 ? (
               filteredUsers.map((device, index) => (
-                <tr key={index}>
+                <tr key={index} onClick={() => handleOpenInfoForm(device)}>
                   <td>
                     <input
                       type="checkbox"
                       checked={selectedDevice.includes(device.deviceId)}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={() => toggleSelectUser(device.deviceId)}
                       className="w-5 h-5"
                     />
                   </td>
                   <td>
-                    <button
-                      onClick={() => {
-                        const deviceinfo: InfoDevicesType =
-                        {
-                          deviceId: device.deviceId,
-                          name: device.name,
-                          type: device.type,
-                          locationName: device.locationName,
-                          status: device.status,
-                          updatedAt: '',
-                          // value: [30, 40 , 50, 60, 20, 30, 60, 70, 30, 40 , 50, 60, 20, 30, 60, 70 ] //giá trị của cảm biến gọi API sau
-                        };
-
-                        handleOpenInfoForm(deviceinfo);
-                      }}
-                      className="text-blue-500 hover:underline">
-                      {device.name}
-                    </button>
+                    {device.name}
                   </td>
                   <td>{device.locationName}</td>
                   <td>{device.type}</td>
                   <td> {device.status}</td>
-
-
                 </tr>
               ))
             ) : (
               <tr>
                 <td colSpan={5} className="noResults">
-                  No matching device found.
+                Không tìm thấy thiết bị phù hợp.
                 </td>
               </tr>
             )}
@@ -397,190 +394,194 @@ export default function UserManagementPage() {
 
             <button onClick={handleCreateDevice}
               className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
-            >Create</button>
+            >Tạo</button>
 
             <button onClick={() => setShowAddForm(false)}
               className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
-            >Cancel</button>
+            >Hủy</button>
 
           </div>
         </PopupModal>
       )}
       {showInfoForm && selectedDeviceInfo && (
-        <PopupModal title="Thông tin thiết bị" onClose={() => setShowInfoForm(false)}>
-          <div className="p-4 bg-white/80 rounded-lg shadow-md">
+        <div className="modal-overlay" onClick={() => setShowInfoForm(false)}>
+          <div ref={infoModalRef} onClick={(e) => e.stopPropagation()}>
+            <PopupModal title="Thông tin thiết bị" onClose={() => setShowInfoForm(false)}>
+              <div className="p-4 bg-white/80 rounded-lg shadow-md" style={{ maxHeight: "80vh", overflowY: "auto" }}>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="font-bold">Name</label>
-                <input
-                  type="text"
-                  value={selectedDeviceInfo.name}
-                  readOnly
-                  className="w-full p-2 rounded-lg bg-gray-200"
-                />
-              </div>
-              <div>
-                <label className="font-bold">locationName</label>
-                <input
-                  type="text"
-                  value={selectedDeviceInfo.locationName}
-                  readOnly
-                  className="w-full p-2 rounded-lg bg-gray-200"
-                />
-              </div>
-              <div>
-                <label className="font-bold">Type</label>
-                <input
-                  type="text"
-                  value={selectedDeviceInfo.type}
-                  readOnly
-                  className="w-full p-2 rounded-lg border-2 border-blue-400"
-                />
-              </div>
-              <div>
-                <label className="font-bold">Status</label>
-                <input
-                  type="text"
-                  value={selectedDeviceInfo.status ? "On" : "Off"}
-                  readOnly
-                  className="w-full p-2 rounded-lg bg-gray-200"
-                />
-              </div>
-            </div>
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={() => setShowInfoForm(false)}
-                className="px-4 py-2 bg-orange-400 text-white rounded-lg shadow-md hover:bg-orange-500"
-              >
-                Back
-              </button>
-
-            </div>
-
-
-
-            {selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR && (
-              <div className="bg-white/80 rounded-lg p-4">
-                <div className="text-lg font-semibold mb-2">Soil Moisture</div>
-
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={soilChartData || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="time"
-                      tickFormatter={(time) =>
-                        new Date(time).toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        })
-                      }
-                      interval="preserveStartEnd"
-
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold">Name</label>
+                    <input
+                      type="text"
+                      value={selectedDeviceInfo.name}
+                      readOnly
+                      className="w-full p-2 rounded-lg bg-gray-200"
                     />
-                    <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
-                    <Tooltip
-                      labelFormatter={(time) =>
-                        new Date(time).toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        })
-                      }
+                  </div>
+                  <div>
+                    <label className="font-bold">locationName</label>
+                    <input
+                      type="text"
+                      value={selectedDeviceInfo.locationName}
+                      readOnly
+                      className="w-full p-2 rounded-lg bg-gray-200"
                     />
-                    <Legend />
-                    <Line type="monotone" dataKey="soil" stroke="#FF8042" activeDot={{ r: 8 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+                  </div>
+                  <div>
+                    <label className="font-bold">Type</label>
+                    <input
+                      type="text"
+                      value={selectedDeviceInfo.type}
+                      readOnly
+                      className="w-full p-2 rounded-lg border-2 border-blue-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold">Status</label>
+                    <input
+                      type="text"
+                      value={selectedDeviceInfo.status}
+                      readOnly
+                      className="w-full p-2 rounded-lg bg-gray-200"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between mt-4">
+                  <button
+                    onClick={() => setShowInfoForm(false)}
+                    className="px-4 py-2 bg-orange-400 text-white rounded-lg shadow-md hover:bg-orange-500"
+                  >
+                    Back
+                  </button>
 
-
-
-            {selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR && (
-              <>
-                {/* Biểu đồ Nhiệt độ */}
-                <div className="bg-white/80 rounded-lg p-4 mt-4">
-                  <div className="text-lg font-semibold mb-2">Temperature</div>
-
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={temperatureChartData || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="time"
-                        // scale="time"  cần tham số thực
-
-                        tickFormatter={(time) =>
-                          new Date(time).toLocaleTimeString("vi-VN", {
-                            
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
-                        }
-                        interval="preserveStartEnd"
-
-                      />
-                      <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
-                      <Tooltip
-                        labelFormatter={(time) =>
-                          new Date(time).toLocaleTimeString("vi-VN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
-                        }
-                      />
-                      <Legend />
-                      <Line type="monotone" dataKey="temp" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
                 </div>
 
-                {/* Biểu đồ Độ ẩm */}
-                <div className="bg-white/80 rounded-lg p-4 mt-4">
-                  <div className="text-lg font-semibold mb-2">Humidity</div>
-
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={humidityChartData || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="time"
-                        // scale="time"  cần tham số thực
-
-                        tickFormatter={(time) =>
-                          new Date(time).toLocaleTimeString("vi-VN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
-                        }
-                        interval="preserveStartEnd"
-
-                      />
-                      <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
-                      <Tooltip
-                        labelFormatter={(time) =>
-                          new Date(time).toLocaleTimeString("vi-VN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
-                        }
-                      />
-                      <Legend />
-                      <Line type="monotone" dataKey="humidity" stroke="#82ca9d" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </>
-            )}
 
 
+                {selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR && (
+                  <div className="bg-white/80 rounded-lg p-4">
+                    <div className="text-lg font-semibold mb-2">Soil Moisture</div>
 
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={soilChartData || []}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="time"
+                          tickFormatter={(time) =>
+                            new Date(time).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })
+                          }
+                          interval="preserveStartEnd"
+
+                        />
+                        <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
+                        <Tooltip
+                          labelFormatter={(time) =>
+                            new Date(time).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })
+                          }
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="soil" stroke="#FF8042" activeDot={{ r: 8 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+
+
+                {selectedDeviceInfo?.type === DeviceType.DHT20_SENSOR && (
+                  <>
+                    {/* Biểu đồ Nhiệt độ */}
+                    <div className="bg-white/80 rounded-lg p-4 mt-4">
+                      <div className="text-lg font-semibold mb-2">Temperature</div>
+
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={temperatureChartData || []}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="time"
+                            // scale="time"  cần tham số thực
+
+                            tickFormatter={(time) =>
+                              new Date(time).toLocaleTimeString("vi-VN", {
+                                
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              })
+                            }
+                            interval="preserveStartEnd"
+
+                          />
+                          <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
+                          <Tooltip
+                            labelFormatter={(time) =>
+                              new Date(time).toLocaleTimeString("vi-VN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              })
+                            }
+                          />
+                          <Legend />
+                          <Line type="monotone" dataKey="temp" stroke="#8884d8" activeDot={{ r: 8 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Biểu đồ Độ ẩm */}
+                    <div className="bg-white/80 rounded-lg p-4 mt-4">
+                      <div className="text-lg font-semibold mb-2">Humidity</div>
+
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={humidityChartData || []}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="time"
+                            // scale="time"  cần tham số thực
+
+                            tickFormatter={(time) =>
+                              new Date(time).toLocaleTimeString("vi-VN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              })
+                            }
+                            interval="preserveStartEnd"
+
+                          />
+                          <YAxis domain={["dataMin - 5", "dataMax + 5"]} />
+                          <Tooltip
+                            labelFormatter={(time) =>
+                              new Date(time).toLocaleTimeString("vi-VN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              })
+                            }
+                          />
+                          <Legend />
+                          <Line type="monotone" dataKey="humidity" stroke="#82ca9d" activeDot={{ r: 8 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </>
+                )}
+
+
+
+              </div>
+            </PopupModal>
           </div>
-        </PopupModal>
+        </div>
       )}
 
     </div>

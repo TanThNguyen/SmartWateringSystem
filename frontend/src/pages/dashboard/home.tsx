@@ -199,6 +199,28 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [showChartModal]);
 
+  useEffect(() => {
+    if (!showModal) return;
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [showModal]);
+
+  useEffect(() => {
+    if (!showAreaList) return;
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowAreaList(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [showAreaList]);
+
   const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
   const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
 
@@ -448,7 +470,7 @@ export default function DashboardPage() {
           {/* Biểu đồ */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div onClick={() => openChartModal("temperature")} className="cursor-pointer bg-white/80 rounded-lg p-4">
-              <div className="text-lg font-semibold mb-2">Average Temperature</div>
+              <div className="text-lg font-semibold mb-2">Nhiệt độ</div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={temperatureChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -467,7 +489,7 @@ export default function DashboardPage() {
             </div>
 
             <div onClick={() => openChartModal("humidity")} className="cursor-pointer bg-white/80 rounded-lg p-4">
-              <div className="text-lg font-semibold mb-2">Average Humidity</div>
+              <div className="text-lg font-semibold mb-2">Độ ẩm không khí</div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={humidityChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -486,7 +508,7 @@ export default function DashboardPage() {
             </div>
 
             <div onClick={() => openChartModal("soil")} className="cursor-pointer bg-white/80 rounded-lg p-4">
-              <div className="text-lg font-semibold mb-2">Soil Moisture</div>
+              <div className="text-lg font-semibold mb-2">Độ ẩm đất</div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={soilChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -510,8 +532,8 @@ export default function DashboardPage() {
       {/* Modal thêm khu vực */}
       {
         showModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="bg-white p-6 rounded-lg w-80">
+          <div onClick={() => setShowModal(false)} className="fixed inset-0 flex items-center justify-center bg-black/50">
+            <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-80">
               <h2 className="text-lg font-bold mb-4">Thêm khu vực</h2>
               <div className="mb-2">
                 <label className="block text-sm">Tên khu vực</label>
@@ -533,14 +555,14 @@ export default function DashboardPage() {
 
       {/* Modal danh sách areas */}
       {showAreaList && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-lg font-bold mb-4">Danh sách Areas</h2>
+        <div onClick={() => setShowAreaList(false)} className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-lg font-bold mb-4">Danh sách khu vực</h2>
             <table className="w-full text-left mb-4">
               <thead>
                 <tr>
-                  <th className="border-b py-2">Area</th>
-                  <th className="border-b py-2">Actions</th>
+                  <th className="border-b py-2">Khu vực</th>
+                  <th className="border-b py-2">Hoạt động</th>
                 </tr>
               </thead>
               <tbody>
@@ -552,13 +574,13 @@ export default function DashboardPage() {
                         onClick={() => handleEditArea(location.locationId)}
                         className="px-2 py-1 bg-green-500 text-white rounded"
                       >
-                        Edit
+                        Chỉnh sửa
                       </button>
                       <button
                         onClick={() => handleDeleteArea(location.locationId)}
                         className="px-2 py-1 bg-red-500 text-white rounded"
                       >
-                        Delete
+                        Xóa
                       </button>
                     </td>
                   </tr>
@@ -567,7 +589,7 @@ export default function DashboardPage() {
             </table>
             <div className="flex justify-end">
               <button onClick={handleCloseAreaList} className="px-4 py-1 bg-gray-300 rounded">
-                Close
+                ✖
               </button>
             </div>
           </div>
@@ -642,7 +664,7 @@ export default function DashboardPage() {
                     : selectedChart === "humidity" ? "Humidity"
                       : "Soil Moisture"} Chart
                 </h2>
-                <button onClick={() => setShowChartModal(false)} className="px-4 py-1 bg-gray-300 rounded">Close</button>
+                <button onClick={() => setShowChartModal(false)} className="px-4 py-1 bg-gray-300 rounded">✖</button>
               </div>
 
               {/* New Date Picker for fixed date search */}
