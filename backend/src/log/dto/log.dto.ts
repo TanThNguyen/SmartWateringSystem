@@ -1,6 +1,6 @@
 import { Severity } from "@prisma/client";
-import { Transform, Type } from "class-transformer";
-import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from "class-validator";
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, Min, ValidateIf } from 'class-validator';
 
 export class GetLogsRequestDto {
     @IsInt()
@@ -18,7 +18,7 @@ export class GetLogsRequestDto {
     search?: string;
 
     @IsOptional()
-    @Transform(({ value }) => value?.toUpperCase() || 'ALL')
+    @Transform(({ value }) => value ? value.toUpperCase() : 'ALL')
     @Matches(/^(INFO|WARNING|ERROR|ALL)$/, {
         message: 'eventType phải là giá trị hợp lệ của Severity hoặc "ALL"',
     })
@@ -26,25 +26,25 @@ export class GetLogsRequestDto {
 
     @IsOptional()
     @IsString()
-    order?: string;
+    @Matches(/^(asc|desc)$/i, { message: 'order phải là "asc" hoặc "desc"' })
+    order?: 'asc' | 'desc' = 'desc';
 }
 
 export class InfoLogDto {
-
     @IsUUID()
     @IsString()
     @IsNotEmpty()
     logId: string;
 
+    @IsOptional()
     @IsUUID()
     @IsString()
-    @IsNotEmpty()
-    userId: string;
+    userId?: string | null;
 
+    @IsOptional()
     @IsUUID()
     @IsString()
-    @IsNotEmpty()
-    deviceId: string;
+    deviceId?: string | null;
 
     @IsEnum(Severity)
     eventType: Severity;
@@ -60,6 +60,7 @@ export class InfoLogDto {
 
 export class FindAllLogsDto {
     @IsArray()
+    @Type(() => InfoLogDto)
     logs: InfoLogDto[];
 
     @IsNumber()
@@ -69,22 +70,29 @@ export class FindAllLogsDto {
     currentPage: number;
 
     @IsNumber()
+    @IsOptional()
     nextPage: number | null;
 
     @IsNumber()
+    @IsOptional()
     prevPage: number | null;
 
     @IsNumber()
     lastPage: number;
 }
 
-export class CreateLogDto {
+export const LOG_EVENT = 'log.event.created';
+
+export class LogEventPayload {
+    @IsOptional()
+    @IsUUID()
+    @ValidateIf(o => o.userId != null)
+    userId?: string | null;
 
     @IsOptional()
-    userId: string;
-
-    @IsOptional()
-    deviceId: string;
+    @IsUUID()
+    @ValidateIf(o => o.deviceId != null)
+    deviceId?: string | null;
 
     @IsEnum(Severity)
     eventType: Severity;

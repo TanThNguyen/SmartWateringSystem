@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config'; // ConfigService không cần import trực tiếp ở đây trừ khi dùng trong AppModule provider
+import { ConfigModule } from '@nestjs/config'; 
 import { APP_GUARD } from '@nestjs/core';
 import { MyJwtGuard } from './auth/guard';
 import { NotificationModule } from './notification/notification.module';
@@ -16,13 +16,15 @@ import { AdafruitModule } from './adafruit/adafruit.module';
 import { RecordModule } from './record/record.module';
 import { ScheduleModule as MyCustomScheduleModule } from './schedule/schedule.module'; // Đổi tên import để tránh trùng lặp (hoặc giữ nguyên nếu tên file khác)
 import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'; // <-- IMPORT GÓI LẬP LỊCH
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    NestScheduleModule.forRoot(), // <-- THÊM DÒNG NÀY ĐỂ KHỞI TẠO LẬP LỊCH
+    NestScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     AuthModule,
     UserModule,
     NotificationModule,
@@ -33,7 +35,7 @@ import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'; // <-- 
     // AdafruitMqttModule,
     AdafruitModule,
     RecordModule,
-    MyCustomScheduleModule, // Import module chứa Service/Controller Schedule của bạn
+    MyCustomScheduleModule,
   ],
   controllers: [AppController],
   providers: [

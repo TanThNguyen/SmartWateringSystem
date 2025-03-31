@@ -1,19 +1,25 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AddDeviceDto, DeleteDevicesDto, FindAllDevicesDto, GetDevicesRequestDto, InfoDevicesDto, DeviceIdDto, EditDeviceDto } from './dto';
-import { DeviceStatus, DeviceType, Prisma } from '@prisma/client';
+import { DeviceStatus, DeviceType, Prisma, Severity } from '@prisma/client';
 import { DeviceFactory } from './factories/device.factory';
-
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
+import { NOTIFICATION_EVENT, NotificationEventPayload, NotificationEventContext } from "src/notification/dto";
 
 @Injectable()
 export class DeviceService {
+    private readonly logger = new Logger(DeviceService.name);
+
     constructor(
         private prismaService: PrismaService,
-        private deviceFactory: DeviceFactory, // Inject Factory
+        private deviceFactory: DeviceFactory,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     async add(addDeviceDto: AddDeviceDto): Promise<string> {
         const { name, type, locationName, status } = addDeviceDto;
+        let addedDeviceId: string | null = null;
 
         try {
             const location = await this.prismaService.location.findUnique({
@@ -36,12 +42,40 @@ export class DeviceService {
                         status,
                     },
                 });
+                addedDeviceId = device.deviceId;
                 await handler.createSpecifics(prisma, device.deviceId, addDeviceDto);
             });
+
+            // --- BỔ SUNG LOG & NOTIFICATION ---
+            const logPayloadSuccess: LogEventPayload = {
+                deviceId: addedDeviceId!, // Use the stored ID
+                eventType: Severity.INFO,
+                description: `Thiết bị mới '${name}' (Loại: ${type}, Vị trí: ${locationName}, ID: ${addedDeviceId}) đã được thêm.`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
+
+            // // Tùy chọn: Gửi thông báo (ví dụ: cho admin)
+            // const notiContext: NotificationEventContext = { deviceId: addedDeviceId!, userId: undefined /* Có thể thêm ID người thêm */ };
+            // const notiPayload: NotificationEventPayload = {
+            //     severity: Severity.INFO,
+            //     messageTemplate: `Thiết bị mới {{deviceId}} ('${name}') đã được thêm vào hệ thống.`,
+            //     context: notiContext
+            // };
+            // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+            // --- KẾT THÚC BỔ SUNG ---
 
             return 'Thêm thiết bị thành công!';
 
         } catch (error) {
+
+            // --- BỔ SUNG LOG LỖI ---
+            const logPayloadError: LogEventPayload = {
+                deviceId: addedDeviceId ?? undefined, // Log ID nếu đã tạo được device record
+                eventType: Severity.ERROR,
+                description: `Lỗi khi thêm thiết bị '${name}' (Loại: ${type}, Vị trí: ${locationName}): ${error.message}`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+            // --- KẾT THÚC BỔ SUNG ---
 
             if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof InternalServerErrorException) {
                 throw error;
@@ -55,16 +89,63 @@ export class DeviceService {
     async deleteMany(deleteDevicesDto: DeleteDevicesDto): Promise<string> {
         const { deviceIds } = deleteDevicesDto;
         if (!deviceIds || deviceIds.length === 0) {
-            throw new BadRequestException('Danh sách thiết bị cần xóa không hợp lệ!');
+            throw new BadRequestException('Danh sách ID thiết bị cần vô hiệu hóa không được để trống!');
         }
         try {
-            const count = await this.prismaService.device.updateMany({
-                where: { deviceId: { in: deviceIds } },
+            // Lấy thông tin thiết bị trước khi cập nhật để log
+            const devicesToUpdate = await this.prismaService.device.findMany({
+                where: { deviceId: { in: deviceIds }, status: DeviceStatus.ACTIVE }, // Chỉ lấy những thiết bị đang ACTIVE
+                select: { deviceId: true, name: true }
+            });
+
+            if (devicesToUpdate.length === 0) {
+                // Nếu không có thiết bị nào đang ACTIVE trong danh sách, không cần làm gì thêm
+                this.logger.warn(`Không tìm thấy thiết bị nào đang hoạt động trong danh sách để vô hiệu hóa: ${deviceIds.join(', ')}`);
+                // Có thể throw lỗi hoặc trả về thông báo khác tùy yêu cầu
+                throw new NotFoundException('Không tìm thấy thiết bị nào đang hoạt động trong danh sách để vô hiệu hóa.');
+            }
+
+            const actualIdsToUpdate = devicesToUpdate.map(d => d.deviceId);
+            const deviceNames = devicesToUpdate.map(d => `'${d.name}' (ID: ${d.deviceId})`).join(', ');
+
+
+            const countResult = await this.prismaService.device.updateMany({
+                where: { deviceId: { in: actualIdsToUpdate } }, // Chỉ cập nhật những ID thực sự tồn tại và active
                 data: { status: DeviceStatus.INACTIVE },
             });
-            return `Đã vô hiệu hóa ${count.count} thiết bị thành công!`;
+
+            // --- BỔ SUNG LOG & NOTIFICATION ---
+            const logPayloadSuccess: LogEventPayload = {
+                eventType: Severity.INFO,
+                description: `Đã vô hiệu hóa ${countResult.count} thiết bị: ${deviceNames}.`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
+
+            // Gửi thông báo (ví dụ: cho admin)
+            const notiContext: NotificationEventContext = { /* Thêm context nếu cần */ };
+            const notiPayload: NotificationEventPayload = {
+                severity: Severity.WARNING, // Hành động vô hiệu hóa có thể là cảnh báo
+                messageTemplate: `Đã vô hiệu hóa ${countResult.count} thiết bị: ${deviceNames}.`,
+                context: notiContext
+            };
+            this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+            // --- KẾT THÚC BỔ SUNG ---
+
+
+            return `Đã vô hiệu hóa ${countResult.count} thiết bị thành công!`; // Original return
         } catch (error) {
-            console.error(`Lỗi khi vô hiệu hóa thiết bị:`, error);
+            // --- BỔ SUNG LOG LỖI ---
+            const logPayloadError: LogEventPayload = {
+                eventType: Severity.ERROR,
+                description: `Lỗi khi vô hiệu hóa các thiết bị [${deviceIds.join(', ')}]: ${error.message}`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+            // --- KẾT THÚC BỔ SUNG ---
+
+            this.logger.error(`Lỗi khi vô hiệu hóa thiết bị: ${error.message}`, error.stack); // Use logger
+            if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof InternalServerErrorException) {
+                throw error;
+            }
             throw new InternalServerErrorException(`Đã xảy ra lỗi khi vô hiệu hóa thiết bị: ${error.message}`);
         }
     }
@@ -127,31 +208,63 @@ export class DeviceService {
 
     async toggleStatus(body: DeviceIdDto): Promise<string> {
         const { deviceId } = body;
+        let originalStatus: DeviceStatus | null = null;
+        let deviceName: string | null = null;
+        let newStatusResult: DeviceStatus | null = null;
+
         try {
-            // Sử dụng transaction để đảm bảo tính nhất quán nếu handler có thao tác phức tạp
-            const newStatus = await this.prismaService.$transaction(async (prisma) => {
-                // 1. Lấy thông tin thiết bị cần thiết
+            const result = await this.prismaService.$transaction(async (prisma) => {
                 const device = await prisma.device.findUnique({
                     where: { deviceId },
-                    select: { deviceId: true, status: true, type: true }, // Lấy các trường handler cần
+                    select: { deviceId: true, status: true, type: true, name: true }, // Lấy thêm name
                 });
 
                 if (!device) {
                     throw new NotFoundException('Không tìm thấy thiết bị.');
                 }
+                originalStatus = device.status; // Store original status
+                deviceName = device.name; // Store name
 
                 const handler = this.deviceFactory.getHandler(device.type);
-
-                return await handler.toggleStatus(prisma, device);
+                const statusAfterToggle = await handler.toggleStatus(prisma, device); // Hàm này sẽ cập nhật DB và trả về status mới
+                newStatusResult = statusAfterToggle; // Store result status
+                return statusAfterToggle; // Return from transaction
             });
 
-            return `Thiết bị đã chuyển sang trạng thái ${newStatus}.`;
+            // --- BỔ SUNG LOG & NOTIFICATION ---
+            const logPayload: LogEventPayload = {
+                deviceId: deviceId,
+                eventType: Severity.INFO,
+                description: `Trạng thái của thiết bị '${deviceName}' đã được chuyển từ ${originalStatus} thành ${newStatusResult}.`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayload);
+
+            //  // Tùy chọn: Gửi thông báo
+            // const notiContext: NotificationEventContext = { deviceId: deviceId };
+            // const notiPayload: NotificationEventPayload = {
+            //     severity: Severity.INFO,
+            //     messageTemplate: `Trạng thái thiết bị {{deviceId}} ('${deviceName}') đã được chuyển thành ${newStatusResult}.`,
+            //     context: notiContext
+            // };
+            // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+            // --- KẾT THÚC BỔ SUNG ---
+
+            return `Thiết bị đã chuyển sang trạng thái ${result}.`; // Original return
 
         } catch (error) {
+            // --- BỔ SUNG LOG LỖI ---
+            const logPayloadError: LogEventPayload = {
+                deviceId: deviceId,
+                eventType: Severity.ERROR,
+                description: `Lỗi khi thay đổi trạng thái thiết bị '${deviceName ?? deviceId}': ${error.message}`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+            // --- KẾT THÚC BỔ SUNG ---
+
+            this.logger.error(`Lỗi khi thay đổi trạng thái thiết bị ${deviceId}: ${error.message}`, error.stack); // Use logger
             if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof InternalServerErrorException) {
-                throw error;
+                throw error; // Re-throw specific handled errors
             }
-            console.error(`Lỗi khi thay đổi trạng thái thiết bị ${deviceId}:`, error);
             throw new InternalServerErrorException(`Lỗi khi thay đổi trạng thái thiết bị: ${error.message}`);
         }
     }
@@ -205,6 +318,7 @@ export class DeviceService {
 
     async editDevice(editDeviceDto: EditDeviceDto): Promise<string> {
         const { deviceId, name, status, locationId } = editDeviceDto;
+
         try {
             return await this.prismaService.$transaction(async (prisma) => {
                 const device = await prisma.device.findUnique({
@@ -239,9 +353,33 @@ export class DeviceService {
 
                 await handler.updateSpecifics(prisma, deviceId, editDeviceDto);
 
+                // --- BỔ SUNG LOG & NOTIFICATION ---
+                const logPayloadSuccess: LogEventPayload = {
+                    deviceId: deviceId,
+                    eventType: Severity.INFO,
+                    description: `Thiết bị '${name}' (ID: ${deviceId}) đã được cập nhật.`
+                    // Có thể thêm chi tiết các trường đã thay đổi nếu cần
+                };
+                this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
+
+                // Tùy chọn: Gửi thông báo
+                // const notiContext: NotificationEventContext = { deviceId: deviceId };
+                // const notiPayload: NotificationEventPayload = { ... };
+                // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+                // --- KẾT THÚC BỔ SUNG ---
+
                 return `Cập nhật thiết bị ${deviceId} thành công!`;
             });
         } catch (error) {
+
+            // --- BỔ SUNG LOG LỖI ---
+            const logPayloadError: LogEventPayload = {
+                deviceId: deviceId,
+                eventType: Severity.ERROR,
+                description: `Lỗi khi cập nhật thiết bị '${name ?? deviceId}': ${error.message}`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+            // --- KẾT THÚC BỔ SUNG ---
             if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof InternalServerErrorException) {
                 throw error;
             }

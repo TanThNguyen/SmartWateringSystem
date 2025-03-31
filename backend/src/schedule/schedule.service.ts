@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import { Prisma, Schedule, DeviceStatus, DeviceType } from '@prisma/client';
+import { Prisma, Schedule, DeviceStatus, DeviceType, Severity } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CreateScheduleDto, FindAllSchedulesDto, GetSchedulesRequestDto } from "./dto";
 
@@ -9,6 +9,10 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import { AdafruitService } from "src/adafruit/adafruit.service";
+
+import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
+import { NOTIFICATION_EVENT, NotificationEventPayload, NotificationEventContext } from "src/notification/dto";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -22,8 +26,10 @@ export class ScheduleService {
   constructor(
     private readonly prisma: PrismaService,
     private adafruitService: AdafruitService,
+    private eventEmitter: EventEmitter2,
   ) { }
   async create(createScheduleDto: CreateScheduleDto): Promise<Schedule> {
+    let createdSchedule: Schedule | null = null;
     try {
       const { deviceId, startTime, endTime, repeatDays, isActive } = createScheduleDto;
       const device = await this.prisma.device.findUnique({ where: { deviceId } });
@@ -44,9 +50,9 @@ export class ScheduleService {
         throw new BadRequestException('Thời gian kết thúc phải sau thời gian bắt đầu.');
       }
 
-      if (endTimeDate.isBefore(dayjs())) {
-        throw new BadRequestException('Thời gian kết thúc phải lớn hơn thời gian hiện tại.');
-      }
+      // if (endTimeDate.isBefore(dayjs())) {
+      //   throw new BadRequestException('Thời gian kết thúc phải lớn hơn thời gian hiện tại.');
+      // }
 
       const existingSchedules = await this.prisma.schedule.findMany({
         where: {
@@ -92,8 +98,7 @@ export class ScheduleService {
         }
       }
 
-
-      return this.prisma.schedule.create({
+      createdSchedule = await this.prisma.schedule.create({
         data: {
           deviceId,
           startTime: startTimeDate.toDate(),
@@ -102,12 +107,45 @@ export class ScheduleService {
           isActive,
         },
       });
+
+      // --- BỔ SUNG LOG & NOTIFICATION ---
+      const logPayloadSuccess: LogEventPayload = {
+        deviceId: deviceId,
+        eventType: Severity.INFO,
+        description: `Lịch trình mới (ID: ${createdSchedule.scheduleId}) được tạo cho thiết bị '${device.name}'.`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
+
+      // // Tùy chọn: Gửi thông báo cho admin hoặc người liên quan
+      // const notiContext: NotificationEventContext = { deviceId: deviceId, scheduleId: createdSchedule.scheduleId };
+      // const notiPayload: NotificationEventPayload = {
+      //   severity: Severity.INFO,
+      //   messageTemplate: `Lịch trình mới (ID: {{scheduleId}}) đã được tạo cho thiết bị {{deviceId}}.`,
+      //   context: notiContext
+      //   // explicitRecipientIds: [...] // Chỉ định người nhận nếu cần
+      // };
+      // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+      // --- KẾT THÚC BỔ SUNG ---
+
+      return createdSchedule;
+
     } catch (error) {
+
+      // --- BỔ SUNG LOG LỖI ---
+      const logPayloadError: LogEventPayload = {
+        deviceId: createScheduleDto.deviceId,
+        eventType: Severity.ERROR,
+        description: `Lỗi khi tạo lịch trình cho thiết bị ${createScheduleDto.deviceId}: ${error.message}`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+      // --- KẾT THÚC BỔ SUNG ---
+
       throw new InternalServerErrorException(error.message);
     }
   }
 
   async createScheduleWithSimpleValidation(createScheduleDto: CreateScheduleDto): Promise<Schedule> {
+    let createdSchedule: Schedule | null = null;
     try {
       const { deviceId, startTime, endTime, repeatDays, isActive } = createScheduleDto;
       const device = await this.prisma.device.findUnique({ where: { deviceId } });
@@ -132,7 +170,7 @@ export class ScheduleService {
         throw new BadRequestException('Thời gian kết thúc phải lớn hơn thời gian hiện tại.');
       }
 
-      return this.prisma.schedule.create({
+      createdSchedule = await this.prisma.schedule.create({
         data: {
           deviceId,
           startTime: startTimeDate.toDate(),
@@ -141,14 +179,46 @@ export class ScheduleService {
           isActive,
         },
       });
+
+      // --- BỔ SUNG LOG & NOTIFICATION ---
+      const logPayloadSuccess: LogEventPayload = {
+        deviceId: deviceId,
+        eventType: Severity.INFO,
+        description: `Lịch trình mới (ID: ${createdSchedule.scheduleId}) được tạo cho thiết bị '${device.name}'.`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
+
+      // // Tùy chọn: Gửi thông báo cho admin hoặc người liên quan
+      // const notiContext: NotificationEventContext = { deviceId: deviceId, scheduleId: createdSchedule.scheduleId };
+      // const notiPayload: NotificationEventPayload = {
+      //   severity: Severity.INFO,
+      //   messageTemplate: `Lịch trình mới (ID: {{scheduleId}}) đã được tạo cho thiết bị {{deviceId}}.`,
+      //   context: notiContext
+      //   // explicitRecipientIds: [...] // Chỉ định người nhận nếu cần
+      // };
+      // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+      // --- KẾT THÚC BỔ SUNG ---
+
+      return createdSchedule;
     } catch (error) {
+
+      // --- BỔ SUNG LOG LỖI ---
+      const logPayloadError: LogEventPayload = {
+        deviceId: createScheduleDto.deviceId,
+        eventType: Severity.ERROR,
+        description: `Lỗi khi tạo lịch trình cho thiết bị ${createScheduleDto.deviceId}: ${error.message}`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+      // --- KẾT THÚC BỔ SUNG ---
+
       throw new InternalServerErrorException(error.message);
     }
   }
 
   async toggleIsActive(scheduleId: string): Promise<Schedule> {
+    let schedule: Schedule | null = null;
     try {
-      const schedule = await this.prisma.schedule.findUnique({ where: { scheduleId } });
+      schedule = await this.prisma.schedule.findUnique({ where: { scheduleId } });
       if (!schedule) throw new NotFoundException(`Không tìm thấy Schedule với ID: ${scheduleId}`);
 
       if (!schedule.isActive) {
@@ -156,10 +226,9 @@ export class ScheduleService {
           where: {
             deviceId: schedule.deviceId,
             isActive: true,
+            scheduleId: { not: scheduleId }
           }
         });
-
-        console.log(existingSchedules);
 
         for (const existing of existingSchedules) {
           const existingRepeatDays = existing.repeatDays;
@@ -200,9 +269,19 @@ export class ScheduleService {
       const updatedSchedule = await this.prisma.schedule.update({
         where: { scheduleId },
         data: { isActive: !schedule.isActive },
+        include: { device: { select: { name: true } } }
       });
 
       this.logger.log(`Schedule ${scheduleId} isActive toggled to ${updatedSchedule.isActive}`);
+
+      // --- BỔ SUNG LOG ---
+      const logPayload: LogEventPayload = {
+        deviceId: updatedSchedule.deviceId,
+        eventType: Severity.INFO,
+        description: `Trạng thái kích hoạt của lịch trình ${scheduleId} cho thiết bị '${updatedSchedule.device.name}' đã được chuyển thành ${updatedSchedule.isActive}.`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayload);
+      // --- KẾT THÚC BỔ SUNG ---
 
       this.checkSchedulesAndApplyStatus().catch(err => {
         this.logger.error(`Lỗi khi kiểm tra lịch trình sau khi toggle ${scheduleId}:`, err);
@@ -210,6 +289,16 @@ export class ScheduleService {
 
       return updatedSchedule;
     } catch (error) {
+
+      // --- BỔ SUNG LOG LỖI ---
+      const logPayloadError: LogEventPayload = {
+        deviceId: schedule?.deviceId ?? undefined, // Lấy deviceId nếu có
+        eventType: Severity.ERROR,
+        description: `Lỗi khi thay đổi trạng thái kích hoạt của lịch trình ${scheduleId}: ${error.message}`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+      // --- KẾT THÚC BỔ SUNG ---
+
       this.logger.error(`Lỗi khi toggle Schedule ${scheduleId}:`, error);
       throw new InternalServerErrorException(error.message);
     }
@@ -284,18 +373,41 @@ export class ScheduleService {
 
 
   async remove(scheduleId: string): Promise<Schedule> {
+    let scheduleToDelete: Schedule | null = null;
     try {
-      const schedule = await this.prisma.schedule.findUnique({ where: { scheduleId } });
-      if (!schedule) throw new NotFoundException(`Không tìm thấy Schedule với ID: ${scheduleId}`);
+      scheduleToDelete = await this.prisma.schedule.findUnique({
+        where: { scheduleId },
+      });
+      if (!scheduleToDelete) throw new NotFoundException(`Không tìm thấy Schedule với ID: ${scheduleId}`);
 
-      const deletedSchedule = await this.prisma.schedule.delete({ where: { scheduleId } });
-
-      this.checkSchedulesAndApplyStatus().catch(err => {
-        this.logger.error(`Lỗi khi kiểm tra lịch trình sau khi xóa ${scheduleId}:`, err);
+      const deletedSchedule = await this.prisma.schedule.delete({
+        where: { scheduleId },
+        include: { device: { select: { name: true } } }
       });
 
-      return deletedSchedule;
+      // --- BỔ SUNG LOG ---
+      const logPayload: LogEventPayload = {
+        deviceId: deletedSchedule.deviceId,
+        eventType: Severity.INFO,
+        description: `Lịch trình ${scheduleId} cho thiết bị '${deletedSchedule.device.name}' đã được xóa.`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayload);
+      // --- KẾT THÚC BỔ SUNG ---
+
+      this.checkSchedulesAndApplyStatus().catch(err => {
+        this.logger.error(`Lỗi khi kiểm tra lịch trình sau khi xóa ${scheduleId}:`, err.message, err.stack);
+      });
+
+      return scheduleToDelete;
     } catch (error) {
+      // --- BỔ SUNG LOG LỖI ---
+      const logPayloadError: LogEventPayload = {
+        deviceId: scheduleToDelete?.deviceId ?? undefined,
+        eventType: Severity.ERROR,
+        description: `Lỗi khi xóa lịch trình ${scheduleId}: ${error.message}`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+      // --- KẾT THÚC BỔ SUNG ---
       this.logger.error(`Lỗi khi xóa Schedule ${scheduleId}:`, error);
       throw new InternalServerErrorException(error.message);
     }
@@ -309,7 +421,23 @@ export class ScheduleService {
     try {
       await this.checkSchedulesAndApplyStatus();
     } catch (error) {
-      this.logger.error('Lỗi không mong muốn trong quá trình kiểm tra lịch trình định kỳ:', error);
+      // Log lỗi xảy ra trong quá trình kiểm tra định kỳ
+      this.logger.error('Lỗi không mong muốn trong quá trình kiểm tra lịch trình định kỳ:', error.message, error.stack);
+      // --- BỔ SUNG LOG LỖI & NOTIFICATION ( cho Admin) ---
+      const logPayloadError: LogEventPayload = {
+        eventType: Severity.ERROR,
+        description: `Lỗi nghiêm trọng trong CRON job kiểm tra lịch trình: ${error.message}`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+
+      const notiPayload: NotificationEventPayload = {
+        severity: Severity.ERROR,
+        messageTemplate: `Lỗi CRON job kiểm tra lịch trình: {{errorMessage}}`,
+        context: { errorMessage: error.message }
+        // Logic trong NotificationService sẽ gửi cho Admin
+      };
+      this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+      // --- KẾT THÚC BỔ SUNG ---
     }
   }
 
@@ -383,11 +511,11 @@ export class ScheduleService {
       where: { deviceId: { in: allRelevantDeviceIds } },
       select: { deviceId: true, status: true, name: true, type: true }, // Include type
     });
-    const initialDeviceStatuses = new Map(currentDevices.map(d => [d.deviceId, d.status]));
+    // const initialDeviceStatuses = new Map(currentDevices.map(d => [d.deviceId, d.status]));
     const finalDeviceStatuses = new Map<string, DeviceStatus>(); // To track the final state for deactivation check
 
     const updates: Prisma.PrismaPromise<any>[] = [];
-    const adafruitCommands: { feedName: string, value: string }[] = [];
+    const adafruitCommands: { feedName: string, value: string, deviceId: string, deviceName: string }[] = [];
 
     for (const device of currentDevices) {
       const deviceId = device.deviceId;
@@ -397,6 +525,16 @@ export class ScheduleService {
 
       if (currentStatus !== desiredStatus) {
         this.logger.log(`Updating Device ${deviceId} (${device.name}) status: ${currentStatus} -> ${desiredStatus}`);
+
+        // --- BỔ SUNG LOG CHO VIỆC THAY ĐỔI TRẠNG THÁI ---
+        const logPayload: LogEventPayload = {
+          deviceId: deviceId,
+          eventType: Severity.INFO,
+          description: `Trạng thái thiết bị '${device.name}' được cập nhật thành ${desiredStatus} bởi lịch trình.`
+        };
+        this.eventEmitter.emit(LOG_EVENT, logPayload);
+        // --- KẾT THÚC BỔ SUNG ---
+
         updates.push(
           this.prisma.device.update({
             where: { deviceId: deviceId },
@@ -410,18 +548,18 @@ export class ScheduleService {
 
           if (deviceSuffix) {
             if (desiredStatus === DeviceStatus.ACTIVE) {
-              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'MAN' });
-              adafruitCommands.push({ feedName: device.name, value: 'ON' });
+              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'MAN', deviceId: deviceId, deviceName: device.name });
+              adafruitCommands.push({ feedName: device.name, value: 'ON', deviceId: deviceId, deviceName: device.name });
             } else {
-              adafruitCommands.push({ feedName: device.name, value: 'OFF' });
-              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'AUTO' });
+              adafruitCommands.push({ feedName: device.name, value: 'OFF', deviceId: deviceId, deviceName: device.name });
+              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'AUTO', deviceId: deviceId, deviceName: device.name });
             }
           } else {
             this.logger.warn(`Could not extract suffix (like kv1) from device name ${device.name} for Adafruit commands.`);
           }
         }
       } else {
-        finalDeviceStatuses.set(deviceId, currentStatus); 
+        finalDeviceStatuses.set(deviceId, currentStatus);
       }
     }
 
@@ -431,6 +569,15 @@ export class ScheduleService {
         this.logger.log(`Successfully updated status for ${updates.length} devices in DB.`);
       } catch (error) {
         this.logger.error('Error updating device statuses in DB transaction:', error.message, error.stack);
+
+        // --- BỔ SUNG LOG LỖI DB ---
+        const logPayloadError: LogEventPayload = {
+          eventType: Severity.ERROR,
+          description: `Lỗi DB khi cập nhật trạng thái thiết bị theo lịch trình: ${error.message}`
+        };
+        this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+        // --- KẾT THÚC BỔ SUNG ---
+
         potentiallyFinishedOneTimeSchedules.clear();
       }
     } else {
@@ -442,6 +589,27 @@ export class ScheduleService {
         await this.retrySendFeedData(cmd.feedName, cmd.value);
       } catch (error) {
         this.logger.error(`Failed to send command ${cmd.value} to ${cmd.feedName} after retries: ${error.message}`, error.stack);
+
+        // --- BỔ SUNG LOG LỖI & NOTIFICATION ADAFRUIT ---
+        const errorMsg = `Gửi lệnh ${cmd.value} đến ${cmd.feedName} thất bại sau khi thử lại: ${error.message}`;
+        this.logger.error(errorMsg, error.stack);
+
+        const logPayloadError: LogEventPayload = {
+          deviceId: cmd.deviceId,
+          eventType: Severity.ERROR,
+          description: `Lỗi Adafruit cho thiết bị '${cmd.feedName}': ${errorMsg}`
+        };
+        this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+
+        const notiContext: NotificationEventContext = { deviceId: cmd.deviceId, errorMessage: errorMsg };
+        const notiPayload: NotificationEventPayload = {
+          severity: Severity.ERROR,
+          messageTemplate: `Lỗi giao tiếp Adafruit với thiết bị {{deviceId}}: {{errorMessage}}`,
+          context: notiContext
+        };
+        this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+        // --- KẾT THÚC BỔ SUNG ---
+
       }
     }
 
@@ -449,8 +617,8 @@ export class ScheduleService {
   }
 
   private async deactivateFinishedSchedules(
-    potentiallyFinishedSchedules: Map<string, string>, 
-    finalDeviceStatuses: Map<string, DeviceStatus>     
+    potentiallyFinishedSchedules: Map<string, string>,
+    finalDeviceStatuses: Map<string, DeviceStatus>
   ): Promise<void> {
     const schedulesToDeactivate: string[] = [];
     if (potentiallyFinishedSchedules.size > 0) {
@@ -468,8 +636,28 @@ export class ScheduleService {
             data: { isActive: false },
           });
           this.logger.log(`Successfully deactivated ${result.count} schedules.`);
+
+          // --- TÙY CHỌN: BỔ SUNG LOG CHO VIỆC HỦY KÍCH HOẠT ---
+          if (result.count > 0) {
+            const logPayload: LogEventPayload = {
+              eventType: Severity.INFO,
+              description: `Đã tự động hủy kích hoạt ${result.count} lịch trình một lần đã hoàn thành. IDs: ${schedulesToDeactivate.join(', ')}`
+            };
+            this.eventEmitter.emit(LOG_EVENT, logPayload);
+          }
+          // --- KẾT THÚC BỔ SUNG ---
+
         } catch (error) {
           this.logger.error('Error deactivating one-time schedules:', error.message, error.stack);
+
+          // --- BỔ SUNG LOG LỖI ---
+          const logPayloadError: LogEventPayload = {
+            eventType: Severity.ERROR,
+            description: `Lỗi khi hủy kích hoạt lịch trình một lần: ${error.message}. IDs: ${schedulesToDeactivate.join(', ')}`
+          };
+          this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+          // --- KẾT THÚC BỔ SUNG ---
+
         }
       }
     }

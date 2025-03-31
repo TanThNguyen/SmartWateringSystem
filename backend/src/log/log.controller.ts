@@ -1,19 +1,15 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { LogService } from './log.service';
-import { CreateLogDto, FindAllLogsDto, GetLogsRequestDto } from './dto';
+import { FindAllLogsDto, GetLogsRequestDto } from './dto';
 
 @Controller('log')
 export class LogController {
-    constructor(private readonly logService: LogService) { }
+    constructor(private readonly logService: LogService) {}
 
     @Get('all')
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
     async getAll(@Query() query: GetLogsRequestDto): Promise<FindAllLogsDto> {
         return await this.logService.getAll(query);
     }
 
-    @Post('add')
-    async addLog(@Body() logDto: CreateLogDto): Promise<String> {
-        console.log(logDto);
-        return await this.logService.create(logDto);
-    }
 }

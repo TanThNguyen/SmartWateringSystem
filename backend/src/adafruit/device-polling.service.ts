@@ -1,53 +1,80 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdafruitService } from './adafruit.service';
-import { LogService } from '../log/log.service';
-import { NotificationService } from '../notification/notification.service';
-import { DeviceStatus } from '@prisma/client';
-import { CreateLogDto } from 'src/log/dto';
-import { CreateNotiDto } from 'src/notification/dto';
+import { DeviceStatus, DeviceType, Severity } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
+import { NOTIFICATION_EVENT, NotificationEventPayload, NotificationEventContext } from "src/notification/dto";
 
 @Injectable()
 export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(DevicePollingService.name);
   private pollingIntervals: Map<string, NodeJS.Timeout> = new Map();
   private moistureBuffer: Map<string, { timestamp?: Date; count: number; timeout?: NodeJS.Timeout }> = new Map();
   private tempBuffer = new Map<string, { temperature: number; timestamp: Date; count: number; timeout?: NodeJS.Timeout }>();
   private humiBuffer = new Map<string, { humidity: number; timestamp: Date; count: number; timeout?: NodeJS.Timeout }>();
   private readonly ERROR_THRESHOLD = 5;
+  private readonly MAX_POLLING_FAILURES = 3;
   private CLEANUP_DELAY = 5 * 60 * 1000;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly adafruitService: AdafruitService,
-    private readonly logService: LogService,
-    private readonly notificationService: NotificationService,
+    private eventEmitter: EventEmitter2,
   ) { }
 
   async onModuleInit() {
-    console.log('DevicePollingService đã khởi động. Bắt đầu lấy dữ liệu...');
+    this.logger.log('DevicePollingService đã khởi động. Bắt đầu lấy dữ liệu...');    // --- BỔ SUNG LOG KHỞI ĐỘNG ---
+    const logPayload: LogEventPayload = {
+      eventType: Severity.INFO,
+      description: 'DevicePollingService đã khởi động.'
+    };
+    this.eventEmitter.emit(LOG_EVENT, logPayload);
+    // --- KẾT THÚC BỔ SUNG ---
     await this.startPollingForActiveDevices();
   }
 
   async startPollingForActiveDevices() {
-    const activeDevices = await this.prisma.device.findMany({
-      where: { status: DeviceStatus.ACTIVE, type: { in: ['MOISTURE_SENSOR', 'DHT20_SENSOR'] } },
-    });
+    try {
+      const activeDevices = await this.prisma.device.findMany({
+        where: { status: DeviceStatus.ACTIVE, type: { in: [DeviceType.MOISTURE_SENSOR, DeviceType.DHT20_SENSOR] } },
+      });
 
-    for (const device of activeDevices) {
-      const feedNames = this.adafruitService.getFeedNames(device);
-      for (const feedName of feedNames) {
-        this.startPolling(device.deviceId, device.type, feedName);
+      this.logger.log(`Tìm thấy ${activeDevices.length} thiết bị cảm biến đang hoạt động để bắt đầu polling.`);
+
+      for (const device of activeDevices) {
+        const feedNames = this.adafruitService.getFeedNames(device);
+        for (const feedName of feedNames) {
+          this.startPolling(device.deviceId, device.type, feedName);
+        }
       }
+
+    } catch (error) {
+      this.logger.error(`Lỗi nghiêm trọng khi khởi tạo polling: ${error.message}`, error.stack);
+      // --- BỔ SUNG LOG & NOTIFICATION LỖI KHỞI TẠO ---
+      const logPayloadError: LogEventPayload = {
+        eventType: Severity.ERROR,
+        description: `Lỗi nghiêm trọng khi khởi tạo polling thiết bị: ${error.message}`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadError);
+
+      const notiPayload: NotificationEventPayload = {
+        severity: Severity.ERROR,
+        messageTemplate: `Lỗi hệ thống Polling: Không thể bắt đầu giám sát thiết bị. Lỗi: {{errorMessage}}`,
+        context: { errorMessage: error.message }
+      };
+      this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+      // --- KẾT THÚC BỔ SUNG ---
     }
   }
 
   startPolling(deviceId: string, deviceType: string, feedName: string, intervalMs = 10000) {
     if (this.pollingIntervals.has(feedName)) return;
     console.log(`Bắt đầu lấy dữ liệu từ '${feedName}' mỗi ${intervalMs / 1000} giây...`);
-  
+
     let failureCount = 0;
     const maxFailures = 3;
-  
+
     const interval = setInterval(async () => {
       try {
         const latestData = await this.adafruitService.getLatestFeedData(feedName);
@@ -58,7 +85,7 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
       } catch (error) {
         failureCount++;
         console.error(`Lỗi khi lấy dữ liệu từ '${feedName}' (lần ${failureCount}):`, error);
-        
+
         if (failureCount >= maxFailures) {
           clearInterval(interval);
           this.pollingIntervals.delete(feedName);
@@ -67,7 +94,7 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
         }
       }
     }, intervalMs);
-  
+
     this.pollingIntervals.set(feedName, interval);
   }
 
@@ -180,19 +207,36 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
         this.stopPolling(feedName);
       }
 
-      await this.logService.create({
-        userId: '',
-        deviceId,
-        eventType: 'WARNING',
-        description: `Thiết bị ${device.name} đã bị vô hiệu hóa do không phản hồi.`,
-      });
+      // await this.logService.create({
+      //   userId: '',
+      //   deviceId,
+      //   eventType: 'WARNING',
+      //   description: `Thiết bị ${device.name} đã bị vô hiệu hóa do không phản hồi.`,
+      // });
 
-      await this.notificationService.create({
-        senderId: '',
-        message: `Thiết bị ${deviceId} đã bị vô hiệu hóa do không phản hồi.`,
-        severity: 'WARNING',
-        recipientIds: await this.getAdminUserIds(),
-      });
+      // await this.notificationService.create({
+      //   senderId: '',
+      //   message: `Thiết bị ${deviceId} đã bị vô hiệu hóa do không phản hồi.`,
+      //   severity: 'WARNING',
+      //   recipientIds: await this.getAdminUserIds(),
+      // });
+
+      // --- BỔ SUNG LOG & NOTIFICATION VÔ HIỆU HÓA ---
+      const logPayloadDisable: LogEventPayload = {
+        deviceId: deviceId,
+        eventType: Severity.WARNING, // Cảnh báo vì thiết bị bị vô hiệu hóa
+        description: `Thiết bị '${device.name}' đã bị vô hiệu hóa do không phản hồi.`
+      };
+      this.eventEmitter.emit(LOG_EVENT, logPayloadDisable);
+
+      const notiContext: NotificationEventContext = { deviceId: deviceId, errorMessage: "do không phản hồi." };
+      const notiPayload: NotificationEventPayload = {
+        severity: Severity.WARNING, // Cảnh báo cho Admin
+        messageTemplate: `Thiết bị {{deviceId}} ('${device.name}') đã bị vô hiệu hóa tự động. Lý do: {{errorMessage}}`,
+        context: notiContext
+      };
+      this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
+      // --- KẾT THÚC BỔ SUNG ---
 
       console.log(`✅ Thiết bị ${device.name} đã được vô hiệu hóa và dừng polling.`);
     } catch (error) {
