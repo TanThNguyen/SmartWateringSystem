@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
 import { logAPI } from "../../axios/log.api";
 import { InfoLogType, Severity } from "../../types/log.type";
 import "./log.scss";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { FaChevronDown } from "react-icons/fa";
 
 export default function HistoryPage() {
   const [username, setUsername] = useState("User");
@@ -11,9 +12,35 @@ export default function HistoryPage() {
   const [search, setSearch] = useState<string>("");
   const [eventType, setEventType] = useState<Severity | "ALL">("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  // const navigate = useNavigate();
+
+  const renderDropdown = (
+    label: string,
+    value: string,
+    options: { label: string; value: string }[],
+    onChange: (e: { value: string }) => void
+  ) => (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-80">
+        <span className="truncate">
+          {options.find((option) => option.value === value)?.label || label}
+        </span>
+        <FaChevronDown className="ml-2 text-sm" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content className="bg-white border border-gray-200 rounded-md shadow-lg py-2" sideOffset={5}>
+          {options.map((option) => (
+            <DropdownMenu.Item
+              key={option.value}
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              onSelect={() => onChange({ value: option.value })}
+            >
+              {option.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  );
 
   useEffect(() => {
     const storedUser = localStorage.getItem("username");
@@ -24,21 +51,19 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetchLogs();
-  }, [currentPage, search, eventType, order]);
+  }, [search, eventType, order]);
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
       const data = await logAPI.getAllLogs({
-        page: currentPage,
-        items_per_page: 10,
         search,
         eventType,
         order,
+        items_per_page: 1000,
+        page: 1,
       });
-      console.log(data);
       setLogs(data.logs);
-      setTotalPages(data.lastPage);
     } catch (error) {
       console.error("Lỗi khi lấy logs:", error);
     } finally {
@@ -47,70 +72,80 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="container">
-      <div className="mainContent">
-        <div className="topBar">
-          <div className="logoCircle">1</div>
-          <div className="titleAndTime">
-            <div className="welcomeText">Welcome Farm, {username}!</div>
-            <div className="dateTime">
-              <div>{new Date().toLocaleTimeString()}</div>
-              <div>{new Date().toLocaleDateString()}</div>
-            </div>
-          </div>
-        </div>
+    <div className="logContainer">
+      <div className="filterContainer">
+        <input
+          type="text"
+          placeholder="Tìm kiếm mô tả..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="px-4 text-lg h-10 border border-gray-300 rounded-md w-full"
+        />
+        {/* <select
+          value={eventType}
+          onChange={(e) => setEventType(e.target.value as Severity | "ALL")}
+          className="h-10 border border-gray-300 rounded-md px-2 w-80"
+        >
+          <option value="ALL">Tất cả</option>
+          <option value={Severity.INFO}>Thông báo</option>
+          <option value={Severity.WARNING}>Cảnh báo</option>
+          <option value={Severity.ERROR}>Lỗi</option>
+        </select>
+        <select
+          value={order}
+          onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
+          className="h-10 border border-gray-300 rounded-md px-2 w-80"
+        >
+          <option value="asc">Cũ nhất</option>
+          <option value="desc">Mới nhất</option>
+        </select> */}
+        {renderDropdown(
+          "Tất cả",
+          eventType,
+          [
+            { label: "Tất cả", value: "ALL" },
+            { label: "Thông báo", value: Severity.INFO },
+            { label: "Cảnh báo", value: Severity.WARNING },
+            { label: "Lỗi", value: Severity.ERROR },
+          ],
+          (e) => setEventType(e.value as Severity | "ALL")
+        )}
+        {renderDropdown(
+          "Mới nhất",
+          order,
+          [
+            { label: "Cũ nhất", value: "asc" },
+            { label: "Mới nhất", value: "desc" },
+          ],
+          (e) => setOrder(e.value as "asc" | "desc")
+        )}
+      </div>
 
-        <div className="filterBar">
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select value={eventType} onChange={(e) => setEventType(e.target.value as Severity | "ALL")}>  
-            <option value="ALL">Tất cả</option>
-            <option value={Severity.INFO}>INFO</option>
-            <option value={Severity.WARNING}>WARNING</option>
-            <option value={Severity.ERROR}>ERROR</option>
-          </select>
-          <select value={order} onChange={(e) => setOrder(e.target.value as "asc" | "desc")}>  
-            <option value="asc">Cũ nhất</option>
-            <option value="desc">Mới nhất</option>
-          </select>
-        </div>
-
-        <div className="historyContainer">
-          <table className="historyTable">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Timestamp</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={3} style={{ textAlign: "center" }}>Đang tải dữ liệu...</td></tr>
-              ) : logs.length > 0 ? (
-                logs.map((log) => (
-                  <tr key={log.logId}>
-                    <td>{log.eventType}</td>
-                    <td>{new Date(log.createdAt).toLocaleString()}</td>
-                    <td>{log.description}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr><td colSpan={3} style={{ textAlign: "center" }}>Không có dữ liệu.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => prev - 1)}>Trước</button>
-          <span>Trang {currentPage} / {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((prev) => prev + 1)}>Sau</button>
-        </div>
+      <div className="historyContainer">
+        <table className="historyTable">
+          <thead>
+            <tr>
+              <th>Loại</th>
+              <th>Thời gian</th>
+              <th>Mô tả</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={3} style={{ textAlign: "center" }}>Đang tải dữ liệu...</td></tr>
+            ) : logs.length > 0 ? (
+              logs.map((log) => (
+                <tr key={log.logId}>
+                  <td>{log.eventType}</td>
+                  <td>{new Date(log.createdAt).toLocaleString()}</td>
+                  <td>{log.description}</td>
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan={3} style={{ textAlign: "center" }}>Không có dữ liệu.</td></tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* styles.css */
+:root {
+  /* 🌿 Màu sắc */
+  --bg-main: theme("colors.white");
+  --bg-secondary: theme("colors.gray.100");
+  --bg-dark: theme("colors.gray.900");
+
+  --text-color: theme("colors.black");
+  --text-secondary: theme("colors.gray.700");
+
+  --primary-color: theme("colors.green.600");
+  --secondary-color: theme("colors.blue.500");
+  --danger-color: theme("colors.red.500");
+  --warning-color: theme("colors.yellow.500");
+
+  /* 🖼️ Kích thước */
+  --border-radius: theme("borderRadius.lg");
+  --border-radius-sm: theme("borderRadius.md");
+  --border-radius-lg: theme("borderRadius.xl");
+
+  /* 🎨 Hiệu ứng */
+  --shadow-sm: theme("boxShadow.sm");
+  --shadow-md: theme("boxShadow.md");
+  --shadow-lg: theme("boxShadow.lg");
+
+  /* ⏳ Hiệu ứng chuyển động */
+  --transition-fast: theme("transitionDuration.150");
+  --transition-normal: theme("transitionDuration.300");
+  --transition-slow: theme("transitionDuration.500");
+
+  /* 📏 Kích thước chung */
+  --container-width: theme("maxWidth.7xl");
+  --sidebar-width: 250px;
+  --navbar-height: 60px;
+
+  /* 🌗 Độ mờ */
+  --opacity-light: theme("opacity.75");
+  --opacity-disabled: theme("opacity.50");
+
+  /* 🔲 Khoảng cách */
+  --spacing-xs: theme("spacing.2");
+  --spacing-sm: theme("spacing.4");
+  --spacing-md: theme("spacing.6");
+  --spacing-lg: theme("spacing.8");
+  --spacing-xl: theme("spacing.12");
+}
+
+/* Sử dụng Tailwind @apply để tránh khai báo thủ công */
+.bg-main {
+  @apply bg-white text-black;
+}
+
+.bg-secondary {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.bg-dark {
+  @apply bg-gray-900 text-white;
+}
+
+/* Nút chính */
+.primary-btn {
+  @apply bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-normal;
+}
+
+.secondary-btn {
+  @apply bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-normal;
+}
+
+.danger-btn {
+  @apply bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-normal;
+}
+
+.warning-btn {
+  @apply bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-normal;
+}
+
+/* Hiệu ứng bóng đổ */
+.shadow-custom {
+  @apply shadow-md;
+}
+
+.shadow-light {
+  @apply shadow-sm;
+}
+
+.shadow-heavy {
+  @apply shadow-lg;
+}
+
+/* Viền bo góc */
+.rounded-custom {
+  @apply rounded-lg;
+}
+
+.rounded-sm {
+  @apply rounded-md;
+}
+
+.rounded-lg {
+  @apply rounded-xl;
+}
+
+/* Chuyển động */
+.transition-fast {
+  @apply transition-all duration-150 ease-in-out;
+}
+
+.transition-normal {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.transition-slow {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+/* Kích thước container */
+.container-custom {
+  @apply max-w-7xl mx-auto px-4;
+}
+
+/* Padding & Margin */
+.px-sm {
+  @apply px-2;
+}
+
+.px-md {
+  @apply px-4;
+}
+
+.px-lg {
+  @apply px-6;
+}
+
+.py-sm {
+  @apply py-2;
+}
+
+.py-md {
+  @apply py-4;
+}
+
+.py-lg {
+  @apply py-6;
+}
+
+/* Độ mờ */
+.opacity-light {
+  @apply opacity-75;
+}
+
+.opacity-disabled {
+  @apply opacity-50;
+}
