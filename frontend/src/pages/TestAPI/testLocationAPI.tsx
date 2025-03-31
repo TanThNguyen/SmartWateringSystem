@@ -3,16 +3,15 @@ import { locationApi } from "../../axios/location.api";
 import { FindAllLocationsType, InfoLocationType } from "../../types/location.type";
 
 const LocationDataComponent: React.FC = () => {
-    const [data, setData] = useState<FindAllLocationsType | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-
+    const [locations, setLocations] = useState<FindAllLocationsType | null>(null);
     useEffect(() => {
         const fetchLocationData = async () => {
             try {
                 // Gọi API qua locationApi
                 const response = await locationApi.getAllLocations({ search: "", order: "asc" });
-                setData(response); // response chứa cả locations
+                setLocations(response); // response chứa cả locations
                 console.log(response);
             } catch (err) {
                 setError("Failed to fetch locations.");
@@ -32,7 +31,7 @@ const LocationDataComponent: React.FC = () => {
         <div>
             <h2>Location Data</h2>
             <div>
-                {data?.locations?.map((location: InfoLocationType, index: number) => (
+                {locations?.locations?.map((location: InfoLocationType, index: number) => (
                     <div key={index}>
                         <p>Location ID: {location.locationId}</p>
                         <p>Name: {location.name}</p>

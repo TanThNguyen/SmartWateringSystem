@@ -18,6 +18,9 @@ export type ConfigurationUpdateType = {
     deviceType: DeviceType;  // Sử dụng chuỗi cho deviceType
 };
 
+
+
+
 // Type cho ConfigurationDeleteDto
 export type ConfigurationDeleteType = {
     configId: string;
