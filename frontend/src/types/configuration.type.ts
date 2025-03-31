@@ -23,7 +23,7 @@ export type ConfigurationDeleteType = {
     configId: string;
 };
 
-// Type cho ConfigurationQueryDto
+// Type đầu vào cho hàm yêu cầu API để lấy danh sách cấu hình getAllConfigurations
 export type ConfigurationQueryType = {
     page: number;
     items_per_page: number;
@@ -41,7 +41,7 @@ export type ConfigurationDetailType = {
     lastUpdated: string;  // Date dưới dạng string
 };
 
-// Type cho ConfigurationPaginatedDto
+// Type để hàm  getAllConfigurations trả về 
 export type ConfigurationPaginatedType = {
     configurations: ConfigurationDetailType[];
     total: number;

@@ -3,8 +3,9 @@ import { toast } from "react-toastify";
 import PopupModal from "../../layout/popupmodal";
 import { CreateUserType, InfoUsersType, UpdateUserType, UsersRequestType } from "../../types/user.type";
 import { userApi } from "../../axios/user.api";
-import { Paginator } from "primereact/paginator";
-import { Dropdown } from "primereact/dropdown";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { FaChevronDown } from "react-icons/fa"; 
+
 import { GetLocationsRequestType } from "../../types/location.type";
 import { locationApi } from "../../axios/location.api";
 import "./user.scss"
@@ -14,15 +15,10 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<InfoUsersType[]>([]);
 
-  const [username, setUsername] = useState("User");
-  const [first, setFirst] = useState<number>(0);
-  const [rows, setRows] = useState<number>(10);
-  const [totalRecords, setTotalRecords] = useState<number>(0);
-
   const [searchText, setSearchText] = useState("");
   const [permissionFilter, setPermissionFilter] = useState("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
-
+  const [locationIdFilter, setLocationIdFilter] = useState("ALL");
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUser, setNewUser] = useState<CreateUserType>({
@@ -41,26 +37,36 @@ export default function UserManagementPage() {
   const [locations, setLocations] = useState<any[]>([]);
 
   useEffect(() => {
-    // const storedUser = localStorage.getItem("username");
-    // if (storedUser) setUsername(storedUser);
     fetchLocations();
     fetchUsers();
-  }, [first, rows, order]);
+  }, [order, permissionFilter, locationIdFilter, searchText]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showAddForm) setShowAddForm(false);
+        if (showUpdateForm) setShowUpdateForm(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAddForm, showUpdateForm]);
 
   const fetchUsers = async () => {
     setLoading(true);
     const request: UsersRequestType = {
-      page: Math.ceil(first / rows) + 1,
-      items_per_page: rows,
+      page: 1,
+      items_per_page: 9999,
       search: searchText.trim(),
       role: permissionFilter,
       order,
     };
+    if (locationIdFilter !== "ALL") {
+      request.locationId = locationIdFilter;
+    }
     try {
       const response = await userApi.getAllUsers(request);
       setUsers(response.users);
-      setTotalRecords(response.total);
-      setFirst((response.currentPage - 1) * rows);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách người dùng");
     } finally {
@@ -83,7 +89,6 @@ export default function UserManagementPage() {
   };
 
   const handleSearch = () => {
-    setFirst(0);
     fetchUsers();
   };
 
@@ -93,25 +98,36 @@ export default function UserManagementPage() {
     options: { label: string; value: any }[],
     onChange: (e: any) => void
   ) => (
-    <Dropdown
-
-      value={value}
-      options={options}
-      onChange={onChange}
-      placeholder={label}
-      className='selectInput'
-      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-    />
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-80">
+        <span className="truncate">{options.find((option) => option.value === value)?.label || label}</span>
+        <FaChevronDown className="ml-2 text-sm" />
+      </DropdownMenu.Trigger>
+  
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="bg-white border border-gray-200 rounded-md shadow-lg py-2"
+          sideOffset={5}
+        >
+          {options.map((option) => (
+            <DropdownMenu.Item
+              key={option.value}
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              onSelect={() => onChange({ value: option.value })}
+            >
+              {option.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
+  
 
   const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewUser((prev) => ({ ...prev, [name]: value }));
   };
-
-  // const handlePreCreateUser = async () => {
-  //   fetchLocations();
-  // };
 
   const handleCreateUser = async () => {
 
@@ -128,7 +144,7 @@ export default function UserManagementPage() {
 
 
   ////////////////////////////////
-  // UPDATE USER
+  //Delete
   const handleDeleteUsers = async () => {
     if (selectedUsers.length === 0) return;
     try {
@@ -140,31 +156,14 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleUpdateUsertest = async (userId: string) => {
-    const updatedUser: UpdateUserType = {
-      userId: userId,
-      name: "Tên cập nhật",
-      email: `newuser${Date.now()}@example.com`,
-      locationId: "Địa chỉ cập nhật",
-      phone: "0987654321",
-      password: "newpassword123",
-      role: "ADMIN",
-    };
-    try {
-      await userApi.updateUser(updatedUser);
-      fetchUsers();
-    } catch (error) {
-      console.error("Lỗi khi cập nhật người dùng:", error);
-    }
-  };
 
+  // UPDATE USER
 
   const handleUpdateUser = async (updatedUser: UpdateUserType) => {
     try {
-      // Cập nhật locationId thay vì locationName
       const updatedUserWithLocationId = {
         ...updatedUser,
-        locationId: updatedUser.locationId, // Chắc chắn rằng locationId được truyền vào
+        locationId: updatedUser.locationId, 
       };
 
       await userApi.updateUser(updatedUserWithLocationId);
@@ -184,13 +183,12 @@ export default function UserManagementPage() {
 
   const handleSubmit = () => {
     if (updatedUser) {
-      // Gửi locationId thay vì locationName
       const updatedUserWithLocationId = {
         ...updatedUser,
-        locationId: updatedUser.locationId, // Đây là locationId bạn cần gửi khi cập nhật
+        locationId: updatedUser.locationId,
       };
-      handleUpdateUser(updatedUserWithLocationId); // Gọi API cập nhật
-      setShowUpdateForm(false); // Đóng form sau khi cập nhật
+      handleUpdateUser(updatedUserWithLocationId);
+      setShowUpdateForm(false);
     }
   };
   
@@ -208,25 +206,29 @@ export default function UserManagementPage() {
 
   return (
     <div className="container">
-      <div className="filterContainer">
+      <div className="filterContainer flex items-center gap-4">
         <input
           type="text"
-          placeholder="Search users..."
+          placeholder="Tìm kiếm người dùng..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          className="w-full md:w-1/2 px-4 py-2 text-lg"
+          className="px-4 text-lg h-10 border border-gray-300 rounded-md"
         />
+   
         {renderDropdown(
           "Vai trò",
           permissionFilter,
           [
-            { label: "Tất cả", value: "ALL" },
+            { label: "Công việc", value: "ALL" },
             { label: "Quản trị viên", value: "ADMIN" },
             { label: "Làm vườn", value: "GARDENER" },
+            { label: "Không hoạt động", value: "INACTIVE" },
           ],
           (e) => setPermissionFilter(e.value)
         )}
+
+        
         {renderDropdown(
           "Sắp xếp",
           order,
@@ -235,16 +237,28 @@ export default function UserManagementPage() {
             { label: "Lâu nhất", value: "asc" },
           ],
           (e) => setOrder(e.value)
+        )} 
+
+        {renderDropdown(
+          "Khu vực",
+          locationIdFilter,
+          [
+            { label: "Khu vực", value: "ALL" }, 
+            { label: "Khu vực 1", value: "KV1" },
+            { label: "Khu vực 2", value: "KV2" },         
+          ],
+          (e) => setLocationIdFilter(e.value),
         )}
 
+        
         <button onClick={() => setShowAddForm(true)}
-          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
         >
-          Add
+          Thêm
         </button>
         <button onClick={handleDeleteUsers} disabled={selectedUsers.length === 0}
-          className="bg-orange-600 text-white px-4 py-2 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
-        >Delete</button>
+          className="bg-orange-600 text-white px-4 h-10 rounded font-bold text-lg shadow-md transition-colors duration-200 hover:bg-orange-700"
+        >Xóa</button>
       </div>
 
       <div className="tableContainer" >
@@ -252,19 +266,29 @@ export default function UserManagementPage() {
           <thead>
             <tr>
               <th>  </th>
-              <th>Tên</th> {/* name: string; */}
-              <th>Email</th> {/* email: string; */}
-              <th>Khu vực</th> {/* address: string; */}
-              <th>Số điện thoại</th>  {/* phone: string; */}
-              {/* <th>Ngày vào</th>  updatedAt: Date; */}
-              <th>Vai trò</th> {/* role: string; */}
+              <th>Tên</th>
+              <th>Email</th>
+              <th>Địa điểm</th>
+              <th>Số điện thoại</th>
+              <th>Vai trò</th>
             </tr>
           </thead>
           <tbody>
             {users.length > 0 ? (
               users.map((user, index) => (
-                <tr key={index}>
-                  <td>
+                <tr key={index} onClick={() => {
+                    const upuser: UpdateUserType = {
+                      userId: user.userId,
+                      name: user.name,
+                      email: user.email,
+                      locationId: user.locationId || (locations.find(l => l.name === user.locationName)?.locationId || ""),
+                      phone: user.phone,
+                      role: user.role,
+                      password: "password123",
+                    };
+                    handleOpenUpdateForm(upuser);
+                }}>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedUsers.includes(user.userId)}
@@ -272,32 +296,11 @@ export default function UserManagementPage() {
                       className="w-5 h-5"
                     />
                   </td>
-                  <td>
-                    <button
-                      // onClick={() => handleUpdateUsertest(user.userId)}
-                      onClick={() => {
-                        const upuser: UpdateUserType = {
-                          userId: user.userId,
-                          name: user.name,
-                          email: user.email,
-                          locationId: user.locationName,
-                          phone: user.phone,
-                          role: user.role,
-                          password: "password123",
-                        };
-                        handleOpenUpdateForm(upuser);
-                      }}
-                      className="text-blue-500 hover:underline hover:text-blue-700"
-                    >
-                      {user.name}
-                    </button>
-                  </td>
+                  <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>{user.locationName}</td>
                   <td>{user.phone}</td>
-                  {/* <td>{user.updatedAt}</td> */}
                   <td>
-                    {/* Badge màu cho quyền */}
                     <span className={`permissionBadge ${user.role.toLowerCase()}`}>
                       {user.role}
                     </span>
@@ -307,7 +310,7 @@ export default function UserManagementPage() {
             ) : (
               <tr>
                 <td colSpan={7} className="noResults">
-                  No matching users found.
+                  Không tìm được người dùng.
                 </td>
               </tr>
             )}
@@ -315,155 +318,160 @@ export default function UserManagementPage() {
         </table>
       </div>
 
-      <Paginator
-        first={first}
-        rows={rows}
-        totalRecords={totalRecords}
-        onPageChange={(e) => {
-          setFirst(e.first);
-          setRows(e.rows);
-        }}
-      />
-
       {showAddForm && (
-        <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
-          <input
-            type="text"
-            name="name"
-            value={newUser.name}
-            onChange={handleNewUserChange}
-            placeholder="Name"
-          />
-          <input
-            type="email"
-            name="email"
-            value={newUser.email}
-            onChange={handleNewUserChange}
-            placeholder="Email"
-          />
-          <select
-            name="locationId"
-            value={newUser.locationId}
-            onChange={handleNewUserChange}
-          // placeholder="Location"
-          >
-            {locations.map((location) => (
-              <option key={location.locationId} value={location.locationId}>
-                {location.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="phone"
-            value={newUser.phone}
-            onChange={handleNewUserChange}
-            placeholder="Phone"
-          />
-          <input
-            type="password"
-            name="password"
-            value={newUser.password}
-            onChange={handleNewUserChange}
-            placeholder="Password"
-          />
-          <select
-            name="role"
-            value={newUser.role}
-            onChange={handleNewUserChange}
-          // placeholder="Role"
-          >
-            <option value="GARDENER">Gardener</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-
-          <div className="modalActions">
-            <button onClick={handleCreateUser} className="bg-green-500 text-white px-4 py-2 rounded">
-              Create User
-            </button>
-            <button onClick={() => setShowAddForm(false)} className="bg-red-500 text-white px-4 py-2 rounded">
-              Cancel
-            </button>
-          </div>
-        </PopupModal>
-      )}
-
-      {showUpdateForm && updatedUser && (
-        <PopupModal
-          title="Cập nhật người dùng"
-          onClose={() => setShowUpdateForm(false)}
+        <div 
+          className="modalOverlay" 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}
         >
-          <label>
-            Tên:
+          <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
             <input
               type="text"
               name="name"
-              value={updatedUser.name}
-              onChange={handleChange}
+              value={newUser.name}
+              onChange={handleNewUserChange}
+              placeholder="Name"
             />
-          </label>
-          <label>
-            Email:
             <input
               type="email"
               name="email"
-              value={updatedUser.email}
-              onChange={handleChange}
+              value={newUser.email}
+              onChange={handleNewUserChange}
+              placeholder="Email"
             />
-          </label>
-          <select
-            name="locationId"
-            value={updatedUser.locationId}  // Đảm bảo sử dụng locationId
-            onChange={handleChange}
-          >
-            {locations.map((location) => (
-              <option key={location.locationId} value={location.locationId}>
-                {location.name}
+            <select
+              name="locationId"
+              value={newUser.locationId}
+              onChange={handleNewUserChange}
+            >
+              <option value="" disabled hidden>
+                Chọn khu vực
               </option>
-            ))}
-          </select>
+              {locations.map((location) => (
+                <option key={location.locationId} value={location.locationId}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
 
-          <label>
-            Số điện thoại:
+
             <input
               type="text"
               name="phone"
-              value={updatedUser.phone}
-              onChange={handleChange}
+              value={newUser.phone}
+              onChange={handleNewUserChange}
+              placeholder="Phone"
             />
-          </label>
-          <label>
-            Mật khẩu (đã tự động reset thành mặc định):
             <input
               type="password"
               name="password"
-              value={updatedUser.password}
-              onChange={handleChange}
+              value={newUser.password}
+              onChange={handleNewUserChange}
+              placeholder="Password"
             />
-          </label>
-          <label>
-            Vai trò:
-            <select name="role" value={updatedUser.role} onChange={handleChange}>
-              <option value="ADMIN">ADMIN</option>
-              <option value="GARDENER">GARDENER</option>
-              <option value="INACTIVE">INACTIVE</option>
+            <select
+              name="role"
+              value={newUser.role}
+              onChange={handleNewUserChange}
+            >
+              <option value="GARDENER">Gardener</option>
+              <option value="ADMIN">Admin</option>
             </select>
-          </label>
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
+
+            <div className="modalActions">
+              <button onClick={handleCreateUser} className="bg-green-500 text-white px-4 py-2 rounded">
+                Tạo
+              </button>
+              <button onClick={() => setShowAddForm(false)} className="bg-red-500 text-white px-4 py-2 rounded">
+                Hủy
+              </button>
+            </div>
+          </PopupModal>
+        </div>
+      )}
+
+      {showUpdateForm && updatedUser && (
+        <div 
+          className="modalOverlay" 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowUpdateForm(false); }}
+        >
+          <PopupModal
+            title="Cập nhật người dùng"
+            onClose={() => setShowUpdateForm(false)}
+          >
+            <label>
+              Tên:
+              <input
+                type="text"
+                name="name"
+                value={updatedUser.name}
+                onChange={handleChange}
+              />
+            </label>
+            <label>
+              Email:
+              <input
+                type="email"
+                name="email"
+                value={updatedUser.email}
+                onChange={handleChange}
+              />
+            </label>
+            <select
+              name="locationId"
+              value={updatedUser.locationId}
+              onChange={handleChange}
             >
-              Cập nhật
-            </button>
-            <button
-              onClick={() => setShowUpdateForm(false)}
-              className="px-4 py-2 bg-gray-300 rounded"
-            >
-              Hủy
-            </button>
-          </div>
-        </PopupModal>
+              <option value="" disabled hidden>Chọn khu vực</option>
+              {locations.map((location) => (
+                <option key={location.locationId} value={location.locationId}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+
+
+            <label>
+              Số điện thoại:
+              <input
+                type="text"
+                name="phone"
+                value={updatedUser.phone}
+                onChange={handleChange}
+              />
+            </label>
+            <label>
+              Mật khẩu (đã tự động reset thành mặc định):
+              <input
+                type="password"
+                name="password"
+                value={updatedUser.password}
+                onChange={handleChange}
+              />
+            </label>
+            <label>
+              Vai trò:
+              <select name="role" value={updatedUser.role} onChange={handleChange}>
+                <option value="ADMIN">ADMIN</option>
+                <option value="GARDENER">GARDENER</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </label>
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Cập nhật
+              </button>
+              <button
+                onClick={() => setShowUpdateForm(false)}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Hủy
+              </button>
+            </div>
+          </PopupModal>
+        </div>
       )}
     </div>
   );

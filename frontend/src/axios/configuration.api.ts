@@ -4,15 +4,18 @@ import {
     ConfigurationUpdateType, 
     ConfigurationDeleteType, 
     ConfigurationQueryType, 
-    ConfigurationFilterType 
+    ConfigurationFilterType,
+    
 } from "../types/configuration.type";
 import axiosClient from "./axiosConfigs";
 
 export const configurationApi = {
-    // Lấy tất cả các cấu hình với phân trang
+    // Lấy tất cả các cấu hình với phân trang trả về ConfigurationPaginatedType
     getAllConfigurations: async (params: ConfigurationQueryType) => {
         try {
             const response = await axiosClient.get("/api/configurations", { params });
+            console.log("API Response:", response.data);
+
             return response.data;
         } catch (error) {
             handleAPIError(error);
@@ -20,7 +23,7 @@ export const configurationApi = {
         }
     },
 
-    // Lọc cấu hình theo điều kiện
+    // Lọc cấu hình theo điều kiện trả về  
     getConfigurationsByFilter: async (params: ConfigurationFilterType) => {
         try {
             const response = await axiosClient.get("/api/configurations/filter", { params });

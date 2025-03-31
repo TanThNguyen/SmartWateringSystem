@@ -12,21 +12,21 @@ const DevicePage = lazy(() => import('./pages/dashboard/device'));
 const HistoryPage = lazy(() => import('./pages/log/log'));
 // const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
 const UserManagementPage = lazy(() => import('./pages/userManagement/userManager'));
-const TestAPI = lazy(() => import('./pages/TestAPI/testNotificationAPI'));
+const TestAPI = lazy(() => import('./pages/TestAPI/testConfigurationAPI'));
 
 
 const LoginPage = lazy(() => import('./pages/auth/login'));
 
 //thêm hàm tự chuyển về login nếu chưa đăng nhập, hiện tại dùng link để vào các trang khác
 
-// const AuthGuard = ({ children }: { children: React.ReactNode }) => {
-// 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
+ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+ 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
 
-// 	if (!isAuthenticated) {
-// 		return <Navigate to='/' replace />;
-// 	}
-// 	return children;
-// };
+ 	if (!isAuthenticated) {
+ 		return <Navigate to='/' replace />;
+ 	}
+ 	return children;
+};
 
 const LoadingSpinner = () => (
 	<div className='flex min-h-screen items-center justify-center'>
@@ -74,9 +74,11 @@ const routes: RouteObject[] = [
   {
     path: 'dashboard',
 			element: (
+				<AuthGuard>
 				<Suspense fallback={<LoadingSpinner />}>
-          			<DashboardLayout />
+					<DashboardLayout />
 				</Suspense>
+				</AuthGuard>
 			),
 			children: [
 				{

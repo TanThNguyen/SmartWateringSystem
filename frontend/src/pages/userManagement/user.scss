@@ -43,6 +43,11 @@
     backdrop-filter: blur(8px);
     border-radius: 8px;
   }
+
+  .filterContainer > input[type="text"] {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
   
   /* Input chung */
   .searchInput,
@@ -63,6 +68,9 @@
     cursor: pointer;
   }
   
+
+
+
   /* Nút Add */
   .addButton {
     background-color: #2ecc71;
@@ -182,4 +190,19 @@
     border: 1px solid #ccc;
     border-radius: 4px;
   }
-  
+
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+
+
