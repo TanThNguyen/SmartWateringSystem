@@ -5,7 +5,6 @@ import { DeviceStatus, DeviceType, InfoDevicesType, GetDevicesRequestType } from
 import { deviceApi } from "../../axios/device.api";
 import { recordAPI } from "../../axios/record.api";
 import { SensorDataResponseType, SensorDataRequestType } from "../../types/record.type";
-import ChartWithDayBoundaries from "../../component/day";
 import "./device.scss";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FaChevronDown } from "react-icons/fa";
@@ -38,7 +37,6 @@ export default function UserManagementPage() {
   const [selectedDeviceInfo, setSelectedDeviceInfo] = useState<InfoDevicesType | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [recordData, setRecordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [temperatureChartData, setTemperatureChartData] = useState<Array<{ time: number, temp: number }>>([]);
   const [humidityChartData, setHumidityChartData] = useState<Array<{ time: number, humidity: number }>>([]);
   const [soilChartData, setSoilChartData] = useState<Array<{ time: number, soil: number }>>([]);

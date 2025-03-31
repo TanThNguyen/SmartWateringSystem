@@ -1,331 +1,202 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-export default function SettingPage() {
-  const [username, setUsername] = useState("User");
-  const navigate = useNavigate();
+import { LONG_DATE_FORMAT, TIME_FORMAT } from "../../types/date.type";
+import { configurationApi } from "../../axios/configuration.api";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./setting.scss";
 
-  // Lấy username từ localStorage (nếu có)
-  useEffect(() => {
-    const storedUser = localStorage.getItem("username");
-    if (storedUser) {
-      setUsername(storedUser);
-    }
-  }, []);
+import { 
+    // ConfigurationCreateType, 
+    // ConfigurationUpdateType, 
+    // ConfigurationDeleteType, 
+    ConfigurationQueryType, 
+    // ConfigurationFilterType,
+    ConfigurationPaginatedType,
+    ConfigurationDetailType,
+    
+    DeviceType,
+} from "../../types/configuration.type";
 
-  const [settingsData] = useState([
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-    {
-      id: "00110",
-      name: "MoistureXuan A",
-      value: 20,
-      location: "A",
-      lastUpdate: "11:09:05 23012025",
-    },
-  ]);
 
-  return (
-    <div className="container">
-      {/* Sidebar bên trái (icon minh họa) */}
-      {/* <div className="sidebar">
-        <ul>
-          <li onClick={() => navigate("/")}>🏠 Home</li>
-          <li onClick={() => navigate("/setting")}>⚙️ Setting</li>
-          <li onClick={() => navigate("/history")}>🕒 History</li>
-          <li onClick={() => alert("More...")}>➕ More</li>
-        </ul>
-      </div> */}
 
-      {/* Nội dung chính */}
-      <div className="mainContent">
-        {/* Thanh trên cùng chứa logo, tiêu đề, thời gian */}
-        <div className="topBar">
-          <div className="logoCircle">1</div>
+  
 
-          <div className="titleAndTime">
-            <div className="welcomeText">Welcome Farm, {username}!</div>
-            <div className="dateTime">
-              <div>10:00 AM</div>
-              <div>Sunday, 17 Sept 2023</div>
+const SettingPage = () => {
+
+    const [currentPage, setCurrentPage] = useState(1);
+
+
+
+
+    const [first, setFirst] = useState<number>(0);
+    const [rows, setRows] = useState<number>(10);
+    
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
+    const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
+    const [loading, setLoading] = useState(true);
+    const [searchText, setSearchText] = useState("");
+    const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceType | 'ALL'>('ALL');
+    const [configurations, setConfigurations] = useState<ConfigurationPaginatedType | null>(null);
+
+    
+        const fetchConfigurationData = async () => {
+          setLoading(true);
+          const request: ConfigurationQueryType = {
+            page: Math.ceil(first / rows) + 1,
+            items_per_page: rows,
+            search: searchText,
+            deviceType: deviceTypeFilter, 
+          };
+          try {
+              const response = await configurationApi.getAllConfigurations(request);
+              setFirst((response.currentPage - 1) * rows);
+
+              setConfigurations(response); 
+          } catch (err) {
+              toast.error("Lỗi khi tải danh sách cấu hình");
+          } finally {
+              setLoading(false);
+          }
+      };
+
+    useEffect(() => {
+        fetchConfigurationData();
+    }, [currentPage,deviceTypeFilter]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+              setCurrentTime(new Date());
+            }, 60000);
+            return () => clearInterval(interval);
+    }, []);
+
+    if (loading) return <p>Loading...</p>;
+
+
+
+    return (
+        <div className="min-h-screen bg-[url('/background.jpg')] bg-cover bg-center p-6 relative flex flex-col justify-center items-center">
+          {/* Top Bar */}
+          <div className="bg-black/70 w-4/5 text-white rounded-2xl p-4 flex justify-between items-center shadow-lg relative z-10 backdrop-blur-md">
+            <div>
+              <h1 className="text-xl font-bold">Welcome Farm, User!</h1>
+                <div className="text-sm font-medium">{dateString}</div>
+                <div className="text-sm">{timeString}</div>
             </div>
+              {/* Thanh tìm kiếm */}
+            <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    fetchConfigurationData();
+                  }
+                }}
+                className="bg-white text-black rounded px-3 py-1 w-1/5 h-10"
+            />
+
+            <select
+                value={deviceTypeFilter}
+                onChange={(e) => {
+                setDeviceTypeFilter(e.target.value as DeviceType | 'ALL');
+                }}
+                className="bg-white text-black rounded px-3 py-1 w-1/5 h-10"
+            >
+                <option value="ALL">Tất cả thiết bị</option>
+                <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
+            </select>
+
+
+
+            <button className="bg-green-600 text-white px-4 py-2 rounded-lg h-10">Add Setting</button>
           </div>
+          
 
-        <button className="addButton">Add Setting</button>
-      </div>
 
-        {/* Khung chứa bảng (frosted glass) */}
-        <div className="tableContainer">
-        <table className="settingTable">
-          <thead>
-            <tr>
-              {/* Tùy chỉnh tên cột theo ý bạn */}
-              <th>Name</th>
-              <th>Value</th>
-              <th>Location</th>
-              <th>Last Update</th>
-            </tr>
-          </thead>
-          <tbody>
-            {settingsData.map((item, index) => (
-              <tr key={index}>
-                <td>{item.name}</td>
-                <td>{item.value}</td>
-                <td>{item.location}</td>
-                <td>{item.lastUpdate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
-        {/* Thanh phân trang (giả lập) */}
-        {/* <div className="pagination">
-          <ul>
-            <li className="active">1</li>
-            <li>2</li>
-            <li>3</li>
-          </ul>
-        </div> */}
-      </div>
 
-      <style jsx>{`
-        /* Toàn màn hình, đặt ảnh nền */
-        .container {
-          background: url("https://images.unsplash.com/photo-1562075219-5356a05c8db5?fit=crop&w=1600&q=80")
-            no-repeat center center fixed;
-          background-size: cover;
-          /* padding: 20px; */
-          min-height: 100vh;
-          font-family: Arial, sans-serif;
-          display: flex; /* để sidebar và mainContent ngang hàng */
-        }
 
-        /* Khu vực nội dung chính */
-        .mainContent {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 20px;
-        }
 
-        /* Thanh trên cùng */
-        .topBar {
-          width: 90%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(8px);
-          padding: 10px 20px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-        }
+            {/* Data Table */}
+            <div className="w-4/5 mt-6 p-4 bg-white/30 backdrop-blur-lg rounded-2xl shadow-lg overflow-hidden relative z-0">
+                <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="border-b">
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Value</th>
+                    <th className="p-2">Device Type</th>
+                    <th className="p-2">Last Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {configurations?.configurations?.map((item : ConfigurationDetailType, index) => (
+                    <tr key={index} className="border-b">
+                        <td className="p-2">{item.name}</td>
+                        <td className="p-2">{item.value}</td>
+                        <td className="p-2">{item.deviceType}</td>
+                         <td className="p-2">{new Date(item.lastUpdated).toLocaleString()}</td> 
+                    </tr>
+                    ))}
+                </tbody>
+                </table>
+            </div>
+            
+            {/* Pagination */}
+            <div className="mt-4 flex gap-2"> 
+                {/* Nút Previous */}
+                <button 
+                    className="px-3 py-1 bg-gray-800 text-white rounded-md disabled:opacity-50" 
+                    onClick={() => {
+                        if (configurations?.prevPage !== null && configurations?.prevPage !== undefined) {
+                            setCurrentPage(configurations.prevPage);
+                            setFirst((configurations.prevPage - 1) * rows);
 
-        /* Logo hình tròn có số 1 (thông báo) */
-        .logoCircle {
-          width: 40px;
-          height: 40px;
-          background-color: #e74c3c;
-          color: #fff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          font-size: 1.1rem;
-          margin-right: 10px;
-        }
+                        }
+                    }} 
+                    disabled={configurations?.prevPage === null || configurations?.prevPage === undefined}
+                >
+                    Previous
+                </button>
 
-        /* Vùng chứa Welcome + Thời gian */
-        .titleAndTime {
-          flex: 1;
-          margin-left: 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .welcomeText {
-          color: #fff;
-          font-size: 1.3rem;
-          font-weight: 600;
-        }
-        .dateTime {
-          color: #fff;
-          font-size: 0.9rem;
-          line-height: 1.2;
-        }
+                {/* Hiển thị trang hiện tại */}
+                <span className="text-white">
+                    Page {currentPage} of {configurations?.lastPage ?? "?"}
+                </span>
 
-        .addButton {
-          background-color: #2ecc71;
-          color: #fff;
-          border: none;
-          padding: 8px 14px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: bold;
-          white-space: nowrap;
-        }
-        .addButton:hover {
-          background-color: #27ae60;
-        }
+                {/* Nút Next */}
+                <button 
+                    className="px-3 py-1 bg-gray-800 text-white rounded-md disabled:opacity-50" 
+                    onClick={() => {
+                        if (configurations?.nextPage) {
+                            setCurrentPage(configurations.nextPage);
+                            setFirst((configurations.nextPage - 1) * rows);
+                        }
+                    }}
+                    disabled={configurations?.nextPage === null || configurations?.nextPage === undefined}
+                >
+                    Next
+                </button>
+            </div>
 
-        /* Khung chứa bảng (hiệu ứng kính mờ) */
-        .tableContainer {
-          width: 90%;
-          background: rgba(255, 255, 255, 0.652);
-          backdrop-filter: blur(10px);
-          border-radius: 8px;
-          overflow-y: auto;
-          height: 550px; 
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
 
-        /* Bảng setting */
-        .settingTable {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .settingTable thead {
-          background-color: #f7f7f7;
-          position: sticky;
-          top: 0;
-          z-index: 1;
-        }
-        .settingTable th,
-        .settingTable td {
-          padding: 12px 15px;
-          border-bottom: 1px solid #e0e0e0;
-          text-align: left;
-          color: #333;
-        }
-        .settingTable thead th {
-          font-weight: 600;
-          color: #333;
-        }
-        .settingTable tbody tr:hover {
-          background-color: rgba(255, 255, 255, 0.4);
-        }
 
-        /* Phân trang (giả lập) */
-        .pagination {
-          width: 90%;
-          margin-top: 10px;
-          display: flex;
-          justify-content: center;
-        }
-        .pagination ul {
-          list-style: none;
-          display: flex;
-          gap: 10px; 
-          padding: 0;
-        }
-        .pagination li {
-          background: rgba(0, 0, 0, 0.2);
-          padding: 6px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          color: #fff;
-        }
-        .pagination li:hover {
-          background: rgba(0, 0, 0, 0.3);
-        }
-        .pagination .active {
-          background: #3498db;
-        }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-          .sidebar {
-            display: none; /* Ẩn sidebar trên màn hình nhỏ nếu muốn */
-          }
-          .topBar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-          }
-          .tableContainer {
-            height: auto; /* Cho bảng tự co */
-            max-height: 300px;
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
+
+
+
+
+
+          
+        </div>
+
+        
+      );
+    };
+
+
+
+export default SettingPage;

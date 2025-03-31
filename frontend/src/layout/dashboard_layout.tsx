@@ -122,7 +122,7 @@ export default function DashboardLayout() {
             {/* Nội dung thông báo */}
 
             <span className="ml-2 font-semibold">
-              Hoạt động bất thường, kiểm tra bơm
+              Kiểm tra bơm
             </span>
           </div>
           <Outlet />
