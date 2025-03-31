@@ -125,9 +125,9 @@ export default function HistoryPage() {
         <table className="historyTable">
           <thead>
             <tr>
-              <th>Type</th>
-              <th>Timestamp</th>
-              <th>Description</th>
+              <th>Loại</th>
+              <th>Thời gian</th>
+              <th>Mô tả</th>
             </tr>
           </thead>
           <tbody>
