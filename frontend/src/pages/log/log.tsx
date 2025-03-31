@@ -76,7 +76,7 @@ export default function HistoryPage() {
       <div className="filterContainer">
         <input
           type="text"
-          placeholder="Tìm kiếm..."
+          placeholder="Tìm kiếm mô tả..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="px-4 text-lg h-10 border border-gray-300 rounded-md w-full"
