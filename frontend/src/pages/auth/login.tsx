@@ -31,9 +31,10 @@ export default function LoginPage() {
       if (response.success) {
         const now = new Date().getTime();
         const expiration = now + 6 * 60 * 60 * 1000;
-        const { accessToken, role } = response.data;
+        const { accessToken, role, name } = response.data;
         console.log(response);
         localStorage.setItem("token", JSON.stringify(accessToken));
+        localStorage.setItem("name", JSON.stringify(name));
         localStorage.setItem("isAuthenticated", "true"); 
         if (role === "ADMIN") {
           localStorage.setItem("adminLogin", JSON.stringify({ status: true, expiration }));

@@ -185,7 +185,7 @@ const SettingPage = () => {
           {/* Top Bar */}
           <div className="bg-black/70 w-4/5 text-white rounded-2xl p-4 flex justify-between items-center shadow-lg relative z-10 backdrop-blur-md">
             <div>
-                <h1 className="text-xl font-bold">Welcome Farm, {username}!</h1>
+                <h1 className="text-xl font-bold">Chào mừng, {username}!</h1>
                 <div className="text-sm font-medium">{dateString}</div>
                 <div className="text-sm">{timeString}</div>
             </div>
@@ -242,7 +242,7 @@ const SettingPage = () => {
             {/* Bảng  */}
             <div className="w-4/5 mt-6 p-4 bg-white/30 backdrop-blur-lg rounded-2xl shadow-lg overflow-hidden relative z-0">
             <table className="w-full text-left border-collapse">
-                <thead>
+                <thead  className="bg-white text-black">
                 <tr className="border-b">
                     <th className="p-2">
                     <input
@@ -257,30 +257,28 @@ const SettingPage = () => {
                         checked={deleteConfig.length === configurations?.configurations?.length}
                     />
                     </th>
-                    <th className="p-2">Name</th>
-                    <th className="p-2">Value</th>
-                    <th className="p-2">Device Type</th>
-                    <th className="p-2">Last Update</th>
+                    <th className="p-2">Tên</th>
+                    <th className="p-2">Giá trị</th>
+                    <th className="p-2">Loại</th>
+                    <th className="p-2">Ngày cập nhật</th>
                 </tr>
                 </thead>
                 <tbody>
                 {configurations?.configurations?.map((item: ConfigurationDetailType, index) => (
-                    <tr key={index} className="border-b">
+                    <tr
+                    key={index}
+                    className="border-b hover:bg-gray-100 cursor-pointer"
+                    onClick={() => setUpdateConfig(item)}
+                    >
                     <td className="p-2">
                         <input
                         type="checkbox"
                         checked={deleteConfig.includes(item.configId)}
+                        onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click trùng lặp
                         onChange={() => handleCheckboxChange(item.configId)}
                         />
                     </td>
-                    <td className="p-2">
-                        <button
-                            onClick={() => setUpdateConfig(item)}
-                            className="text-blue-500 underline"
-                        >
-                            {item.name}
-                        </button>
-                    </td>
+                    <td className="p-2">{item.name}</td>
                     <td className="p-2">{item.value}</td>
                     <td className="p-2">{item.deviceType}</td>
                     <td className="p-2">{new Date(item.lastUpdated).toLocaleString()}</td>
@@ -289,6 +287,7 @@ const SettingPage = () => {
                 </tbody>
             </table>
             </div>
+
 
             
             {/* Chia  */}
@@ -331,80 +330,79 @@ const SettingPage = () => {
 
             {/* FORM update */}
             {updateConfig && (
-                <div className="mt-4 p-4 bg-white rounded-lg shadow-lg">
-                    <h2 className="text-lg font-bold mb-3">Cập nhật Cấu Hình</h2>
+            <PopupModal title="Cập nhật Cấu Hình" onClose={() => setUpdateConfig(null)}>
+                <label className="block mb-2">
+                Tên:
+                <input
+                    type="text"
+                    name="name"
+                    value={updateConfig.name}
+                    onChange={(e) => setUpdateConfig({ ...updateConfig, name: e.target.value })}
+                    className="w-full p-2 border rounded-lg"
+                />
+                </label>
 
-                    <label className="block mb-2">
-                    Tên:
-                    <input
-                        type="text"
-                        name="name"
-                        value={updateConfig.name}
-                        onChange={(e) => setUpdateConfig({ ...updateConfig, name: e.target.value })}
-                        className="w-full p-2 border rounded-lg"
-                    />
-                    </label>
+                <label className="block mb-2">
+                Giá trị:
+                <input
+                    type="number"
+                    name="value"
+                    value={updateConfig.value}
+                    onChange={(e) => setUpdateConfig({ ...updateConfig, value: Number(e.target.value) })}
+                    className="w-full p-2 border rounded-lg"
+                />
+                </label>
 
-                    <label className="block mb-2">
-                    Giá trị:
-                    <input
-                        type="number"
-                        name="value"
-                        value={updateConfig.value}
-                        onChange={(e) => setUpdateConfig({ ...updateConfig, value: Number(e.target.value) })}
-                        className="w-full p-2 border rounded-lg"
-                    />
-                    </label>
+                <label className="block mb-2">
+                Khu vực:
+                <select
+                    name="locationId"
+                    value={updateConfig.locationId}
+                    onChange={(e) => setUpdateConfig({ ...updateConfig, locationId: e.target.value })}
+                    className="w-full p-2 border rounded-lg"
+                >
+                    {locations?.locations.map((location) => (
+                    <option key={location.locationId} value={location.locationId}>
+                        {location.name}
+                    </option>
+                    ))}
+                </select>
+                </label>
 
-                    <label className="block mb-2">
-                    Khu vực:
-                    <select
-                        name="locationId"
-                        value={updateConfig.locationId}
-                        onChange={(e) => setUpdateConfig({ ...updateConfig, locationId: e.target.value })}
-                        className="w-full p-2 border rounded-lg"
-                    >
-                        {locations?.locations.map((location) => (
-                        <option key={location.locationId} value={location.locationId}>
-                            {location.name}
-                        </option>
-                        ))}
-                    </select>
-                    </label>
+                <label className="block mb-2">
+                Loại thiết bị:
+                <select
+                    name="deviceType"
+                    value={updateConfig.deviceType}
+                    onChange={(e) => setUpdateConfig({ ...updateConfig, deviceType: e.target.value as DeviceType })}
+                    className="w-full p-2 border rounded-lg"
+                >
+                    <option value="PUMP">PUMP</option>
+                    <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
+                    <option value="DHT20_SENSOR">DHT20_SENSOR</option>
+                    <option value="LCD">LCD</option>
+                    <option value="RELAY">RELAY</option>
+                    <option value="FAN">FAN</option>
+                </select>
+                </label>
 
-                    <label className="block mb-2">
-                    Loại thiết bị:
-                    <select
-                        name="deviceType"
-                        value={updateConfig.deviceType}
-                        onChange={(e) => setUpdateConfig({ ...updateConfig, deviceType: e.target.value as DeviceType })}
-                        className="w-full p-2 border rounded-lg"
-                    >
-                        <option value="PUMP">PUMP</option>
-                        <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
-                        <option value="DHT20_SENSOR">DHT20_SENSOR</option>
-                        <option value="LCD">LCD</option>
-                        <option value="RELAY">RELAY</option>
-                        <option value="FAN">FAN</option>
-                    </select>
-                    </label>
-
-                    <div className="flex justify-between mt-4">
-                    <button
-                        onClick={handleUpdateConfiguration}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-                    >
-                        Cập nhật
-                    </button>
-                    <button
-                        onClick={() => setUpdateConfig(null)}
-                        className="px-4 py-2 bg-gray-400 text-white rounded-lg"
-                    >
-                        Hủy
-                    </button>
-                    </div>
+                <div className="flex justify-between mt-4">
+                <button
+                    onClick={handleUpdateConfiguration}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                    Cập nhật
+                </button>
+                <button
+                    onClick={() => setUpdateConfig(null)}
+                    className="px-4 py-2 bg-gray-400 text-white rounded-lg"
+                >
+                    Hủy
+                </button>
                 </div>
-                )}
+            </PopupModal>
+            )}
+
 
             {/* Form thêm*/}
             {showAddForm && (
