@@ -303,6 +303,7 @@ export class ScheduleService {
 
 
   @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron('*/10 * * * * *')
   async handleCron() {
     this.logger.debug(`Running scheduled check (${this.localTimezone})...`);
     try {
@@ -314,126 +315,147 @@ export class ScheduleService {
 
   async checkSchedulesAndApplyStatus(): Promise<void> {
     const now = dayjs().tz(this.localTimezone);
-    const deviceDesiredStatus = new Map<string, DeviceStatus>();
-    const potentiallyFinishedOneTimeSchedules = new Map<string, string>();
+    const deviceShouldBeActiveMap = new Map<string, boolean>();
+    const potentiallyFinishedOneTimeSchedules = new Map<string, string>(); // scheduleId -> deviceId
 
     const activeSchedules = await this.prisma.schedule.findMany({
       where: { isActive: true },
+      select: { scheduleId: true, deviceId: true, startTime: true, endTime: true, repeatDays: true }
     });
-
-    if (activeSchedules.length === 0) {
-      this.logger.debug('Không có lịch trình active nào.');
-      return;
-    }
 
     for (const schedule of activeSchedules) {
       let shouldBeActiveNow = false;
-      const scheduleStartTime = dayjs(schedule.startTime);
-      const scheduleEndTime = dayjs(schedule.endTime);
+      const scheduleStartTime = dayjs(schedule.startTime); // Already UTC from DB
+      const scheduleEndTime = dayjs(schedule.endTime);   // Already UTC from DB
 
-      if (schedule.repeatDays === 0) {
-        if (now.isSameOrAfter(scheduleStartTime) && now.isBefore(scheduleEndTime)) {
+      if (schedule.repeatDays === 0) { // One-time schedule
+        const nowUtc = dayjs.utc();
+        if (nowUtc.isSameOrAfter(scheduleStartTime) && nowUtc.isBefore(scheduleEndTime)) {
           shouldBeActiveNow = true;
-        } else if (now.isSameOrAfter(scheduleEndTime)) {
+        } else if (nowUtc.isSameOrAfter(scheduleEndTime)) {
           potentiallyFinishedOneTimeSchedules.set(schedule.scheduleId, schedule.deviceId);
         }
-      } else {
-        const currentDayOfWeek = now.day();
+      } else { // Repeating schedule
+        const currentDayOfWeek = now.day(); // Use local day for checking repeatDays flag
         const isTodayScheduled = (schedule.repeatDays & (1 << currentDayOfWeek)) !== 0;
 
         if (isTodayScheduled) {
           const currentTimeMinutes = now.hour() * 60 + now.minute();
-          const startTimeMinutes = scheduleStartTime.hour() * 60 + scheduleStartTime.minute();
-          const endTimeMinutes = scheduleEndTime.hour() * 60 + scheduleEndTime.minute();
-          this.logger.verbose(`Repeat Check: NowLocal=${currentTimeMinutes}, StartUTC=${startTimeMinutes}, EndUTC=${endTimeMinutes}`);
+          const startTimeLocal = dayjs(schedule.startTime).tz(this.localTimezone);
+          const endTimeLocal = dayjs(schedule.endTime).tz(this.localTimezone);
+          const startTimeMinutes = startTimeLocal.hour() * 60 + startTimeLocal.minute();
+          const endTimeMinutes = endTimeLocal.hour() * 60 + endTimeLocal.minute();
 
-          if (startTimeMinutes <= endTimeMinutes) {
+          if (startTimeMinutes <= endTimeMinutes) { // Schedule does not cross midnight
             shouldBeActiveNow = currentTimeMinutes >= startTimeMinutes && currentTimeMinutes < endTimeMinutes;
-          } else {
+          } else { // Schedule crosses midnight (e.g., 10 PM to 2 AM)
             shouldBeActiveNow = currentTimeMinutes >= startTimeMinutes || currentTimeMinutes < endTimeMinutes;
           }
         }
       }
 
       if (shouldBeActiveNow) {
-        deviceDesiredStatus.set(schedule.deviceId, DeviceStatus.ACTIVE);
-      } else {
-        if (!deviceDesiredStatus.has(schedule.deviceId)) {
-          deviceDesiredStatus.set(schedule.deviceId, DeviceStatus.INACTIVE);
-        }
+        deviceShouldBeActiveMap.set(schedule.deviceId, true);
       }
     }
 
-    const relevantDeviceIds = [...new Set(activeSchedules.map(s => s.deviceId))];
-    const updatedDeviceStatuses = new Map<string, DeviceStatus>();
+    const scheduledDeviceIds = new Set(activeSchedules.map(s => s.deviceId));
+    const activePumpFanDevices = await this.prisma.device.findMany({
+      where: {
+        type: { in: [DeviceType.PUMP, DeviceType.FAN] },
+        status: DeviceStatus.ACTIVE
+      },
+      select: { deviceId: true }
+    });
+    const activePumpFanDeviceIds = new Set(activePumpFanDevices.map(d => d.deviceId));
 
-    if (relevantDeviceIds.length > 0) {
-      const currentDevices = await this.prisma.device.findMany({
-        where: { deviceId: { in: relevantDeviceIds } },
-        select: { deviceId: true, status: true, name: true },
-      });
-      const initialDeviceStatuses = new Map(currentDevices.map(d => [d.deviceId, d.status]));
-      const updates: Prisma.PrismaPromise<any>[] = [];
+    const allRelevantDeviceIds = [...new Set([...scheduledDeviceIds, ...activePumpFanDeviceIds])];
 
-      for (const deviceId of relevantDeviceIds) {
-        const desiredStatus = deviceDesiredStatus.get(deviceId) ?? DeviceStatus.INACTIVE;
-        updatedDeviceStatuses.set(deviceId, desiredStatus);
-        const currentStatus = initialDeviceStatuses.get(deviceId);
-
-        if (currentStatus !== desiredStatus) {
-          this.logger.log(`Updating Device ${deviceId} status: ${currentStatus} -> ${desiredStatus}`);
-          updates.push(
-            this.prisma.device.update({
-              where: { deviceId: deviceId },
-              data: { status: desiredStatus },
-            })
-          );
-
-          const device = currentDevices.find(d => d.deviceId === deviceId);
-          if (!device) {
-            this.logger.warn(`Device ${deviceId} not found in currentDevices list.`);
-            continue; // Bỏ qua vòng lặp nếu không tìm thấy thiết bị
-          }
-
-          const deviceSuffixMatch = device.name.match(/(kv\d+)$/);
-          const deviceSuffix = deviceSuffixMatch ? deviceSuffixMatch[0] : '';
-
-          try {
-            if (desiredStatus === DeviceStatus.ACTIVE) {
-              await this.retrySendFeedData(`auto${deviceSuffix}`, 'MAN');
-              await this.retrySendFeedData(device.name, 'ON');
-            } else {
-              await this.retrySendFeedData(device.name, 'OFF');
-              await this.retrySendFeedData(`auto${deviceSuffix}`, 'AUTO');
-            }
-          } catch (error) {
-            this.logger.error(`Lỗi khi gửi dữ liệu đến Adafruit: ${error}`);
-            throw error;
-          }
-
-        }
+    if (allRelevantDeviceIds.length === 0) {
+      this.logger.debug('Không có thiết bị liên quan (từ lịch trình active hoặc đang ACTIVE) để kiểm tra.');
+      if (potentiallyFinishedOneTimeSchedules.size > 0) {
+        await this.deactivateFinishedSchedules(potentiallyFinishedOneTimeSchedules, new Map()); // Pass empty map
       }
+      return;
+    }
 
-      if (updates.length > 0) {
-        try {
-          await this.prisma.$transaction(updates);
-          this.logger.log(`Successfully updated status for ${updates.length} devices.`);
-        } catch (error) {
-          this.logger.error('Error updating device statuses:', error);
-          potentiallyFinishedOneTimeSchedules.clear();
+    const currentDevices = await this.prisma.device.findMany({
+      where: { deviceId: { in: allRelevantDeviceIds } },
+      select: { deviceId: true, status: true, name: true, type: true }, // Include type
+    });
+    const initialDeviceStatuses = new Map(currentDevices.map(d => [d.deviceId, d.status]));
+    const finalDeviceStatuses = new Map<string, DeviceStatus>(); // To track the final state for deactivation check
+
+    const updates: Prisma.PrismaPromise<any>[] = [];
+    const adafruitCommands: { feedName: string, value: string }[] = [];
+
+    for (const device of currentDevices) {
+      const deviceId = device.deviceId;
+      const currentStatus = device.status;
+      const desiredStatus = deviceShouldBeActiveMap.get(deviceId) === true ? DeviceStatus.ACTIVE : DeviceStatus.INACTIVE;
+      finalDeviceStatuses.set(deviceId, desiredStatus); // Store final decision
+
+      if (currentStatus !== desiredStatus) {
+        this.logger.log(`Updating Device ${deviceId} (${device.name}) status: ${currentStatus} -> ${desiredStatus}`);
+        updates.push(
+          this.prisma.device.update({
+            where: { deviceId: deviceId },
+            data: { status: desiredStatus },
+          })
+        );
+
+        if (device.type === DeviceType.PUMP || device.type === DeviceType.FAN) {
+          const deviceSuffixMatch = device.name.match(/(kv\d+)$/); // Assuming 'kv' prefix like 'pumpkv1', 'fankv1'
+          const deviceSuffix = deviceSuffixMatch ? deviceSuffixMatch[1] : null; // Get 'kv1' part
+
+          if (deviceSuffix) {
+            if (desiredStatus === DeviceStatus.ACTIVE) {
+              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'MAN' });
+              adafruitCommands.push({ feedName: device.name, value: 'ON' });
+            } else {
+              adafruitCommands.push({ feedName: device.name, value: 'OFF' });
+              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'AUTO' });
+            }
+          } else {
+            this.logger.warn(`Could not extract suffix (like kv1) from device name ${device.name} for Adafruit commands.`);
+          }
         }
       } else {
-        currentDevices.forEach(d => updatedDeviceStatuses.set(d.deviceId, d.status));
-        this.logger.debug('No device status changes required.');
+        finalDeviceStatuses.set(deviceId, currentStatus); 
+      }
+    }
+
+    if (updates.length > 0) {
+      try {
+        await this.prisma.$transaction(updates);
+        this.logger.log(`Successfully updated status for ${updates.length} devices in DB.`);
+      } catch (error) {
+        this.logger.error('Error updating device statuses in DB transaction:', error.message, error.stack);
+        potentiallyFinishedOneTimeSchedules.clear();
       }
     } else {
-      this.logger.debug('No devices related to active schedules.');
+      this.logger.debug('No device status changes required in DB.');
     }
 
+    for (const cmd of adafruitCommands) {
+      try {
+        await this.retrySendFeedData(cmd.feedName, cmd.value);
+      } catch (error) {
+        this.logger.error(`Failed to send command ${cmd.value} to ${cmd.feedName} after retries: ${error.message}`, error.stack);
+      }
+    }
+
+    await this.deactivateFinishedSchedules(potentiallyFinishedOneTimeSchedules, finalDeviceStatuses);
+  }
+
+  private async deactivateFinishedSchedules(
+    potentiallyFinishedSchedules: Map<string, string>, 
+    finalDeviceStatuses: Map<string, DeviceStatus>     
+  ): Promise<void> {
     const schedulesToDeactivate: string[] = [];
-    if (potentiallyFinishedOneTimeSchedules.size > 0) {
-      for (const [scheduleId, deviceId] of potentiallyFinishedOneTimeSchedules.entries()) {
-        if (updatedDeviceStatuses.get(deviceId) === DeviceStatus.INACTIVE) {
+    if (potentiallyFinishedSchedules.size > 0) {
+      for (const [scheduleId, deviceId] of potentiallyFinishedSchedules.entries()) {
+        if (finalDeviceStatuses.get(deviceId) === DeviceStatus.INACTIVE) {
           schedulesToDeactivate.push(scheduleId);
         }
       }
@@ -441,12 +463,13 @@ export class ScheduleService {
       if (schedulesToDeactivate.length > 0) {
         this.logger.log(`Deactivating ${schedulesToDeactivate.length} completed one-time schedules...`);
         try {
-          await this.prisma.schedule.updateMany({
-            where: { scheduleId: { in: schedulesToDeactivate } },
+          const result = await this.prisma.schedule.updateMany({
+            where: { scheduleId: { in: schedulesToDeactivate }, isActive: true }, // Ensure we only update active ones
             data: { isActive: false },
           });
+          this.logger.log(`Successfully deactivated ${result.count} schedules.`);
         } catch (error) {
-          this.logger.error('Error deactivating one-time schedules:', error);
+          this.logger.error('Error deactivating one-time schedules:', error.message, error.stack);
         }
       }
     }

@@ -30,7 +30,7 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
 
   async startPollingForActiveDevices() {
     const activeDevices = await this.prisma.device.findMany({
-      where: { status: 'ACTIVE', type: { in: ['MOISTURE_SENSOR', 'DHT20_SENSOR'] } },
+      where: { status: DeviceStatus.ACTIVE, type: { in: ['MOISTURE_SENSOR', 'DHT20_SENSOR'] } },
     });
 
     for (const device of activeDevices) {
@@ -44,16 +44,30 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
   startPolling(deviceId: string, deviceType: string, feedName: string, intervalMs = 10000) {
     if (this.pollingIntervals.has(feedName)) return;
     console.log(`Bắt đầu lấy dữ liệu từ '${feedName}' mỗi ${intervalMs / 1000} giây...`);
-
+  
+    let failureCount = 0;
+    const maxFailures = 3;
+  
     const interval = setInterval(async () => {
       try {
         const latestData = await this.adafruitService.getLatestFeedData(feedName);
-        if (latestData) await this.processDeviceData(deviceId, deviceType, latestData);
+        if (latestData) {
+          failureCount = 0; // Reset bộ đếm nếu lấy dữ liệu thành công
+          await this.processDeviceData(deviceId, deviceType, latestData);
+        }
       } catch (error) {
-        console.error(`Lỗi khi lấy dữ liệu từ '${feedName}':`, error);
+        failureCount++;
+        console.error(`Lỗi khi lấy dữ liệu từ '${feedName}' (lần ${failureCount}):`, error);
+        
+        if (failureCount >= maxFailures) {
+          clearInterval(interval);
+          this.pollingIntervals.delete(feedName);
+          console.warn(`Thiết bị ${deviceId} không phản hồi sau ${maxFailures} lần thử, tiến hành vô hiệu hóa.`);
+          await this.disableDevice(deviceId);
+        }
       }
     }, intervalMs);
-
+  
     this.pollingIntervals.set(feedName, interval);
   }
 
@@ -210,6 +224,7 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
   }
 
   async refreshPolling() {
+    console.log('Refreshing polling...');
     await this.stopPollingForInactiveDevices();
     await this.startPollingForActiveDevices();
   }

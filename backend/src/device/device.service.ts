@@ -209,32 +209,34 @@ export class DeviceService {
             return await this.prismaService.$transaction(async (prisma) => {
                 const device = await prisma.device.findUnique({
                     where: { deviceId },
-                    select: { type: true },
+                    select: { type: true, status: true },
                 });
 
                 if (!device) {
                     throw new NotFoundException(`Không tìm thấy thiết bị với ID: ${deviceId}`);
                 }
 
+                const handler = this.deviceFactory.getHandler(device.type);
                 const deviceUpdateData: Prisma.DeviceUpdateInput = {};
+
                 if (name !== undefined) deviceUpdateData.name = name;
-                if (status !== undefined) deviceUpdateData.status = status;
                 if (locationId !== undefined) {
                     const locationExists = await prisma.location.findUnique({ where: { locationId } });
                     if (!locationExists) throw new BadRequestException(`Location với ID ${locationId} không tồn tại.`);
-                    deviceUpdateData.location = {
-                        connect: {
-                            locationId: locationId
-                        }
-                    };
-                };
+                    deviceUpdateData.location = { connect: { locationId } };
+                }
+
+                if (status !== undefined && status !== device.status) {
+                    await handler.toggleStatus(prisma, { deviceId, status: device.status, type: device.type });
+                }
+
                 if (Object.keys(deviceUpdateData).length > 0) {
                     await prisma.device.update({
                         where: { deviceId },
                         data: deviceUpdateData,
                     });
                 }
-                const handler = this.deviceFactory.getHandler(device.type);
+
                 await handler.updateSpecifics(prisma, deviceId, editDeviceDto);
 
                 return `Cập nhật thiết bị ${deviceId} thành công!`;
@@ -247,4 +249,5 @@ export class DeviceService {
             throw new InternalServerErrorException(`Đã xảy ra lỗi khi cập nhật thiết bị: ${error.message}`);
         }
     }
+
 }

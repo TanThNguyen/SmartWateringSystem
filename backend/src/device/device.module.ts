@@ -9,7 +9,8 @@ import { MoistureSensorDeviceHandler } from './factories/handlers/moisture.handl
 import { DHT20SensorDeviceHandler } from './factories/handlers/dht20.handler';
 import { SimpleDeviceHandler } from './factories/handlers/simple.handler';
 import { AdafruitModule } from 'src/adafruit/adafruit.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { ScheduleModule } from 'src/schedule/schedule.module';
+
 
 @Module({
   imports: [
