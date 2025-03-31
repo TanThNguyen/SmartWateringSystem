@@ -47,6 +47,7 @@ export default function UserManagementPage() {
     type: DeviceType.MOISTURE_SENSOR,
     locationName: "",
     status: DeviceStatus.ACTIVE,
+    
   });
 
   const infoModalRef = useRef<HTMLDivElement>(null);
@@ -365,6 +366,41 @@ export default function UserManagementPage() {
               <option value="FAN">FAN</option>
             </select>
           </label>
+
+
+          {newDevice.type === "MOISTURE_SENSOR" && (
+          <label>
+            Threshold ID:
+            <input
+              type="text"
+              name="thresholdId"
+              
+              onChange={handleNewDeviceChange}
+            />
+          </label>
+          )}
+
+
+
+          {newDevice.type === "DHT20_SENSOR" && (
+          <label>
+            TempMaxId:
+            <input
+              type="text"
+              name="thresholdId"
+              
+              onChange={handleNewDeviceChange}
+            />
+          </label>
+        
+          
+          )}
+
+
+
+
+
+
           <div className="flex justify-between mt-4 w-full">
             <button onClick={handleCreateDevice}
               className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"

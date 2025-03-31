@@ -108,6 +108,11 @@ const SettingPage = () => {
             >
                 <option value="ALL">Tất cả thiết bị</option>
                 <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
+                <option value="DHT20_SENSOR">DHT20_SENSOR</option>
+                <option value="PUMP">PUMP</option>
+                <option value="LCD">LCD</option>
+                <option value="FAN">FAN</option>
+                <option value="LED">LED</option>
             </select>
 
 
