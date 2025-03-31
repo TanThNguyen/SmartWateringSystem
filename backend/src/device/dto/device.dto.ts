@@ -92,6 +92,7 @@ export class AddDeviceDto {
     type: DeviceType;
 
     @IsEnum(DeviceStatus)
+    @Transform(({ value }) => value ?? DeviceStatus.INACTIVE, { toClassOnly: true })
     status: DeviceStatus;
 
     @IsOptional()

@@ -151,7 +151,6 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
     try {
       console.log(`⚠ Thiết bị ${deviceId} không phản hồi, chuyển sang trạng thái INACTIVE.`);
 
-      // Cập nhật trạng thái thiết bị sang INACTIVE
       const device = await this.prisma.device.update({
         where: { deviceId },
         data: { status: DeviceStatus.INACTIVE },
@@ -162,13 +161,11 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
         return;
       }
 
-      // Dừng polling của thiết bị ngay khi nó bị vô hiệu hóa
       const feedNames = this.adafruitService.getFeedNames(device);
       for (const feedName of feedNames) {
         this.stopPolling(feedName);
       }
 
-      // Ghi log cảnh báo
       await this.logService.create({
         userId: '',
         deviceId,
@@ -176,7 +173,6 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
         description: `Thiết bị ${device.name} đã bị vô hiệu hóa do không phản hồi.`,
       });
 
-      // Gửi thông báo đến admin
       await this.notificationService.create({
         senderId: '',
         message: `Thiết bị ${deviceId} đã bị vô hiệu hóa do không phản hồi.`,

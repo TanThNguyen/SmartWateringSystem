@@ -2,30 +2,49 @@ import { Injectable } from '@nestjs/common';
 import { Device, DeviceType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AdafruitService {
-  private readonly AIO_USERNAME = 'leduy1204';
-  private readonly AIO_KEY = 'aio_geGY19NFH3nv6m1rAj3unlge1M1q';
-  private readonly BASE_URL = `https://io.adafruit.com/api/v2/${this.AIO_USERNAME}`;
+  private readonly AIO_USERNAME: string;
+  private readonly AIO_KEY: string;
+  private readonly AIO_KEY_2: string;
+  private readonly BASE_URL: string;
 
   constructor(
     private prismaService: PrismaService,
-  ) { }
+    private readonly configService: ConfigService
+  ) {
+    this.AIO_USERNAME = this.configService.get<string>('AIO_USERNAME') ?? 'leduy1204';
+    this.AIO_KEY = this.configService.get<string>('AIO_KEY') ?? 'aio_geGY19NFH3nv6m1rAj3unlge1M1q';
+    this.AIO_KEY_2 = this.configService.get<string>('AIO_KEY_2') ?? 'aio_geGY19NFH3nv6m1rAj3unlge1M1q';
+    this.BASE_URL = `https://io.adafruit.com/api/v2/${this.AIO_USERNAME}`;
+  }
   // Lấy dữ liệu từ một feed và chuyển đổi thời gian về Asia/Ho_Chi_Minh (UTC+7)
   async getFeedData(feedName: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
+
+    let apiKey: string;
+
+    if (feedName.endsWith("kv1")) {
+      apiKey = this.AIO_KEY;
+    } else if (feedName.endsWith("kv2")) {
+      apiKey = this.AIO_KEY_2;
+    } else {
+      apiKey = this.AIO_KEY;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: { 'X-AIO-Key': this.AIO_KEY },
+      headers: { 'X-AIO-Key': apiKey },
     });
 
     if (!response.ok) {
-      throw new Error(`❌ Failed to fetch feed data: ${response.statusText}`);
+      throw new Error(`Failed to fetch feed data: ${response.statusText}`);
     }
 
     const data = await response.json();
-    // Chuyển đổi thời gian về UTC+7
+
     return data.map((item: any) => ({
       ...item,
       created_at: DateTime.fromISO(item.created_at, { zone: 'utc' })
@@ -34,15 +53,27 @@ export class AdafruitService {
     }));
   }
 
+
   async fetchMoistureData(feedName: string, deviceId: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
+
+    let apiKey: string;
+
+    if (feedName.endsWith("kv1")) {
+      apiKey = this.AIO_KEY;
+    } else if (feedName.endsWith("kv2")) {
+      apiKey = this.AIO_KEY_2;
+    } else {
+      apiKey = this.AIO_KEY;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: { 'X-AIO-Key': this.AIO_KEY },
+      headers: { 'X-AIO-Key': apiKey },
     });
 
     if (!response.ok) {
-      throw new Error(`❌ Failed to fetch moisture data: ${response.statusText}`);
+      throw new Error(`Lỗi khi lấy dữ liệu độ ẩm: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -60,9 +91,10 @@ export class AdafruitService {
       skipDuplicates: true,
     });
 
-    console.log(`✅ Moisture data stored successfully for ${feedName}`);
+    console.log(`Dữ liệu độ ẩm từ ${feedName} đã được lưu vào cơ sở dữ liệu.`);
     return formattedData;
   }
+
 
   async fetchDHT20Data(feedName: string, deviceId: string): Promise<any> {
     const nhietDoFeed = feedName.replace(/^DHT20/, 'nhietdo');
@@ -97,9 +129,9 @@ export class AdafruitService {
       temperature: number;
       humidity: number;
     };
-    
+
     const matchedRecords: DHT20RecordType[] = [];
-    
+
     for (const [timestamp, temperature] of nhietDoMap) {
       if (doAmMap.has(timestamp)) {
         matchedRecords.push({
@@ -126,41 +158,64 @@ export class AdafruitService {
 
   private async fetchAdafruitFeed(feedName: string): Promise<any[]> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
+
+    let apiKey: string;
+
+    if (feedName.endsWith("kv1")) {
+      apiKey = this.AIO_KEY;
+    } else if (feedName.endsWith("kv2")) {
+      apiKey = this.AIO_KEY_2;
+    } else {
+      apiKey = this.AIO_KEY;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: { 'X-AIO-Key': this.AIO_KEY },
+      headers: { 'X-AIO-Key': apiKey },
     });
 
     if (!response.ok) {
-      console.warn(`⚠️ Failed to fetch ${feedName}: ${response.statusText}`);
+      console.warn(`Lỗi khi lấy dữ liệu từ ${feedName}: ${response.statusText}`);
       return [];
     }
 
     return response.json();
   }
 
+
   // Gửi dữ liệu lên Adafruit IO
   async sendFeedData(feedName: string, value: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
 
-    console.log(`🔹 Sending request to: ${url} with value: ${value}`);
+    let apiKey: string;
+
+    if (feedName.endsWith("kv1")) {
+      apiKey = this.AIO_KEY;
+    } else if (feedName.endsWith("kv2")) {
+      apiKey = this.AIO_KEY_2;
+    } else {
+      apiKey = this.AIO_KEY;
+    }
+
+    console.log(`Gửi dữ liệu đến: ${url} với giá trị: ${value}`);
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'X-AIO-Key': this.AIO_KEY,
+        'X-AIO-Key': apiKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ value: `${value}` }), // Đảm bảo `value` là string
+      body: JSON.stringify({ value }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text(); // Lấy nội dung lỗi
-      throw new Error(`❌ Failed to send feed data: ${response.status} - ${errorText}`);
+      const errorText = await response.text();
+      throw new Error(`Lỗi khi gửi dữ liệu: ${response.status} - ${errorText}`);
     }
 
     return response.json();
   }
+
 
 
   private pollingIntervals: Map<string, NodeJS.Timeout> = new Map();
@@ -168,18 +223,29 @@ export class AdafruitService {
   // Lấy dữ liệu gần nhất từ một feed
   async getLatestFeedData(feedName: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data?limit=1`;
+  
+    let apiKey: string;
+  
+    if (feedName.endsWith("kv1")) {
+      apiKey = this.AIO_KEY;
+    } else if (feedName.endsWith("kv2")) {
+      apiKey = this.AIO_KEY_2;
+    } else {
+      apiKey = this.AIO_KEY;
+    }
+  
     const response = await fetch(url, {
       method: 'GET',
-      headers: { 'X-AIO-Key': this.AIO_KEY },
+      headers: { 'X-AIO-Key': apiKey },
     });
-
+  
     if (!response.ok) {
-      throw new Error(`❌ Failed to fetch latest feed data: ${response.statusText}`);
+      throw new Error(`Lỗi khi lấy dữ liệu mới nhất: ${response.statusText}`);
     }
-
+  
     const data = await response.json();
     if (data.length === 0) return null;
-
+  
     // Chuyển đổi thời gian về UTC+7
     return {
       ...data[0],
@@ -188,21 +254,22 @@ export class AdafruitService {
         .toFormat('yyyy-MM-dd HH:mm:ss'),
     };
   }
+  
 
   // Polling liên tục để lấy dữ liệu mới nhất từ feed
   startPollingFeed(feedName: string, intervalMs: number, callback: (data: any) => void): void {
     if (this.pollingIntervals.has(feedName)) {
-      console.warn(`⚠️ Polling for feed '${feedName}' is already running.`);
+      console.warn(`Polling for feed '${feedName}' is already running.`);
       return;
     }
 
-    console.log(`🚀 Starting polling for feed '${feedName}' every ${intervalMs / 1000}s...`);
+    console.log(`Starting polling for feed '${feedName}' every ${intervalMs / 1000}s...`);
     const interval = setInterval(async () => {
       try {
         const latestData = await this.getLatestFeedData(feedName);
         if (latestData) callback(latestData);
       } catch (error) {
-        console.error(`❌ Error fetching feed '${feedName}':`, error);
+        console.error(`Error fetching feed '${feedName}':`, error);
       }
     }, intervalMs);
 
@@ -214,7 +281,7 @@ export class AdafruitService {
     if (this.pollingIntervals.has(feedName)) {
       clearInterval(this.pollingIntervals.get(feedName)!);
       this.pollingIntervals.delete(feedName);
-      console.log(`🛑 Stopped polling for feed '${feedName}'.`);
+      console.log(`Stopped polling for feed '${feedName}'.`);
     }
   }
 
@@ -222,7 +289,7 @@ export class AdafruitService {
   onModuleDestroy() {
     this.pollingIntervals.forEach((interval, feedName) => {
       clearInterval(interval);
-      console.log(`🛑 Stopped polling for feed '${feedName}' (module destroy).`);
+      console.log(`Stopped polling for feed '${feedName}' (module destroy).`);
     });
     this.pollingIntervals.clear();
   }
@@ -256,35 +323,42 @@ export class AdafruitService {
 
   async getFeedConfig(feedName: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}`;
-
+  
+    let apiKey: string;
+  
+    if (feedName.endsWith("kv1")) {
+      apiKey = this.AIO_KEY;
+    } else if (feedName.endsWith("kv2")) {
+      apiKey = this.AIO_KEY_2;
+    } else {
+      apiKey = this.AIO_KEY; 
+    }
+  
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 'X-AIO-Key': this.AIO_KEY },
+        headers: { 'X-AIO-Key': apiKey },
       });
-
+  
       if (!response.ok) {
-        throw new Error(`❌ API Error (${response.status}): ${response.statusText}`);
+        throw new Error(`Lỗi API (${response.status}): ${response.statusText}`);
       }
-
+  
       const data = await response.json();
-      console.log(data);
+      console.log("Dữ liệu nhận được:", data);
+  
       return {
         name: data.name,
         key: data.key,
-        unit: data.unit_type, // Đơn vị đo lường (nếu có)
-        last_value: data.last_value, // Giá trị cuối cùng đo được
-        status: data.status, // Trạng thái feed (active/inactive)
-        visibility: data.visibility, // Public / Private
-        metadata: data.metadata ? JSON.parse(data.metadata) : null, // Các config trong metadata
+        unit: data.unit_type, 
+        last_value: data.last_value, 
+        status: data.status,
+        visibility: data.visibility,
+        metadata: data.metadata ? JSON.parse(data.metadata) : null, 
       };
     } catch (error) {
-      console.error(`❌ Lỗi khi lấy cấu hình feed ${feedName}:`, error);
+      console.error(`Lỗi khi lấy cấu hình feed ${feedName}:`, error);
       return null;
     }
   }
-
-
-
-
 }

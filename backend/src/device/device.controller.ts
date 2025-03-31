@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Post, Put, Query, SetMetadata, UseGuards
 import { DeviceService } from './device.service';
 import { RoleGuard } from 'src/auth/guard/role.guard';
 import { AddDeviceDto, DeleteDevicesDto, DeviceIdDto, EditDeviceDto, FindAllDevicesDto, GetDevicesRequestDto } from './dto';
-import { query } from 'express';
 
 @Controller('device')
 export class DeviceController {

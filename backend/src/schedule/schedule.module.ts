@@ -8,5 +8,6 @@ import { AdafruitModule } from "src/adafruit/adafruit.module";
   imports: [PrismaModule, AdafruitModule],
   controllers: [ScheduleController],
   providers: [ScheduleService],
+  exports: [ScheduleService],
 })
 export class ScheduleModule {}

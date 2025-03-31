@@ -193,6 +193,7 @@ export class UserService {
                 select: {
                     userId: true,
                     email: true,
+                    name: true,
                     passwordHash: true,
                     role: true,
                 },
@@ -205,6 +206,7 @@ export class UserService {
             return {
                 userId: user.userId,
                 email: user.email,
+                name: user.name,
                 password: user.passwordHash,
                 role: user.role,
             };

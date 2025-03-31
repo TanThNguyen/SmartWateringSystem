@@ -1,42 +1,41 @@
-import { Controller, Post, Body, Patch, Param, ParseUUIDPipe, Get, Delete, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, Post, Body, Patch, Param, ParseUUIDPipe, Get, Delete, HttpCode, HttpStatus, Put, Query } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
-import { Schedule } from "@prisma/client"; // Import Schedule type
-import { CreateScheduleDto } from "./dto";
+import { Schedule } from "@prisma/client";
+import { CreateScheduleDto, FindAllSchedulesDto, GetSchedulesRequestDto } from "./dto";
 
 @Controller("schedule")
 export class ScheduleController {
-  constructor(private readonly scheduleService: ScheduleService) {}
+  constructor(private readonly scheduleService: ScheduleService) { }
 
   @Post()
   async create(@Body() createScheduleDto: CreateScheduleDto): Promise<Schedule> {
-    // DTO sẽ tự động validate dữ liệu đầu vào nhờ ValidationPipe global hoặc cục bộ
     return this.scheduleService.create(createScheduleDto);
   }
 
-  @Patch(':id/toggle')
-  async toggleIsActive(
-    @Param('id', ParseUUIDPipe) scheduleId: string
-  ): Promise<Schedule> {
-    return this.scheduleService.toggleIsActive(scheduleId);
-  }
-
-  @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) scheduleId: string): Promise<Schedule> {
-    return this.scheduleService.findOne(scheduleId);
+  @Put()
+  async toggleIsActive(@Body() body: { scheduleId: string }): Promise<Schedule> {
+    return this.scheduleService.toggleIsActive(body.scheduleId);
   }
 
   @Get()
-  async findAll(): Promise<Schedule[]> {
-    return this.scheduleService.findAll();
+  async findAll(@Query() query: GetSchedulesRequestDto): Promise<FindAllSchedulesDto> {
+      return this.scheduleService.findAll(query);
+  }
+  
+
+  @Get('findOne')
+  async findOne(@Query() query: { scheduleId: string }): Promise<Schedule> {
+    return this.scheduleService.findOne(query.scheduleId);
   }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK) // Trả về 200 OK thay vì 204 No Content mặc định của Delete nếu muốn trả về object đã xóa
-  async remove(@Param('id', ParseUUIDPipe) scheduleId: string): Promise<Schedule> {
-      return this.scheduleService.remove(scheduleId);
+  @Delete()
+  @HttpCode(HttpStatus.OK)
+  async remove(@Body() body: { scheduleId: string }): Promise<Schedule> {
+    return this.scheduleService.remove(body.scheduleId);
   }
 
-  // (Optional) Endpoint để trigger kiểm tra thủ công (dùng để debug)
+
+
   @Post('check-now')
   @HttpCode(HttpStatus.NO_CONTENT)
   async triggerCheck() {

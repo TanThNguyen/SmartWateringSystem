@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AdafruitController } from './adafruit.controller';
 import { AdafruitService } from './adafruit.service';
 import { DevicePollingService } from './device-polling.service';
@@ -8,9 +8,14 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { DeviceModule } from 'src/device/device.module';
 
 @Module({
-  imports:[PrismaModule, LogModule, NotificationModule, DeviceModule],
+  imports: [
+    PrismaModule,
+    LogModule,
+    NotificationModule,
+    forwardRef(() => DeviceModule),
+  ],
   controllers: [AdafruitController],
   providers: [AdafruitService, DevicePollingService],
-  exports: [AdafruitService, DevicePollingService]
+  exports: [AdafruitService, DevicePollingService],
 })
 export class AdafruitModule {}

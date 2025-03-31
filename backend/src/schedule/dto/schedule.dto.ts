@@ -1,37 +1,103 @@
+import { Transform, Type } from 'class-transformer';
 import {
-    IsString,
-    IsUUID,
-    IsDateString,
-    IsInt,
-    Min,
-    Max,
-    IsBoolean,
-    IsOptional,
-    IsNotEmpty,
-  } from 'class-validator';
-  
-  export class CreateScheduleDto {
-    @IsNotEmpty()
-    @IsString()
-    @IsUUID()
-    deviceId: string;
-  
-    @IsNotEmpty()
-    @IsDateString({}, { message: 'startTime phải là định dạng ISO 8601 hợp lệ (vd: 2023-10-27T10:00:00.000Z). Chỉ giờ và phút sẽ được sử dụng.' })
-    startTime: string; // Nhận vào dạng string ISO, service sẽ xử lý
-  
-    @IsNotEmpty()
-    @IsDateString({}, { message: 'endTime phải là định dạng ISO 8601 hợp lệ (vd: 2023-10-27T18:30:00.000Z). Chỉ giờ và phút sẽ được sử dụng.' })
-    endTime: string; // Nhận vào dạng string ISO, service sẽ xử lý
-  
-    @IsNotEmpty()
-    @IsInt()
-    @Min(0, { message: 'repeatDays phải là số nguyên không âm (bitmask).' })
-    // Max là 127 (1111111 binary) nếu bạn muốn giới hạn 7 ngày (CN-T7)
-    @Max(127, { message: 'Giá trị bitmask tối đa cho 7 ngày là 127.'})
-    repeatDays: number; // Bitmask: CN=1, T2=2, T3=4, T4=8, T5=16, T6=32, T7=64
-  
-    @IsOptional()
-    @IsBoolean()
-    isActive?: boolean = true; // Mặc định là active
-  }
+  IsString,
+  IsUUID,
+  IsDateString,
+  IsInt,
+  Min,
+  Max,
+  IsBoolean,
+  IsOptional,
+  IsNotEmpty,
+  Matches,
+  IsDate,
+} from 'class-validator';
+
+export class CreateScheduleDto {
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID()
+  deviceId: string;
+
+  @IsNotEmpty()
+  @IsDateString({}, { message: 'startTime phải là định dạng ISO 8601 hợp lệ (vd: 2023-10-27T10:00:00.000Z). Chỉ giờ và phút sẽ được sử dụng.' })
+  startTime: string;
+
+  @IsNotEmpty()
+  @IsDateString({}, { message: 'endTime phải là định dạng ISO 8601 hợp lệ (vd: 2023-10-27T18:30:00.000Z). Chỉ giờ và phút sẽ được sử dụng.' })
+  endTime: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0, { message: 'repeatDays phải là số nguyên không âm (bitmask).' })
+  @Max(127, { message: 'Giá trị bitmask tối đa cho 7 ngày là 127.' })
+  repeatDays: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean = true; // Mặc định là active
+}
+
+export class GetSchedulesRequestDto {
+  @IsOptional()
+  @IsUUID()
+  deviceId?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return 'ALL';
+  })
+  @Matches(/^(true|false|ALL)$/, { message: 'isActive phải là "true", "false" hoặc "ALL"' })
+  isActive?: boolean | 'ALL' = 'ALL';
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  items_per_page?: number = 5;
+}
+
+export class ScheduleInfoDto {
+  @IsUUID()
+  scheduleId: string;
+
+  @IsUUID()
+  deviceId: string;
+
+  @IsDate()
+  startTime: Date;
+
+  @IsDate()
+  endTime: Date;
+
+  @IsInt()
+  repeatDays: number;
+
+  @IsBoolean()
+  isActive: boolean;
+}
+
+export class FindAllSchedulesDto {
+  @IsInt()
+  total: number;
+
+  @IsInt()
+  currentPage: number;
+
+  @IsInt()
+  nextPage: number | null;
+
+  @IsInt()
+  prevPage: number | null;
+
+  @IsInt()
+  lastPage: number;
+
+  schedules: ScheduleInfoDto[];
+}
