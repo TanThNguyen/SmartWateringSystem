@@ -441,16 +441,25 @@ useEffect(() => {
                   </td>
                   <td>{device.locationName}</td>
                   <td>{device.type}</td>
-                  <td 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleDeviceStatus(device.deviceId);
-                    }}
-                  >
-                    <span className={`permissionBadge ${device.status.toLowerCase() === "active" ? "active" : "inactive"}`}>
-                      {device.status}
-                    </span>
-                  </td>               
+                  <td className="text-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleDeviceStatus(device.deviceId);
+                      }}
+                      className={`px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 
+                        ${device.status.toLowerCase() === "active" 
+                          ? "bg-white text-blue-500 hover:bg-blue-100" 
+                          : "bg-white text-red-500 hover:bg-red-100"
+                        }`}
+                    >
+                      <span className={`permissionBadge ${device.status.toLowerCase() === "active" ? "active" : "inactive"}`}>
+                        {device.status}
+                      </span>
+                    </button>
+                  </td>
+
+              
                 </tr>
               ))
             ) : (
