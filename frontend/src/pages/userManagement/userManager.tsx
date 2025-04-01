@@ -210,7 +210,7 @@ export default function UserManagementPage() {
     );
   };
   ////////////////////////////////
-  if (loading) return <p>Đang tải dữ liệu...</p>;
+  // if (loading) return <p>Đang tải dữ liệu...</p>;
 
   return (
     <div className="container">

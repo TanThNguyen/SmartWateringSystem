@@ -26,6 +26,18 @@ export default function DashboardLayout() {
     }
   };
 
+  useEffect(() => {
+    if (showLogoutModal) {
+      const handleEsc = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setShowLogoutModal(false);
+        }
+      };
+      document.addEventListener("keydown", handleEsc);
+      return () => document.removeEventListener("keydown", handleEsc);
+    }
+  }, [showLogoutModal]);
+
   const handleLogout = () => {
     setShowLogoutModal(true);
   };

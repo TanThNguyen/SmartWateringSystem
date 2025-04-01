@@ -350,7 +350,7 @@ useEffect(() => {
 
 
 
-  if (loading) return <p>Đang tải dữ liệu...</p>;
+  // if (loading) return <p>Đang tải dữ liệu...</p>;
 
   return (
     <div className="container">
@@ -446,7 +446,9 @@ useEffect(() => {
                       handleToggleDeviceStatus(device.deviceId);
                     }}
                   >
-                    {device.status}
+                    <span className={`permissionBadge ${device.status.toLowerCase() === "active" ? "active" : "inactive"}`}>
+                      {device.status}
+                    </span>
                   </td>               
                 </tr>
               ))
