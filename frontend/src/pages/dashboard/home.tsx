@@ -179,7 +179,7 @@ export default function DashboardPage() {
       const timestamps = Object.keys(recordData);
       if (timestamps.length > 0) {
         const maxTimestamp = Math.max(...timestamps.map(Number));
-        if (currentTime.getTime() - maxTimestamp > 2 * 60 * 1000) { // chênh lệch hơn 2 phút
+        if (currentTime.getTime() - maxTimestamp > 30 * 1000) { // chênh lệch hơn 30 giây
           setIsDataStale(true);
         } else {
           setIsDataStale(false);
@@ -469,7 +469,12 @@ export default function DashboardPage() {
 
           {/* Biểu đồ */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div onClick={() => openChartModal("temperature")} className="cursor-pointer bg-white/80 rounded-lg p-4">
+            <div onClick={() => openChartModal("temperature")} className="relative cursor-pointer bg-white/80 rounded-lg p-4">
+              {isDataStale && (
+                <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-70 text-white z-10">
+                  Dữ liệu không được cập nhật trong 30 giây!
+                </div>
+              )}
               <div className="text-lg font-semibold mb-2">Nhiệt độ</div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={temperatureChartData[selectedLocation] || []}>
@@ -488,7 +493,12 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
 
-            <div onClick={() => openChartModal("humidity")} className="cursor-pointer bg-white/80 rounded-lg p-4">
+            <div onClick={() => openChartModal("humidity")} className="relative cursor-pointer bg-white/80 rounded-lg p-4">
+              {isDataStale && (
+                <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-70 text-white z-10">
+                  Dữ liệu không được cập nhật trong 30 giây!
+                </div>
+              )}
               <div className="text-lg font-semibold mb-2">Độ ẩm không khí</div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={humidityChartData[selectedLocation] || []}>
@@ -507,7 +517,12 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
 
-            <div onClick={() => openChartModal("soil")} className="cursor-pointer bg-white/80 rounded-lg p-4">
+            <div onClick={() => openChartModal("soil")} className="relative cursor-pointer bg-white/80 rounded-lg p-4">
+              {isDataStale && (
+                <div className="absolute inset-0 flex items-center justify-center bg-red-500 bg-opacity-70 text-white z-10">
+                  Dữ liệu không được cập nhật trong 30 giây!
+                </div>
+              )}
               <div className="text-lg font-semibold mb-2">Độ ẩm đất</div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={soilChartData[selectedLocation] || []}>

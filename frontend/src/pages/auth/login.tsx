@@ -65,11 +65,11 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen">
       <div className="w-1/2 flex flex-col justify-center px-16">
-        <h1 className="text-3xl font-bold">Welcome back!</h1>
-        <p className="text-gray-500 mt-2">Enter your credentials to access your account</p>
+        <h1 className="text-3xl font-bold">Chào mừng bạn!</h1>
+        <p className="text-gray-500 mt-2">Nhập thông tin để truy cập</p>
 
         <div className="mt-6">
-          <label className="block text-sm font-medium">Email address</label>
+          <label className="block text-sm font-medium">Email</label>
           <input
             type="email"
             placeholder="Enter your email"
@@ -80,7 +80,7 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-4 relative">
-          <label className="block text-sm font-medium">Password</label>
+          <label className="block text-sm font-medium">Mật khẩu</label>
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
@@ -94,12 +94,12 @@ export default function LoginPage() {
           >
             {showPassword ? <FiEyeOff /> : <FiEye />}
           </span>
-          <a href="#" className="text-sm text-blue-600 mt-3 block">Forgot password?</a>
+          <a href="#" className="text-sm text-blue-600 mt-3 block">Quên mật khẩu?</a>
         </div>
 
         <div className="mt-4 flex items-center">
           <input type="checkbox" className="mr-2" />
-          <span className="text-sm">Remember for 30 days</span>
+          <span className="text-sm">Ghi nhớ trong 30 ngày</span>
         </div>
 
         <button
@@ -107,10 +107,10 @@ export default function LoginPage() {
           className="w-full bg-green-700 text-white py-2 rounded mt-6 disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Logging in..." : "Đăng nhập"}
         </button>
 
-        <div className="text-center text-sm text-gray-400 mt-4">Or</div>
+        {/* <div className="text-center text-sm text-gray-400 mt-4">Or</div>
 
         <div className="flex gap-4 mt-4">
           <button className="flex-1 border flex items-center justify-center py-2 rounded">
@@ -119,7 +119,7 @@ export default function LoginPage() {
           <button className="flex-1 border flex items-center justify-center py-2 rounded">
             <FaApple className="mr-2" /> Sign in with Apple
           </button>
-        </div>
+        </div> */}
       </div>
 
       <div className="w-1/2 h-full">

@@ -459,7 +459,29 @@ useEffect(() => {
             )}
           </tbody>
         </table>
+      </div> {/* End of tableContainer */}
+      
+      {/* Added Pagination */}
+      <div className="pagination flex items-center justify-center mt-4 gap-4">
+        <button 
+          onClick={() => setFirst(prev => Math.max(prev - rows, 0))} 
+          disabled={first === 0}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Trước
+        </button>
+        <span>
+          Trang {Math.ceil(first/rows) + 1} / {Math.ceil(totalRecords/rows)}
+        </span>
+        <button 
+          onClick={() => setFirst(prev => (prev + rows < totalRecords ? prev + rows : prev))} 
+          disabled={first + rows >= totalRecords}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Sau
+        </button>
       </div>
+      
       {showAddForm && (
         <div className="modal-overlay" onClick={() => setShowEditForm(false)}>
           <div ref={infoModalRef} onClick={(e) => e.stopPropagation()}>

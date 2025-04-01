@@ -48,11 +48,16 @@ const SettingPage = () => {
 
     const [updateConfig, setUpdateConfig] = useState<ConfigurationUpdateType | null>(null);
 
+    // ------ Phân trang -------
+    const [first, setFirst] = useState<number>(0);
+    const [rows, setRows] = useState<number>(10);
+    // ---------------------------
+
     const fetchConfigurationData = async () => {
         setLoading(true);
         const request: ConfigurationQueryType = {
-            page: 1,
-            items_per_page: 1000,
+            page: Math.ceil(first / rows) + 1,
+            items_per_page: rows,
             search: searchText,
             deviceType: deviceTypeFilter, 
         };
@@ -157,7 +162,7 @@ const SettingPage = () => {
 
     useEffect(() => {
         fetchConfigurationData();
-    }, [deviceTypeFilter, searchText]);
+    }, [deviceTypeFilter, searchText, first, rows]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("name");
@@ -172,6 +177,17 @@ const SettingPage = () => {
         }, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                if (updateConfig) setUpdateConfig(null);
+                if (showAddForm) setShowAddForm(false);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [updateConfig, showAddForm]);
 
     // if (loading) return <p>Loading...</p>;
 
@@ -260,6 +276,27 @@ const SettingPage = () => {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Phân trang */}
+            <div className="pagination flex items-center justify-center mt-4 gap-4">
+                <button
+                    onClick={() => setFirst(prev => Math.max(prev - rows, 0))}
+                    disabled={first === 0}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                    Trước
+                </button>
+                <span>
+                    Trang {Math.ceil(first / rows) + 1} / {configurations ? Math.ceil(configurations.total / rows) : 1}
+                </span>
+                <button
+                    onClick={() => setFirst(prev => (configurations && (prev + rows < configurations.total) ? prev + rows : prev))}
+                    disabled={configurations ? (first + rows) >= configurations.total : true}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                    Sau
+                </button>
             </div>
 
             {updateConfig && (
