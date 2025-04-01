@@ -61,7 +61,7 @@ export type FindAllDevicesType = {
 // Thông tin gửi khi thêm thiết bị mới
 export type AddDeviceType = {
     name: string;
-    locationName: string;
+    locationID: string;
     type: DeviceType;
     status: DeviceStatus;
     thresholdId?: string;

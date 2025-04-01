@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./setting.scss";
 import PopupModal from "../../layout/popupmodal";
 import { locationApi } from "../../axios/location.api";
-import { FindAllLocationsType, InfoLocationType } from "../../types/location.type";
+import { FindAllLocationsType } from "../../types/location.type";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FaChevronDown } from "react-icons/fa";
@@ -342,7 +342,7 @@ const SettingPage = () => {
                                 name="name" 
                                 value={newConfig.name} 
                                 onChange={handleInputChange} 
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                                 placeholder="Nhập tên cấu hình"
                             />
                         </div>
@@ -353,7 +353,7 @@ const SettingPage = () => {
                                 name="value" 
                                 value={newConfig.value} 
                                 onChange={handleInputChange} 
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                                 placeholder="Nhập giá trị"
                             />
                         </div>
@@ -363,7 +363,7 @@ const SettingPage = () => {
                                 name="locationId"
                                 value={newConfig.locationId}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                             >
                                 {newConfig.locationId === "" && (
                                     <option value="" disabled>
@@ -383,7 +383,7 @@ const SettingPage = () => {
                                 name="deviceType" 
                                 value={newConfig.deviceType} 
                                 onChange={handleInputChange} 
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                             >
                                 <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
                                 <option value="PUMP">PUMP</option>

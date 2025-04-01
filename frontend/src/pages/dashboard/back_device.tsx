@@ -1,10 +1,21 @@
 import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
-
+import PopupModal from "../../layout/popupmodal";
+import { DeviceStatus, DeviceType, InfoDevicesType, GetDevicesRequestType, EditDeviceType, AddDeviceType} from "../../types/device.type";
+import { deviceApi } from "../../axios/device.api";
+import { recordAPI } from "../../axios/record.api";
+import {  SensorDataRequestType } from "../../types/record.type";
+import "./device.scss";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FaChevronDown } from "react-icons/fa";
+import { FindAllLocationsType } from "../../types/location.type";
+import { locationApi } from "../../axios/location.api";
+import { 
+  ConfigurationFilterType,
+  ConfigurationDetailType 
+} from "../../types/configuration.type";
+import { configurationApi } from "../../axios/configuration.api";
 
-import PopupModal from "../../layout/popupmodal";
 
 import {
   LineChart,
@@ -16,35 +27,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-import { deviceApi } from "../../axios/device.api";
-import { recordAPI } from "../../axios/record.api";
-import { configurationApi } from "../../axios/configuration.api";
-import { locationApi } from "../../axios/location.api";
-
-
-
-import { 
-  DeviceStatus, 
-  DeviceType, 
-  InfoDevicesType, 
-  GetDevicesRequestType, 
-  EditDeviceType, 
-  AddDeviceType, 
-  DeviceIdType} 
-  from "../../types/device.type";
-import {  SensorDataRequestType } from "../../types/record.type";
-import { FindAllLocationsType } from "../../types/location.type";
-import { 
-  ConfigurationFilterType,
-  ConfigurationDetailType 
-} from "../../types/configuration.type";
-
-
-
-import "./device.scss";
-
-
 
 export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
@@ -65,6 +47,7 @@ export default function UserManagementPage() {
   const [humidityChartData, setHumidityChartData] = useState<Array<{ time: number, humidity: number }>>([]);
   const [soilChartData, setSoilChartData] = useState<Array<{ time: number, soil: number }>>([]);
 
+  const [updatedDevice, setUpdatedDevice] = useState<EditDeviceType | null>(null);
 
   const [configType, setConfigType] = useState<{ configurations: ConfigurationDetailType[] } | null>(null);
 
@@ -90,10 +73,6 @@ export default function UserManagementPage() {
   });
   const infoModalRef = useRef<HTMLDivElement>(null);
 
-
-
-
-  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -290,19 +269,18 @@ useEffect(() => {
   };
 
 
-
-  // đã gọi API, lỗi nội bộ....
-  const handleToggleDeviceStatus = async (deviceId: string) => {
-    const data: DeviceIdType = { deviceId };  
+  const handleUpdateDevice = async () => {
+    if (!updatedDevice) return;
     try {
-        const result = await deviceApi.toggleDeviceStatus(data);  
-        console.log("Thành công!" , result);
+      await deviceApi.editDevice(updatedDevice);
+      fetchDevice();
+      setShowEditForm(false);
+      toast.success("Thiết bị đã được cập nhật thành công!");
     } catch (error) {
-        console.error("Lỗi chuyển chế độ:", error);
+      console.error("Lỗi khi cập nhật thiết bị:", error);
+      toast.error("Lỗi khi cập nhật thiết bị");
     }
-};
-
-
+  };
 
 
   const toggleSelectDevice = (userId: string) => {
@@ -440,14 +418,7 @@ useEffect(() => {
                   </td>
                   <td>{device.locationName}</td>
                   <td>{device.type}</td>
-                  <td 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleDeviceStatus(device.deviceId);
-                    }}
-                  >
-                    {device.status}
-                  </td>               
+                  <td> {device.status}</td>
                 </tr>
               ))
             ) : (
@@ -461,8 +432,6 @@ useEffect(() => {
         </table>
       </div>
       {showAddForm && (
-        <div className="modal-overlay" onClick={() => setShowEditForm(false)}>
-          <div ref={infoModalRef} onClick={(e) => e.stopPropagation()}>
         <PopupModal title="Thêm thiết bị" onClose={() => setShowAddForm(false)}>
           <label>
             Tên:
@@ -516,6 +485,25 @@ useEffect(() => {
             </select>
             
           </label> 
+{/*           
+          <label>
+            Khu vực:
+            <input
+              type="text"
+              name="locationID"
+              value={newDevice.locationID}
+              onChange={handleNewDeviceChange}
+            />
+          </label> */}
+
+
+
+
+
+
+
+
+
 
           {newDevice.type === "MOISTURE_SENSOR" && newDevice.locationID && (
             <label>
@@ -541,8 +529,8 @@ useEffect(() => {
             </label>
           )}
 
+
           {newDevice.type === "DHT20_SENSOR" && newDevice.locationID &&(
-            
             <label>
             Chọn cấu hình:
             <select
@@ -578,6 +566,9 @@ useEffect(() => {
 
 
 
+
+
+
           <div className="flex justify-between mt-4 w-full">
             <button onClick={handleCreateDevice}
               className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
@@ -588,8 +579,6 @@ useEffect(() => {
             >Hủy</button>
           </div>
         </PopupModal>
-        </div>
-      </div>
       )}
 
 
@@ -599,44 +588,7 @@ useEffect(() => {
           <div ref={infoModalRef} onClick={(e) => e.stopPropagation()}>
             <PopupModal title="Thông tin thiết bị" onClose={() => setShowEditForm(false)}>
               <div className="p-4 bg-white/80 rounded-lg shadow-md" style={{ maxHeight: "80vh", overflowY: "auto" }}>
-                <label>
-                  Tên thiết bị:
-                  <input
-                    type="text"
-                    name="name"
-                    value={editDeviceData.name || ""}
-                    onChange={(e) => setEditDeviceData((prev) => ({ ...prev, name: e.target.value }))}
-                  />
-                </label>
-
-                <label>
-                  Trạng thái:
-                  <select
-                    name="status"
-                    value={editDeviceData.status || ""}
-                    onChange={(e) => setEditDeviceData((prev) => ({ ...prev, status: e.target.value as DeviceStatus }))}
-                  >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </label>
-
-                <label>
-                  Khu vực:
-                  <select
-                    name="locationId"
-                    value={editDeviceData.locationId || ""}
-                    onChange={(e) => setEditDeviceData((prev) => ({ ...prev, locationId: e.target.value }))}
-                  >
-                    {locations?.locations.map((location) => (
-                      <option key={location.locationId} value={location.locationId}>
-                        {location.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-
+               
 
                 {selectedDeviceInfo?.type === DeviceType.MOISTURE_SENSOR && (
                   <div className="bg-white/80 rounded-lg p-4">
@@ -743,21 +695,7 @@ useEffect(() => {
                   </>
                 )}
 
-                <div className="flex justify-between mt-4">
-                  <button
-                    onClick={handleEditDevice}
-                    className="px-6 py-2 bg-blue-500 text-white rounded-lg"
-                  >
-                    Cập nhật
-                  </button>
 
-                  <button
-                    onClick={() => setShowEditForm(false)}
-                    className="px-6 py-2 bg-gray-400 text-white rounded-lg"
-                  >
-                    Hủy
-                  </button>
-                </div>
                 
               </div>
             </PopupModal>
