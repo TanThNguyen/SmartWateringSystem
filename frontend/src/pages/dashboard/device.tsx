@@ -295,7 +295,8 @@ useEffect(() => {
   const handleToggleDeviceStatus = async (deviceId: string) => {
     const data: DeviceIdType = { deviceId };  
     try {
-        const result = await deviceApi.toggleDeviceStatus(data);  
+        const result = await deviceApi.toggleDeviceStatus(data); 
+        fetchDevice(); 
         console.log("Thành công!" , result);
     } catch (error) {
         console.error("Lỗi chuyển chế độ:", error);
