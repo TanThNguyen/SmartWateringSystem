@@ -13,6 +13,11 @@ export default function HistoryPage() {
   const [eventType, setEventType] = useState<Severity | "ALL">("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
 
+  // Added pagination state
+  const [page, setPage] = useState<number>(1);
+  const [rows, setRows] = useState<number>(10);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+
   const renderDropdown = (
     label: string,
     value: string,
@@ -51,7 +56,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetchLogs();
-  }, [search, eventType, order]);
+  }, [search, eventType, order, page, rows]);
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -60,10 +65,11 @@ export default function HistoryPage() {
         search,
         eventType,
         order,
-        items_per_page: 1000,
-        page: 1,
+        items_per_page: rows,
+        page: page,
       });
       setLogs(data.logs);
+      setTotalRecords(data.total);
     } catch (error) {
       console.error("Lỗi khi lấy logs:", error);
     } finally {
@@ -78,27 +84,9 @@ export default function HistoryPage() {
           type="text"
           placeholder="Tìm kiếm mô tả..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="px-4 text-lg h-10 border border-gray-300 rounded-md w-full"
         />
-        {/* <select
-          value={eventType}
-          onChange={(e) => setEventType(e.target.value as Severity | "ALL")}
-          className="h-10 border border-gray-300 rounded-md px-2 w-80"
-        >
-          <option value="ALL">Tất cả</option>
-          <option value={Severity.INFO}>Thông báo</option>
-          <option value={Severity.WARNING}>Cảnh báo</option>
-          <option value={Severity.ERROR}>Lỗi</option>
-        </select>
-        <select
-          value={order}
-          onChange={(e) => setOrder(e.target.value as "asc" | "desc")}
-          className="h-10 border border-gray-300 rounded-md px-2 w-80"
-        >
-          <option value="asc">Cũ nhất</option>
-          <option value="desc">Mới nhất</option>
-        </select> */}
         {renderDropdown(
           "Tất cả",
           eventType,
@@ -108,7 +96,7 @@ export default function HistoryPage() {
             { label: "Cảnh báo", value: Severity.WARNING },
             { label: "Lỗi", value: Severity.ERROR },
           ],
-          (e) => setEventType(e.value as Severity | "ALL")
+          (e) => { setEventType(e.value as Severity | "ALL"); setPage(1); }
         )}
         {renderDropdown(
           "Mới nhất",
@@ -117,7 +105,7 @@ export default function HistoryPage() {
             { label: "Cũ nhất", value: "asc" },
             { label: "Mới nhất", value: "desc" },
           ],
-          (e) => setOrder(e.value as "asc" | "desc")
+          (e) => { setOrder(e.value as "asc" | "desc"); setPage(1); }
         )}
       </div>
 
@@ -146,6 +134,27 @@ export default function HistoryPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Added Pagination */}
+      <div className="pagination flex items-center justify-center mt-4 gap-4">
+        <button 
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))} 
+          disabled={page === 1}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Trước
+        </button>
+        <span>
+          Trang {page} / {Math.ceil(totalRecords / rows) || 1}
+        </span>
+        <button 
+          onClick={() => setPage((prev) => (prev < Math.ceil(totalRecords / rows) ? prev + 1 : prev))} 
+          disabled={page >= Math.ceil(totalRecords / rows)}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Sau
+        </button>
       </div>
     </div>
   );

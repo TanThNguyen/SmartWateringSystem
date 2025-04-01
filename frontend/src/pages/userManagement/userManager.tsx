@@ -36,10 +36,15 @@ export default function UserManagementPage() {
 
   const [locations, setLocations] = useState<any[]>([]);
 
+  // New pagination states
+  const [first, setFirst] = useState<number>(0);
+  const [rows, setRows] = useState<number>(10);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+
   useEffect(() => {
     fetchLocations();
     fetchUsers();
-  }, [order, permissionFilter, locationIdFilter, searchText]);
+  }, [order, permissionFilter, locationIdFilter, searchText, first, rows]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,8 +60,8 @@ export default function UserManagementPage() {
   const fetchUsers = async () => {
     setLoading(true);
     const request: UsersRequestType = {
-      page: 1,
-      items_per_page: 9999,
+      page: Math.ceil(first / rows) + 1,
+      items_per_page: rows,
       search: searchText.trim(),
       role: permissionFilter,
       order,
@@ -67,6 +72,8 @@ export default function UserManagementPage() {
     try {
       const response = await userApi.getAllUsers(request);
       setUsers(response.users);
+      setTotalRecords(response.total);
+      setFirst((response.currentPage - 1) * rows);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách người dùng");
     } finally {
@@ -203,6 +210,7 @@ export default function UserManagementPage() {
     );
   };
   ////////////////////////////////
+  // if (loading) return <p>Đang tải dữ liệu...</p>;
 
   return (
     <div className="container">
@@ -316,6 +324,26 @@ export default function UserManagementPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="pagination flex items-center justify-center mt-4 gap-4">
+        <button 
+          onClick={() => setFirst(prev => Math.max(prev - rows, 0))}
+          disabled={first === 0}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Trước
+        </button>
+        <span>
+          Trang {Math.ceil(first / rows) + 1} / {Math.ceil(totalRecords / rows)}
+        </span>
+        <button 
+          onClick={() => setFirst(prev => (prev + rows < totalRecords ? prev + rows : prev))}
+          disabled={first + rows >= totalRecords}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          Sau
+        </button>
       </div>
 
       {showAddForm && (

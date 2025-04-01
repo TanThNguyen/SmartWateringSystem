@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./setting.scss";
 import PopupModal from "../../layout/popupmodal";
 import { locationApi } from "../../axios/location.api";
-import { FindAllLocationsType, InfoLocationType } from "../../types/location.type";
+import { FindAllLocationsType } from "../../types/location.type";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FaChevronDown } from "react-icons/fa";
@@ -48,11 +48,16 @@ const SettingPage = () => {
 
     const [updateConfig, setUpdateConfig] = useState<ConfigurationUpdateType | null>(null);
 
+    // ------ Phân trang -------
+    const [first, setFirst] = useState<number>(0);
+    const [rows, setRows] = useState<number>(10);
+    // ---------------------------
+
     const fetchConfigurationData = async () => {
         setLoading(true);
         const request: ConfigurationQueryType = {
-            page: 1,
-            items_per_page: 1000,
+            page: Math.ceil(first / rows) + 1,
+            items_per_page: rows,
             search: searchText,
             deviceType: deviceTypeFilter, 
         };
@@ -157,7 +162,7 @@ const SettingPage = () => {
 
     useEffect(() => {
         fetchConfigurationData();
-    }, [deviceTypeFilter, searchText]);
+    }, [deviceTypeFilter, searchText, first, rows]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("name");
@@ -172,6 +177,17 @@ const SettingPage = () => {
         }, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                if (updateConfig) setUpdateConfig(null);
+                if (showAddForm) setShowAddForm(false);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [updateConfig, showAddForm]);
 
     // if (loading) return <p>Loading...</p>;
 
@@ -262,6 +278,27 @@ const SettingPage = () => {
                 </table>
             </div>
 
+            {/* Phân trang */}
+            <div className="pagination flex items-center justify-center mt-4 gap-4">
+                <button
+                    onClick={() => setFirst(prev => Math.max(prev - rows, 0))}
+                    disabled={first === 0}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                    Trước
+                </button>
+                <span>
+                    Trang {Math.ceil(first / rows) + 1} / {configurations ? Math.ceil(configurations.total / rows) : 1}
+                </span>
+                <button
+                    onClick={() => setFirst(prev => (configurations && (prev + rows < configurations.total) ? prev + rows : prev))}
+                    disabled={configurations ? (first + rows) >= configurations.total : true}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                    Sau
+                </button>
+            </div>
+
             {updateConfig && (
                 <PopupModal title="Cập nhật Cấu Hình" onClose={() => setUpdateConfig(null)}>
                     <label className="block mb-2">
@@ -342,7 +379,7 @@ const SettingPage = () => {
                                 name="name" 
                                 value={newConfig.name} 
                                 onChange={handleInputChange} 
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                                 placeholder="Nhập tên cấu hình"
                             />
                         </div>
@@ -353,7 +390,7 @@ const SettingPage = () => {
                                 name="value" 
                                 value={newConfig.value} 
                                 onChange={handleInputChange} 
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                                 placeholder="Nhập giá trị"
                             />
                         </div>
@@ -363,7 +400,7 @@ const SettingPage = () => {
                                 name="locationId"
                                 value={newConfig.locationId}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                             >
                                 {newConfig.locationId === "" && (
                                     <option value="" disabled>
@@ -383,7 +420,7 @@ const SettingPage = () => {
                                 name="deviceType" 
                                 value={newConfig.deviceType} 
                                 onChange={handleInputChange} 
-                                className="w-full p-2 border rounded-lg focus:ring focus:ring-green-400"
+                                className="w-full p-2 border rounded-lg "
                             >
                                 <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
                                 <option value="PUMP">PUMP</option>

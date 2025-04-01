@@ -80,7 +80,7 @@
   border-radius: 8px;
   overflow-y: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  height: 570px;
+  height: 545px;  
   width: 90%;
   margin-bottom: 20px;
 }
@@ -127,16 +127,12 @@
   border-radius: 12px;
   font-weight: bold;
 
-  &.admin {
-    color: #e74c3c;
-  }
-
-  &.gardener {
-    color: #3498db;
+  &.active {
+    color: #109949; // Xanh lá cây
   }
 
   &.inactive {
-    color: #f39c12;
+    color: #f39c12; // Màu cam
   }
 }
 
