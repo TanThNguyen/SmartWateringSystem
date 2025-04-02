@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AddDeviceDto, DeleteDevicesDto, FindAllDevicesDto, GetDevicesRequestDto, InfoDevicesDto, DeviceIdDto, EditDeviceDto } from './dto';
-import { DeviceStatus, DeviceType, Prisma, Severity } from '@prisma/client';
+import { DeviceStatus, DeviceType, Location, Prisma, Severity } from '@prisma/client';
 import { DeviceFactory } from './factories/device.factory';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
@@ -18,16 +18,16 @@ export class DeviceService {
     ) { }
 
     async add(addDeviceDto: AddDeviceDto): Promise<string> {
-        const { name, type, locationName, status } = addDeviceDto;
+        const { name, type, locationId, status } = addDeviceDto;
         let addedDeviceId: string | null = null;
+        let currLocation: Location | null = null;
 
         try {
-            const location = await this.prismaService.location.findUnique({
-                where: { name: locationName },
-                select: { locationId: true },
+            currLocation = await this.prismaService.location.findUnique({
+                where: { locationId },
             });
-            if (!location) {
-                throw new NotFoundException(`Không tìm thấy vị trí với tên: ${locationName}`);
+            if (!currLocation) {
+                throw new NotFoundException(`Không tìm thấy vị trí với id: ${locationId}`);
             }
 
             const handler = this.deviceFactory.getHandler(type);
@@ -38,7 +38,7 @@ export class DeviceService {
                     data: {
                         name,
                         type,
-                        locationId: location.locationId,
+                        locationId,
                         status,
                     },
                 });
@@ -50,7 +50,7 @@ export class DeviceService {
             const logPayloadSuccess: LogEventPayload = {
                 deviceId: addedDeviceId!, // Use the stored ID
                 eventType: Severity.INFO,
-                description: `Thiết bị mới '${name}' (Loại: ${type}, Vị trí: ${locationName}, ID: ${addedDeviceId}) đã được thêm.`
+                description: `Thiết bị mới '${name}' (Loại: ${type}, Vị trí: ${currLocation.name}, ID: ${addedDeviceId}) đã được thêm.`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
 
@@ -72,7 +72,7 @@ export class DeviceService {
             const logPayloadError: LogEventPayload = {
                 deviceId: addedDeviceId ?? undefined, // Log ID nếu đã tạo được device record
                 eventType: Severity.ERROR,
-                description: `Lỗi khi thêm thiết bị '${name}' (Loại: ${type}, Vị trí: ${locationName}): ${error.message}`
+                description: `Lỗi khi thêm thiết bị '${name}' (Loại: ${type}, Vị trí: ${currLocation?.name}): ${error.message}`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadError);
             // --- KẾT THÚC BỔ SUNG ---

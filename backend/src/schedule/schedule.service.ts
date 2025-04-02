@@ -434,7 +434,6 @@ export class ScheduleService {
         severity: Severity.ERROR,
         messageTemplate: `Lỗi CRON job kiểm tra lịch trình: {{errorMessage}}`,
         context: { errorMessage: error.message }
-        // Logic trong NotificationService sẽ gửi cho Admin
       };
       this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
       // --- KẾT THÚC BỔ SUNG ---
@@ -444,7 +443,7 @@ export class ScheduleService {
   async checkSchedulesAndApplyStatus(): Promise<void> {
     const now = dayjs().tz(this.localTimezone);
     const deviceShouldBeActiveMap = new Map<string, boolean>();
-    const potentiallyFinishedOneTimeSchedules = new Map<string, string>(); // scheduleId -> deviceId
+    const potentiallyFinishedOneTimeSchedules = new Map<string, string>();
 
     const activeSchedules = await this.prisma.schedule.findMany({
       where: { isActive: true },

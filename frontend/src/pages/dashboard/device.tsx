@@ -24,20 +24,21 @@ import { locationApi } from "../../axios/location.api";
 
 
 
-import { 
-  DeviceStatus, 
-  DeviceType, 
-  InfoDevicesType, 
-  GetDevicesRequestType, 
-  EditDeviceType, 
-  AddDeviceType, 
-  DeviceIdType} 
+import {
+  DeviceStatus,
+  DeviceType,
+  InfoDevicesType,
+  GetDevicesRequestType,
+  EditDeviceType,
+  AddDeviceType,
+  DeviceIdType
+}
   from "../../types/device.type";
-import {  SensorDataRequestType } from "../../types/record.type";
+import { SensorDataRequestType } from "../../types/record.type";
 import { FindAllLocationsType } from "../../types/location.type";
-import { 
+import {
   ConfigurationFilterType,
-  ConfigurationDetailType 
+  ConfigurationDetailType
 } from "../../types/configuration.type";
 
 
@@ -52,7 +53,7 @@ export default function UserManagementPage() {
   const [rows, setRows] = useState<number>(10);
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [searchText, setSearchText] = useState("");
-  const [locationIdFilter, setLocationIdFilter] = useState("");
+  const [locationIdFilter, setlocationIdFilter] = useState("");
   const [devices, setDevices] = useState<InfoDevicesType[]>([]);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
@@ -72,7 +73,7 @@ export default function UserManagementPage() {
   const [locations, setLocations] = useState<FindAllLocationsType | null>(null);
   const [newDevice, setNewDevice] = useState<AddDeviceType>({
     name: "",
-    locationID: "",
+    locationId: "",
     type: DeviceType.MOISTURE_SENSOR,
     status: DeviceStatus.ACTIVE,
     thresholdId: "",
@@ -93,7 +94,7 @@ export default function UserManagementPage() {
 
 
 
-  
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -107,15 +108,15 @@ export default function UserManagementPage() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showEditForm]);
-useEffect(() => {
-  if (selectedDeviceInfo) {
-    setEditDeviceData({
-      deviceId: selectedDeviceInfo.deviceId,
-      name: selectedDeviceInfo.name,
-      status: selectedDeviceInfo.status,
-    });
-  }
-}, [selectedDeviceInfo]);
+  useEffect(() => {
+    if (selectedDeviceInfo) {
+      setEditDeviceData({
+        deviceId: selectedDeviceInfo.deviceId,
+        name: selectedDeviceInfo.name,
+        status: selectedDeviceInfo.status,
+      });
+    }
+  }, [selectedDeviceInfo]);
   const fetchDevice = async () => {
     setLoading(true);
     const validStatus: DeviceStatus | 'ALL' | undefined =
@@ -179,14 +180,14 @@ useEffect(() => {
 
 
   const fetchConfig = async () => {
-    if (!newDevice.locationID || !newDevice.type) return;
+    if (!newDevice.locationId || !newDevice.type) return;
     try {
       const params: ConfigurationFilterType = {
-        locationId: newDevice.locationID,
+        locationId: newDevice.locationId,
         deviceType: newDevice.type,
       };
       const data = await configurationApi.getConfigurationsByFilter(params);
-  
+
       if (data && Array.isArray(data.configurations)) {
         setConfigType(data.configurations); // Lưu trực tiếp mảng
       } else {
@@ -198,27 +199,27 @@ useEffect(() => {
       // setConfigType([]);
     }
   };
-  
-  
+
+
 
   useEffect(() => {
     fetchConfig();
-  }, [newDevice.locationID, newDevice.type]); 
-  
+  }, [newDevice.locationId, newDevice.type]);
+
   useEffect(() => {
-          const fetchLocationData = async () => {
-              try {
-                  const response = await locationApi.getAllLocations({ search: "", order: "asc" });
-                  setLocations(response); 
-              } catch (err) {
-                  toast.error("Failed to fetch locations.");
-              } finally {
-                  setLoading(false);
-              }
-          };
-  
-          fetchLocationData();
-      }, []);
+    const fetchLocationData = async () => {
+      try {
+        const response = await locationApi.getAllLocations({ search: "", order: "asc" });
+        setLocations(response);
+      } catch (err) {
+        toast.error("Failed to fetch locations.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLocationData();
+  }, []);
 
 
   useEffect(() => {
@@ -257,14 +258,14 @@ useEffect(() => {
     try {
       await deviceApi.editDevice(editDeviceData);
       toast.success("Cập nhật thiết bị thành công!");
-      fetchDevice(); 
+      fetchDevice();
       setShowEditForm(false);
     } catch (error) {
       console.error("Lỗi khi cập nhật thiết bị:", error);
       toast.error("Lỗi khi cập nhật thiết bị");
     }
   };
-  
+
   const handleCreateDevice = async () => {
     try {
       await deviceApi.addDevice(newDevice);
@@ -293,15 +294,15 @@ useEffect(() => {
 
   // đã gọi API, lỗi nội bộ....
   const handleToggleDeviceStatus = async (deviceId: string) => {
-    const data: DeviceIdType = { deviceId };  
+    const data: DeviceIdType = { deviceId };
     try {
-        const result = await deviceApi.toggleDeviceStatus(data); 
-        fetchDevice(); 
-        console.log("Thành công!" , result);
+      const result = await deviceApi.toggleDeviceStatus(data);
+      fetchDevice();
+      console.log("Thành công!", result);
     } catch (error) {
-        console.error("Lỗi chuyển chế độ:", error);
+      console.error("Lỗi chuyển chế độ:", error);
     }
-};
+  };
 
 
 
@@ -363,9 +364,9 @@ useEffect(() => {
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-                fetchDevice();
+              fetchDevice();
             }
-        }}
+          }}
           className="px-4 text-lg h-10 border border-gray-300 rounded-md"
         />
 
@@ -387,8 +388,13 @@ useEffect(() => {
             { label: "Mới nhất", value: "desc" },
             { label: "Lâu nhất", value: "asc" },
           ],
-          (e) => setOrder(e.value)
-        )} 
+          (e) => {
+            if (e.value === "asc" || e.value === "desc") {
+              setOrder(e.value);
+            }
+          }
+        )}
+
 
         {renderDropdown(
           "Khu vực",
@@ -396,9 +402,9 @@ useEffect(() => {
           [
             { label: "Khu vực", value: "ALL" },
             { label: "Khu vực 1", value: "KV1" },
-            { label: "Khu vực 2", value: "KV2" },         
+            { label: "Khu vực 2", value: "KV2" },
           ],
-          (e) => setLocationIdFilter(e.value),
+          (e) => setlocationIdFilter(e.value),
         )}
 
         <button onClick={() => setShowAddForm(true)}
@@ -411,7 +417,7 @@ useEffect(() => {
         >Xóa</button>
       </div>
 
-      
+
       <div className="tableContainer" >
         <table className="userTable">
           <thead>
@@ -448,8 +454,8 @@ useEffect(() => {
                         handleToggleDeviceStatus(device.deviceId);
                       }}
                       className={`px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 
-                        ${device.status.toLowerCase() === "active" 
-                          ? "bg-white text-blue-500 hover:bg-blue-100" 
+                        ${device.status.toLowerCase() === "active"
+                          ? "bg-white text-blue-500 hover:bg-blue-100"
                           : "bg-white text-red-500 hover:bg-red-100"
                         }`}
                     >
@@ -459,7 +465,7 @@ useEffect(() => {
                     </button>
                   </td>
 
-              
+
                 </tr>
               ))
             ) : (
@@ -472,158 +478,158 @@ useEffect(() => {
           </tbody>
         </table>
       </div> {/* End of tableContainer */}
-      
+
       {/* Added Pagination */}
       <div className="pagination flex items-center justify-center mt-4 gap-4">
-        <button 
-          onClick={() => setFirst(prev => Math.max(prev - rows, 0))} 
+        <button
+          onClick={() => setFirst(prev => Math.max(prev - rows, 0))}
           disabled={first === 0}
           className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
         >
           Trước
         </button>
         <span>
-          Trang {Math.ceil(first/rows) + 1} / {Math.ceil(totalRecords/rows)}
+          Trang {Math.ceil(first / rows) + 1} / {Math.ceil(totalRecords / rows)}
         </span>
-        <button 
-          onClick={() => setFirst(prev => (prev + rows < totalRecords ? prev + rows : prev))} 
+        <button
+          onClick={() => setFirst(prev => (prev + rows < totalRecords ? prev + rows : prev))}
           disabled={first + rows >= totalRecords}
           className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
         >
           Sau
         </button>
       </div>
-      
+
       {showAddForm && (
         <div className="modal-overlay" onClick={() => setShowEditForm(false)}>
           <div ref={infoModalRef} onClick={(e) => e.stopPropagation()}>
-        <PopupModal title="Thêm thiết bị" onClose={() => setShowAddForm(false)}>
-          <label>
-            Tên:
-            <input
-              type="text"
-              name="name"
-              value={newDevice.name}
-              onChange={handleNewDeviceChange}
-            />
-          </label>
+            <PopupModal title="Thêm thiết bị" onClose={() => setShowAddForm(false)}>
+              <label>
+                Tên:
+                <input
+                  type="text"
+                  name="name"
+                  value={newDevice.name}
+                  onChange={handleNewDeviceChange}
+                />
+              </label>
 
 
 
 
-          <label>
-            Loại:
-            <select
-              name="type"
-              value={newDevice.type}
-              onChange={handleNewDeviceChange}
-            >
-              <option value="PUMP">PUMP</option>
-              <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
-              <option value="DHT20_SENSOR">DHT20_SENSOR</option>
-              <option value="LCD">LCD</option>
-              <option value="RELAY">RELAY</option>
-              <option value="FAN">FAN</option>
-            </select>
-          </label>
+              <label>
+                Loại:
+                <select
+                  name="type"
+                  value={newDevice.type}
+                  onChange={handleNewDeviceChange}
+                >
+                  <option value="PUMP">PUMP</option>
+                  <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
+                  <option value="DHT20_SENSOR">DHT20_SENSOR</option>
+                  <option value="LCD">LCD</option>
+                  <option value="RELAY">RELAY</option>
+                  <option value="FAN">FAN</option>
+                </select>
+              </label>
 
-          <label>
-            Khu vực
-            <select
-              name="locationID"
-              value={newDevice.locationID}
-              onChange={handleNewDeviceChange }
-              className="w-full p-2 border rounded-lg "
-            >
-              {newDevice.locationID === "" && (
-                <option value="" disabled>
-                  Chọn khu vực
-                </option>
-              )}
-              {locations?.locations.map((location) => (
-                <option key={location.locationId } value={location.locationId } >
-                    
-                  {location.name}
-                </option>
-              ))}
-              
-            </select>
-            
-          </label> 
+              <label>
+                Khu vực
+                <select
+                  name="locationId"
+                  value={newDevice.locationId}
+                  onChange={handleNewDeviceChange}
+                  className="w-full p-2 border rounded-lg "
+                >
+                  {newDevice.locationId === "" && (
+                    <option value="" disabled>
+                      Chọn khu vực
+                    </option>
+                  )}
+                  {locations?.locations.map((location) => (
+                    <option key={location.locationId} value={location.locationId} >
 
-          {newDevice.type === "MOISTURE_SENSOR" && newDevice.locationID && (
-            <label>
-              Chọn cấu hình:
-              <select
-                name="thresholdId"
-                value={newDevice.thresholdId}
-                onChange={handleNewDeviceChange}
-                className="w-full p-2 border rounded-lg"
-              >
-                {newDevice.thresholdId === "" && (
-                  <option value="" disabled>
-                    Chọn cấu hình
-                  </option>
-                )}
-                {Array.isArray(configType) &&
-                  configType.map((config) => (
-                    <option key={config.configId} value={config.configId}>
-                      {config.name}
+                      {location.name}
                     </option>
                   ))}
-              </select>
-            </label>
-          )}
 
-          {newDevice.type === "DHT20_SENSOR" && newDevice.locationID &&(
-            
-            <label>
-            Chọn cấu hình:
-            <select
-              name="tempMinId"
-              value={newDevice.tempMinId} 
-              onChange={(e) => {
-                const selectedValue = e.target.value;
-                setNewDevice((prev) => ({
-                  ...prev,
-                  tempMinId: selectedValue,
-                  tempMaxId: selectedValue,
-                  humidityThresholdId: selectedValue,
-                }));
-              }}
-              className="w-full p-2 border rounded-lg"
-            >
-              {newDevice.tempMinId === "" && (
-                <option value="" disabled>
-                  Chọn cấu hình
-                </option>
+                </select>
+
+              </label>
+
+              {newDevice.type === "MOISTURE_SENSOR" && newDevice.locationId && (
+                <label>
+                  Chọn cấu hình:
+                  <select
+                    name="thresholdId"
+                    value={newDevice.thresholdId}
+                    onChange={handleNewDeviceChange}
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    {newDevice.thresholdId === "" && (
+                      <option value="" disabled>
+                        Chọn cấu hình
+                      </option>
+                    )}
+                    {Array.isArray(configType) &&
+                      configType.map((config) => (
+                        <option key={config.configId} value={config.configId}>
+                          {config.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
               )}
-              {Array.isArray(configType) &&
-                configType.map((config) => (
-                  <option key={config.configId} value={config.configId}>
-                    {config.name}
-                  </option>
-                ))}
-            </select>
-          </label>
-        
-          
-          )}
+
+              {newDevice.type === "DHT20_SENSOR" && newDevice.locationId && (
+
+                <label>
+                  Chọn cấu hình:
+                  <select
+                    name="tempMinId"
+                    value={newDevice.tempMinId}
+                    onChange={(e) => {
+                      const selectedValue = e.target.value;
+                      setNewDevice((prev) => ({
+                        ...prev,
+                        tempMinId: selectedValue,
+                        tempMaxId: selectedValue,
+                        humidityThresholdId: selectedValue,
+                      }));
+                    }}
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    {newDevice.tempMinId === "" && (
+                      <option value="" disabled>
+                        Chọn cấu hình
+                      </option>
+                    )}
+                    {Array.isArray(configType) &&
+                      configType.map((config) => (
+                        <option key={config.configId} value={config.configId}>
+                          {config.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+
+
+              )}
 
 
 
-          <div className="flex justify-between mt-4 w-full">
-            <button onClick={handleCreateDevice}
-              className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
-            >Tạo</button>
+              <div className="flex justify-between mt-4 w-full">
+                <button onClick={handleCreateDevice}
+                  className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
+                >Tạo</button>
 
-            <button onClick={() => setShowAddForm(false)}
-              className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
-            >Hủy</button>
+                <button onClick={() => setShowAddForm(false)}
+                  className="px-6 py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg shadow-lg hover:bg-orange-500 hover:text-white transition-all duration-200"
+                >Hủy</button>
+              </div>
+            </PopupModal>
           </div>
-        </PopupModal>
         </div>
-      </div>
       )}
 
 
@@ -792,7 +798,7 @@ useEffect(() => {
                     Hủy
                   </button>
                 </div>
-                
+
               </div>
             </PopupModal>
           </div>

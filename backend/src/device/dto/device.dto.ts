@@ -86,7 +86,8 @@ export class AddDeviceDto {
 
     @IsString()
     @IsNotEmpty()
-    locationName: string;
+    @IsUUID()
+    locationId: string;
 
     @IsEnum(DeviceType)
     type: DeviceType;

@@ -439,31 +439,32 @@ export default function DashboardPage() {
 
 
           {/* Hiển thị thông tin khu vực */}
-          {selectedLocation && recordData[selectedLocation] ? (
-            <div className={`flex flex-wrap justify-between gap-4 mb-6 ${isDataStale ? "border-4 border-red-500 animate-pulse" : ""}`}>
-              {/* Nhiệt độ */}
-              <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-                <div className="text-xl font-semibold mb-1">Nhiệt độ</div>
-                <div className="text-3xl font-bold">{recordData[selectedLocation]?.temp ?? "--"}°C</div>
-                <div className="text-sm text-gray-600 mt-1">Temperature</div>
-              </div>
+          {selectedLocation? (
 
-              {/* Độ ẩm không khí */}
-              <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-                <div className="text-xl font-semibold mb-1">Độ ẩm</div>
-                <div className="text-3xl font-bold">{recordData[selectedLocation]?.humidity ?? "--"}%</div>
-                <div className="text-sm text-gray-600 mt-1">Air humidity</div>
-              </div>
-
-              {/* Độ ẩm đất */}
-              <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-                <div className="text-xl font-semibold mb-1">Độ ẩm đất</div>
-                <div className="text-3xl font-bold">{recordData[selectedLocation]?.soil ?? "--"}%</div>
-                <div className="text-sm text-gray-600 mt-1">Soil moisture</div>
-              </div>
+          <div className={`flex flex-wrap justify-between gap-4 mb-6 ${isDataStale ? "border-4 border-red-500 animate-pulse" : ""}`}>
+            {/* Nhiệt độ */}
+            <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-xl font-semibold mb-1">Nhiệt độ</div>
+              <div className="text-3xl font-bold">{temperatureChartData[selectedLocation]?.slice(-1)[0]?.temp ?? "--"}°C</div>
+              <div className="text-sm text-gray-600 mt-1">Temperature</div>
             </div>
+
+            {/* Độ ẩm không khí */}
+            <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-xl font-semibold mb-1">Độ ẩm</div>
+              <div className="text-3xl font-bold">{humidityChartData[selectedLocation]?.slice(-1)[0]?.humidity ?? "--"}%</div>
+              <div className="text-sm text-gray-600 mt-1">Air humidity</div>
+            </div>
+
+            {/* Độ ẩm đất */}
+            <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-xl font-semibold mb-1">Độ ẩm đất</div>
+              <div className="text-3xl font-bold">{soilChartData[selectedLocation]?.slice(-1)[0]?.soil ?? "--"}%</div>
+              <div className="text-sm text-gray-600 mt-1">Soil moisture</div>
+            </div>
+          </div>
           ) : (
-            <div className="text-center py-6 text-gray-600">Chưa chọn khu vực</div>
+          <div className="text-center py-6 text-gray-600">Chưa chọn khu vực</div>
           )}
 
 
@@ -479,8 +480,8 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={temperatureChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="time" 
+                  <XAxis
+                    dataKey="time"
                     type="number"
                     domain={[currentTime.getTime() - 60000, currentTime.getTime()]}
                     tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -503,8 +504,8 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={humidityChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="time" 
+                  <XAxis
+                    dataKey="time"
                     type="number"
                     domain={[currentTime.getTime() - 60000, currentTime.getTime()]}
                     tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -527,8 +528,8 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={soilChartData[selectedLocation] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="time" 
+                  <XAxis
+                    dataKey="time"
                     type="number"
                     domain={[currentTime.getTime() - 60000, currentTime.getTime()]}
                     tickFormatter={time => new Date(time).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -685,11 +686,11 @@ export default function DashboardPage() {
               {/* New Date Picker for fixed date search */}
               <div className="mb-4 flex items-center">
                 <label className="mr-2">Chọn ngày:</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={fixedDate}
                   onChange={(e) => setFixedDate(e.target.value)}
-                  className="border p-1 rounded" 
+                  className="border p-1 rounded"
                 />
                 {fixedDate && (
                   <button onClick={() => setFixedDate("")} className="ml-2 px-3 py-1 bg-gray-300 rounded">
@@ -702,8 +703,8 @@ export default function DashboardPage() {
               <div className="mb-4 flex flex-col gap-2">
                 <div className="flex items-center">
                   <label className="mr-2">Chọn thời gian bắt đầu:</label>
-                  <input 
-                    type="datetime-local" 
+                  <input
+                    type="datetime-local"
                     value={searchStart}
                     onChange={(e) => setSearchStart(e.target.value)}
                     className="border p-1 rounded"
@@ -711,15 +712,15 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center">
                   <label className="mr-2">Chọn thời gian kết thúc:</label>
-                  <input 
-                    type="datetime-local" 
+                  <input
+                    type="datetime-local"
                     value={searchEnd}
                     onChange={(e) => setSearchEnd(e.target.value)}
                     className="border p-1 rounded"
                   />
                 </div>
                 {(searchStart !== "" || searchEnd !== "") && (
-                  <button onClick={() => { setSearchStart(""); setSearchEnd(""); }} 
+                  <button onClick={() => { setSearchStart(""); setSearchEnd(""); }}
                     className="ml-2 px-3 py-1 bg-gray-300 rounded">
                     Clear Range
                   </button>
@@ -744,15 +745,15 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={getFilteredChartData()}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="time" 
+                    <XAxis
+                      dataKey="time"
                       type="number"
                       domain={
                         searchStart !== "" && searchEnd !== ""
                           ? [new Date(searchStart).getTime(), new Date(searchEnd).getTime()]
                           : fixedDate !== ""
-                          ? [new Date(fixedDate).setHours(0, 0, 0, 0), new Date(fixedDate).setHours(23, 59, 59, 999)]
-                          : [currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000, currentTime.getTime()]
+                            ? [new Date(fixedDate).setHours(0, 0, 0, 0), new Date(fixedDate).setHours(23, 59, 59, 999)]
+                            : [currentTime.getTime() - timeFilter * 24 * 60 * 60 * 1000, currentTime.getTime()]
                       }
                       tickFormatter={(time) => new Date(time).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                     />
