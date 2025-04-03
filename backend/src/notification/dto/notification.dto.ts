@@ -9,10 +9,10 @@ export class InfoNotiDto {
     @IsNotEmpty()
     notificationId: string;
 
-    @IsOptional() 
+    @IsOptional()
     @IsUUID()
     @IsString()
-    senderId?: string | null; 
+    senderId?: string | null;
 
     @IsString()
     @IsNotEmpty()
@@ -22,7 +22,7 @@ export class InfoNotiDto {
     severity: Severity;
 
     @IsBoolean()
-    isRead: boolean; 
+    isRead: boolean;
 
     @IsDate()
     createdAt: Date;
@@ -30,7 +30,7 @@ export class InfoNotiDto {
 
 export class FindAllNotisDto {
     @IsArray()
-    @ValidateNested({ each: true }) 
+    @ValidateNested({ each: true })
     @Type(() => InfoNotiDto)
     notifications: InfoNotiDto[];
 }
@@ -51,7 +51,7 @@ export class NotificationEventContext {
 
     @IsOptional()
     @IsUUID()
-    userId?: string; 
+    userId?: string;
 
     @IsOptional()
     @IsString()
@@ -63,7 +63,10 @@ export class NotificationEventContext {
     @IsOptional()
     threshold?: number | string;
 
-     @IsOptional()
+    @IsOptional()
+    locationId?: string;
+
+    @IsOptional()
     @IsString()
     errorMessage?: string;
 }
@@ -71,23 +74,23 @@ export class NotificationEventContext {
 export class NotificationEventPayload {
     @IsOptional()
     @IsUUID()
-    senderId?: string | null; 
+    senderId?: string | null;
 
     @IsEnum(Severity)
     severity: Severity;
 
     @IsString()
     @IsNotEmpty()
-    messageTemplate: string; 
+    messageTemplate: string;
 
     @IsOptional()
     @IsObject()
-    @ValidateNested() 
+    @ValidateNested()
     @Type(() => NotificationEventContext)
-    context?: NotificationEventContext; 
+    context?: NotificationEventContext;
 
     @IsOptional()
     @IsArray()
     @IsUUID("all", { each: true })
-    explicitRecipientIds?: string[]; 
+    explicitRecipientIds?: string[];
 }

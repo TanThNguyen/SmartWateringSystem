@@ -8,7 +8,6 @@ import { LocationRecordQueryType, SensorDataResponseType } from "../../types/rec
 import { GetLocationsRequestType, CreateLocationType, UpdateLocationType, DeleteLocationType, FindAllLocationsType, InfoLocationType } from "../../types/location.type";
 
 export default function DashboardPage() {
-  // Khởi tạo areaData ban đầu là rỗng
   const [areaData, setAreaData] = useState<Record<number, { weather: string, temp: number, humidity: number, ac: number, soil: number }>>({});
   const [activeArea, setActiveArea] = useState<number | null>(null);
   const [username, setUsername] = useState("User");
@@ -64,11 +63,12 @@ export default function DashboardPage() {
 
   // Lấy username từ localStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem("username");
+    const storedUser = localStorage.getItem("name");
     if (storedUser) {
-      setUsername(storedUser);
+      setUsername(storedUser.slice(1, -1)); // Cắt bỏ ký tự đầu và cuối
     }
   }, []);
+  
 
   // Cập nhật thời gian mỗi giây
   useEffect(() => {
@@ -388,9 +388,9 @@ export default function DashboardPage() {
       <div className="absolute top-0 left-0 w-full flex items-center justify-between p-4 bg-black/40">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
+            {/* <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
               1
-            </span>
+            </span> */}
             <button className="text-white text-xl" title="Thông báo">
               <i className="fas fa-bell"></i>
             </button>

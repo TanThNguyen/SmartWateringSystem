@@ -50,9 +50,9 @@ export class ScheduleService {
         throw new BadRequestException('Thời gian kết thúc phải sau thời gian bắt đầu.');
       }
 
-      // if (endTimeDate.isBefore(dayjs())) {
-      //   throw new BadRequestException('Thời gian kết thúc phải lớn hơn thời gian hiện tại.');
-      // }
+      if (endTimeDate.isBefore(dayjs()) && repeatDays === 0) {
+        throw new BadRequestException('Thời gian kết thúc phải lớn hơn thời gian hiện tại.');
+      }
 
       const existingSchedules = await this.prisma.schedule.findMany({
         where: {
@@ -452,8 +452,8 @@ export class ScheduleService {
 
     for (const schedule of activeSchedules) {
       let shouldBeActiveNow = false;
-      const scheduleStartTime = dayjs(schedule.startTime); // Already UTC from DB
-      const scheduleEndTime = dayjs(schedule.endTime);   // Already UTC from DB
+      const scheduleStartTime = dayjs(schedule.startTime);
+      const scheduleEndTime = dayjs(schedule.endTime);
 
       if (schedule.repeatDays === 0) { // One-time schedule
         const nowUtc = dayjs.utc();
@@ -514,7 +514,14 @@ export class ScheduleService {
     const finalDeviceStatuses = new Map<string, DeviceStatus>(); // To track the final state for deactivation check
 
     const updates: Prisma.PrismaPromise<any>[] = [];
-    const adafruitCommands: { feedName: string, value: string, deviceId: string, deviceName: string }[] = [];
+    const adafruitCommands: {
+      feedName: string;
+      value: string;
+      deviceId: string;
+      deviceName: string;
+      originalStatus: DeviceStatus;
+      desiredStatus: DeviceStatus;
+    }[] = [];
 
     for (const device of currentDevices) {
       const deviceId = device.deviceId;
@@ -546,12 +553,13 @@ export class ScheduleService {
           const deviceSuffix = deviceSuffixMatch ? deviceSuffixMatch[1] : null; // Get 'kv1' part
 
           if (deviceSuffix) {
+            const commandBase = { deviceId, deviceName: device.name, originalStatus: currentStatus, desiredStatus };
             if (desiredStatus === DeviceStatus.ACTIVE) {
-              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'MAN', deviceId: deviceId, deviceName: device.name });
-              adafruitCommands.push({ feedName: device.name, value: 'ON', deviceId: deviceId, deviceName: device.name });
+              adafruitCommands.push({ ...commandBase, feedName: `auto${deviceSuffix}`, value: 'MAN' });
+              adafruitCommands.push({ ...commandBase, feedName: device.name, value: 'ON' });
             } else {
-              adafruitCommands.push({ feedName: device.name, value: 'OFF', deviceId: deviceId, deviceName: device.name });
-              adafruitCommands.push({ feedName: `auto${deviceSuffix}`, value: 'AUTO', deviceId: deviceId, deviceName: device.name });
+              adafruitCommands.push({ ...commandBase, feedName: device.name, value: 'OFF' });
+              adafruitCommands.push({ ...commandBase, feedName: `auto${deviceSuffix}`, value: 'AUTO' });
             }
           } else {
             this.logger.warn(`Could not extract suffix (like kv1) from device name ${device.name} for Adafruit commands.`);
@@ -586,6 +594,7 @@ export class ScheduleService {
     for (const cmd of adafruitCommands) {
       try {
         await this.retrySendFeedData(cmd.feedName, cmd.value);
+        this.logger.debug(`Successfully sent command ${cmd.value} to ${cmd.feedName} for device ${cmd.deviceId}`);
       } catch (error) {
         this.logger.error(`Failed to send command ${cmd.value} to ${cmd.feedName} after retries: ${error.message}`, error.stack);
 
@@ -609,6 +618,45 @@ export class ScheduleService {
         this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
         // --- KẾT THÚC BỔ SUNG ---
 
+        const originalStatus = cmd.originalStatus;
+        this.logger.warn(`Attempting DB rollback for Device ${cmd.deviceId} (${cmd.deviceName}) to its original status: ${originalStatus} due to Adafruit command failure.`);
+        try {
+          await this.prisma.device.update({
+            where: { deviceId: cmd.deviceId },
+            data: { status: originalStatus }, // Revert to original status
+          });
+          this.logger.log(`Successfully rolled back DB status for Device ${cmd.deviceId} to ${originalStatus}.`);
+
+          // Update the final status map to reflect the rollback
+          finalDeviceStatuses.set(cmd.deviceId, originalStatus);
+
+          // Log rollback success
+          const logPayloadRollback: LogEventPayload = {
+            deviceId: cmd.deviceId,
+            eventType: Severity.WARNING, // Use WARN for rollback event
+            description: `Trạng thái thiết bị '${cmd.deviceName}' được khôi phục về ${originalStatus} do lỗi gửi lệnh Adafruit ('${cmd.value}' to '${cmd.feedName}').`
+          };
+          this.eventEmitter.emit(LOG_EVENT, logPayloadRollback);
+
+        } catch (rollbackError) {
+          this.logger.error(`CRITICAL: Failed to roll back DB status for Device ${cmd.deviceId} to ${originalStatus} after Adafruit failure. DB might be inconsistent. Rollback error: ${rollbackError.message}`, rollbackError.stack);
+          // Log and Notify about the rollback *failure* - this is serious
+          const logPayloadRollbackFail: LogEventPayload = {
+            deviceId: cmd.deviceId,
+            eventType: Severity.ERROR, // ERROR because rollback failed
+            description: `LỖI KHÔI PHỤC NGHIÊM TRỌNG: Không thể khôi phục trạng thái (${originalStatus}) cho thiết bị '${cmd.deviceName}' sau lỗi Adafruit. Lỗi rollback DB: ${rollbackError.message}`
+          };
+          this.eventEmitter.emit(LOG_EVENT, logPayloadRollbackFail);
+
+          const notiContextRollbackFail: NotificationEventContext = { deviceId: cmd.deviceId, errorMessage: rollbackError.message};
+          const notiPayloadRollbackFail: NotificationEventPayload = {
+            severity: Severity.ERROR, // Use CRITICAL for failed rollback
+            messageTemplate: `LỖI KHÔI PHỤC DB: Không thể rollback trạng thái thiết bị {{deviceId}} về {{originalStatus}} sau lỗi Adafruit. Lỗi DB: {{errorMessage}}. Cần kiểm tra thủ công!`,
+            context: notiContextRollbackFail,
+            // TODO: Notify ADMINS specifically?
+          };
+          this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayloadRollbackFail);
+        }
       }
     }
 
