@@ -11,6 +11,8 @@ import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { Tooltip } from 'primereact/tooltip';
 
+import './dashboard_layout.scss';
+
 export default function DashboardLayout() {
   const [username, setUsername] = useState("Người dùng");
   const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
@@ -37,6 +39,7 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     const fetchAllNotificationData = async () => {
+      setIsLoadingNoti(true);
       try {
         const [countResponse, listResponse] = await Promise.all([
           notiApi.getUnreadCount(),
@@ -51,7 +54,11 @@ export default function DashboardLayout() {
         }
 
         if (listResponse?.success) {
-          setNotifications(listResponse.data?.notifications || []);
+          // *** SỬA Ở ĐÂY: Thêm kiểu dữ liệu cho a và b ***
+          const sortedNotifications = (listResponse.data?.notifications || []).sort(
+            (a: InfoNotiType, b: InfoNotiType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setNotifications(sortedNotifications);
         } else {
           console.error("Không thể tải danh sách thông báo. Phản hồi:", listResponse);
           setNotifications([]);
@@ -71,8 +78,10 @@ export default function DashboardLayout() {
   }, [fetchNotiFlag]);
 
   const handleNotiBellClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    setIsLoadingNoti(true);
-    setFetchNotiFlag(!fetchNotiFlag);
+    if (!isNotiPanelVisible) {
+      setIsLoadingNoti(true);
+      setFetchNotiFlag(prev => !prev);
+    }
     op.current?.toggle(event);
     setIsViewingNotiDetail(false);
     setSelectedNoti(null);
@@ -84,6 +93,8 @@ export default function DashboardLayout() {
 
   const handlePanelHide = () => {
     setIsNotiPanelVisible(false);
+    setIsViewingNotiDetail(false);
+    setSelectedNoti(null);
   }
 
   const handleNotiItemClick = async (noti: InfoNotiType) => {
@@ -114,37 +125,36 @@ export default function DashboardLayout() {
     }
 
     const truncateText = (text: string, maxLength: number) => {
+      if (!text) return '';
       if (text.length <= maxLength) {
         return text;
       }
       return text.slice(0, maxLength) + "...";
     };
 
-
     return (
       <div className="max-h-[60vh] overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
         {notifications.map((noti) => (
           <div
             key={noti.notificationId}
-            className={`flex items-center p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150 ease-in-out ${!noti.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+            className={`flex items-center p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150 ease-in-out ${!noti.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'}`}
             onClick={() => handleNotiItemClick(noti)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && handleNotiItemClick(noti)}
             aria-label={`Thông báo: ${noti.message}`}
-            title={noti.message} // Add full message as browser tooltip
+            title={noti.message}
           >
-            <div className="flex-grow pr-3 overflow-hidden"> {/* Added overflow-hidden */}
-              <p className={`text-sm mb-0.5 truncate ${!noti.isRead ? 'font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                {/* Apply truncation here */}
-                {truncateText(noti.message, 50)}
+            <div className="flex-grow pr-2 overflow-hidden">
+              <p className={`text-sm mb-0.5 ${!noti.isRead ? 'font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'} truncate`}>
+                 {truncateText(noti.message, 50)}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {moment(noti.createdAt).fromNow()}
               </p>
             </div>
             {!noti.isRead && (
-              <div className="bg-blue-500 w-2 h-2 rounded-full flex-shrink-0 ml-2" aria-label="Chưa đọc"></div>
+              <div className="bg-blue-500 w-2.5 h-2.5 rounded-full flex-shrink-0 ml-auto" aria-label="Chưa đọc"></div>
             )}
           </div>
         ))}
@@ -156,23 +166,21 @@ export default function DashboardLayout() {
     if (!selectedNoti) return null;
 
     return (
-      // Change to dark background, light text
-      <div className="p-4 bg-gray-800 text-gray-100">
-        <div className="flex justify-between items-center mb-3 border-b border-gray-600 pb-2">
-          {/* Adjust header text color */}
-          <h3 className="text-base font-semibold text-gray-100">Chi tiết thông báo</h3>
+      <div className="p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+        <div className="flex justify-between items-center mb-3 border-b border-gray-200 dark:border-gray-600 pb-2">
+          <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Chi tiết thông báo</h3>
           <Button
             icon="pi pi-arrow-left"
-            // Adjust button for dark background
-            className="p-button-sm p-button-secondary p-button-text text-gray-300 hover:bg-gray-700"
+            className="p-button-sm p-button-secondary p-button-text text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             onClick={handleBackToList}
             aria-label="Quay lại danh sách"
+            tooltip="Quay lại"
+            tooltipOptions={{ position: 'top' }}
             autoFocus
           />
         </div>
-        {/* Adjust text colors for content */}
-        <p className="text-sm font-medium mb-1 text-gray-200">{selectedNoti.message}</p>
-        <p className="text-xs text-gray-400 mb-4">
+        <p className="text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">{selectedNoti.message}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
           {moment(selectedNoti.createdAt).format('LLL')} ({moment(selectedNoti.createdAt).fromNow()})
         </p>
       </div>
@@ -182,33 +190,31 @@ export default function DashboardLayout() {
   const handleLogout = () => {
     setIsConfirmDialogVisible(true);
     confirmDialog({
-      message: 'Bạn có chắc chắn muốn thoát không?',
+      message: 'Bạn có chắc chắn muốn đăng xuất không?',
       header: 'Xác nhận đăng xuất',
       icon: 'pi pi-exclamation-triangle text-orange-500',
       acceptClassName: 'p-button-danger',
       rejectClassName: 'p-button-text p-button-secondary',
-      acceptLabel: 'Có, đăng xuất',
+      acceptLabel: 'Đăng xuất',
       rejectLabel: 'Hủy',
       accept: confirmLogout,
       onHide: () => setIsConfirmDialogVisible(false),
+      dismissableMask: true,
     });
   };
 
   const confirmLogout = () => {
-    setIsConfirmDialogVisible(false);
     localStorage.clear();
     navigate("/login");
+    toast.current?.show({ severity: 'success', summary: 'Thành công', detail: 'Đã đăng xuất.', life: 3000 });
   };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `p-2 rounded transition-colors duration-200 ease-in-out flex justify-center relative sidebar-icon-container ${ // Added relative and container class
+    `p-2.5 rounded-lg transition-colors duration-200 ease-in-out flex justify-center items-center relative group ${
     isActive
-      ? "text-blue-500"
-      : "text-white hover:text-gray-300"
+      ? "bg-blue-100/30 text-white"
+      : "text-white hover:bg-white/20 hover:text-gray-100"
     }`;
-
-  const sidebarTooltipOptions = { position: 'right', mouseTrack: true, mouseTrackTop: 15 };
-
 
   return (
     <>
@@ -222,7 +228,6 @@ export default function DashboardLayout() {
           aria-hidden="true"
         ></div>
       )}
-
       {isConfirmDialogVisible && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-md z-40"
@@ -231,129 +236,93 @@ export default function DashboardLayout() {
       )}
 
       <div
-        className="relative h-screen w-screen bg-cover bg-center flex"
+        className="relative h-screen w-screen bg-cover bg-center flex overflow-hidden"
         style={{ backgroundImage: "url('/src/assets/bg.jpg')" }}
       >
-        <div>
-          {/* Sidebar */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-0 flex flex-col gap-6 bg-white/20 backdrop-blur-sm p-4 rounded-r-lg z-20">
-            <Tooltip target=".sidebar-home-icon" content="Trang chủ" position="right" />
-            <NavLink
-              to="home"
-              className={({ isActive }) => `${navLinkClass({ isActive })} sidebar-home-icon`}
-              aria-label="Trang chủ"
-            >
-              <FaHome size={24} />
-            </NavLink>
+        <div className="flex-shrink-0 z-20">
+          <div className="fixed top-0 left-0 h-full flex items-center">
+             <div className="flex flex-col gap-4 bg-black/30 backdrop-blur-md p-3 rounded-r-xl shadow-lg">
+                <Tooltip target=".sidebar-home-icon" content="Trang chủ" position="right" showDelay={150}/>
+                <NavLink
+                  to="home"
+                  className={(navData) => `${navLinkClass(navData)} sidebar-home-icon`}
+                  aria-label="Trang chủ"
+                >
+                  <FaHome size={22} />
+                </NavLink>
 
-            <Tooltip target=".sidebar-device-icon" content="Thiết bị" position="right" />
-            <NavLink
-              to="device"
-              className={({ isActive }) => `${navLinkClass({ isActive })} sidebar-device-icon`}
-              aria-label="Thiết bị"
-            >
-              <FaShower size={24} />
-            </NavLink>
+                <Tooltip target=".sidebar-device-icon" content="Thiết bị" position="right" showDelay={150}/>
+                <NavLink
+                  to="device"
+                   className={(navData) => `${navLinkClass(navData)} sidebar-device-icon`}
+                  aria-label="Thiết bị"
+                >
+                  <FaShower size={22} />
+                </NavLink>
 
-            <Tooltip target=".sidebar-users-icon" content="Quản lý người dùng" position="right" />
-            <NavLink
-              to="usermanager"
-              className={({ isActive }) => `${navLinkClass({ isActive })} sidebar-users-icon`}
-              aria-label="Quản lý người dùng"
-            >
-              <FaUsers size={24} />
-            </NavLink>
+                <Tooltip target=".sidebar-users-icon" content="Quản lý người dùng" position="right" showDelay={150}/>
+                <NavLink
+                  to="usermanager"
+                   className={(navData) => `${navLinkClass(navData)} sidebar-users-icon`}
+                  aria-label="Quản lý người dùng"
+                >
+                  <FaUsers size={22} />
+                </NavLink>
 
-            <Tooltip target=".sidebar-history-icon" content="Lịch sử" position="right" />
-            <NavLink
-              to="history"
-              className={({ isActive }) => `${navLinkClass({ isActive })} sidebar-history-icon`}
-              aria-label="Lịch sử"
-            >
-              <FaHistory size={24} />
-            </NavLink>
+                <Tooltip target=".sidebar-history-icon" content="Lịch sử" position="right" showDelay={150}/>
+                <NavLink
+                  to="history"
+                   className={(navData) => `${navLinkClass(navData)} sidebar-history-icon`}
+                  aria-label="Lịch sử"
+                >
+                  <FaHistory size={22} />
+                </NavLink>
 
-            <Tooltip target=".sidebar-settings-icon" content="Cài đặt" position="right" />
-            <NavLink
-              to="setting"
-              className={({ isActive }) => `${navLinkClass({ isActive })} sidebar-settings-icon`}
-              aria-label="Cài đặt"
-            >
-              <FaCog size={24} />
-            </NavLink>
+                <Tooltip target=".sidebar-settings-icon" content="Cài đặt" position="right" showDelay={150}/>
+                <NavLink
+                  to="setting"
+                   className={(navData) => `${navLinkClass(navData)} sidebar-settings-icon`}
+                  aria-label="Cài đặt"
+                >
+                  <FaCog size={22} />
+                </NavLink>
 
-            <Tooltip target=".sidebar-logout-button" content="Đăng xuất" position="right" />
-            <button
-              onClick={handleLogout}
-              className="p-2 text-white hover:text-gray-300 transition-colors duration-200 ease-in-out flex justify-center sidebar-logout-button"
-              aria-label="Đăng xuất"
-            >
-              <FaSignOutAlt size={24} />
-            </button>
+                <div className="flex-grow"></div>
+
+                <Tooltip target=".sidebar-logout-button" content="Đăng xuất" position="right" showDelay={150}/>
+                <button
+                  onClick={handleLogout}
+                  className={`${navLinkClass({ isActive: false }).replace("text-white", "text-red-400").replace("hover:text-gray-100","hover:text-red-300")} sidebar-logout-button`}
+                  aria-label="Đăng xuất"
+                >
+                  <FaSignOutAlt size={22} />
+                </button>
+             </div>
           </div>
-          <style jsx global>{`
-           /* Previous styles... */
-           .notification-panel .p-overlaypanel-content {
-              padding: 0 !important;
-           }
-           .p-overlaypanel.notification-panel {
-              z-index: 45;
-           }
-           /* --- Tooltip Styling --- */
-           .p-tooltip {
-                z-index: 100 !important; /* Ensure tooltip is on top */
-           }
-           /* Target the text element within the tooltip */
-           .p-tooltip .p-tooltip-text {
-              /* background-color: rgba(0, 0, 0, 0.85) !important; --- Removed this line --- */
-              color: white !important; /* White text color */
-              font-weight: 600 !important; /* Bolder font weight (600 is semibold) */
-           }
-           /* Optional: Style the arrow if needed - ensure arrow color matches the *actual* background */
-           /* .p-tooltip .p-tooltip-arrow { */
-               /* You might need to adjust this based on the default background */
-               /* border-right-color: black !important;  <-- Example if default is black */
-           /* } */
-
-           /* Confirm Dialog Styles... */
-           .p-confirm-dialog {
-              max-width: 500px !important;
-              width: 90vw !important;
-              z-index: 50 !important;
-              border-radius: 0.75rem !important;
-              box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
-           }
-           /* ... other confirm dialog styles */
-           .p-confirm-dialog .p-dialog-footer {
-              /* ... */
-              display: flex !important;
-              justify-content: space-between !important;
-           }
-           /* ... other confirm dialog styles */
-        `}</style>
         </div>
 
-        <main className='flex-1 flex items-center justify-center p-4 overflow-y-auto z-10'>
-          <div className="absolute top-4 left-4 z-50">
+        <main className='flex-1 flex flex-col pt-16 pb-4 px-4 md:px-6 lg:px-8 overflow-y-auto z-10 ml-16'>
+           <div className="fixed top-4 left-20 z-50">
             <div
               ref={bellRef}
-              className="flex items-center bg-white/90 backdrop-blur-sm p-3 rounded-md shadow-md text-sm text-gray-800 cursor-pointer relative"
+              className="flex items-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-2.5 rounded-full shadow-md text-sm text-gray-800 dark:text-gray-200 cursor-pointer relative ring-1 ring-black/5"
               onClick={handleNotiBellClick}
               role="button"
               aria-label={`Thông báo ${unreadNotifications > 0 ? `(${unreadNotifications} chưa đọc)` : ''}`}
               tabIndex={0}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleNotiBellClick(e as any)}
+              title="Mở thông báo"
             >
-              <FaBell size={24} className="text-gray-700" />
+              <FaBell size={20} className="text-gray-600 dark:text-gray-300" />
               {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center pointer-events-none">
-                  {unreadNotifications}
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-800">
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
                 </span>
               )}
             </div>
           </div>
 
-          <div className='w-full max-w-7xl mt-16 lg:mt-4'>
+          <div className='w-full max-w-7xl mx-auto'>
             <Outlet />
           </div>
         </main>
@@ -361,14 +330,15 @@ export default function DashboardLayout() {
         <OverlayPanel
           ref={op}
           showCloseIcon={false}
-          // Apply dark mode classes conditionally or globally if desired
-          className="notification-panel bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 rounded-lg"
-          style={{ width: '90vw', maxWidth: '400px' }}
+          className="notification-panel shadow-xl border border-gray-200 dark:border-gray-700 rounded-lg"
+          style={{ width: '90vw', maxWidth: '380px' }}
           onShow={handlePanelShow}
           onHide={handlePanelHide}
-          pt={{ root: { className: 'mt-2' } }}
+          pt={{
+            root: { className: 'mt-2 dark:bg-gray-800 bg-white' },
+            content: { className: 'p-0' }
+           }}
         >
-          {/* Header adapts to dark/light */}
           {!isViewingNotiDetail && (
             <div className="text-base font-semibold p-3 border-b border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200">
               Thông báo
@@ -376,62 +346,6 @@ export default function DashboardLayout() {
           )}
           {isViewingNotiDetail ? renderNotiDetail() : renderNotiList()}
         </OverlayPanel>
-
-        <style jsx global>{`
-           .notification-panel .p-overlaypanel-content {
-              padding: 0 !important;
-           }
-           .p-overlaypanel.notification-panel {
-              z-index: 45;
-           }
-           .p-tooltip {
-                z-index: 100 !important; /* Ensure tooltip is on top */
-           }
-           .p-confirm-dialog {
-              max-width: 500px !important;
-              width: 90vw !important;
-              z-index: 50 !important;
-              border-radius: 0.75rem !important;
-              box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
-           }
-           .p-confirm-dialog .p-dialog-header {
-             background-color: #f8f9fa;
-             color: #495057;
-             border-top-left-radius: 0.75rem !important;
-             border-top-right-radius: 0.75rem !important;
-             padding: 1rem 1.5rem !important;
-           }
-           .p-confirm-dialog .p-dialog-content {
-              padding: 1.5rem !important;
-              background-color: #ffffff;
-              color: #495057;
-              display: flex;
-              align-items: center;
-           }
-           .p-confirm-dialog .p-dialog-footer {
-              background-color: #f8f9fa;
-              border-bottom-left-radius: 0.75rem !important;
-              border-bottom-right-radius: 0.75rem !important;
-              padding: 1rem 1.5rem !important;
-              display: flex !important;
-              justify-content: space-between !important;
-           }
-           .p-confirm-dialog .p-confirm-dialog-icon {
-              font-size: 1.75rem !important;
-              margin-right: 1rem !important;
-              flex-shrink: 0;
-           }
-            .p-confirm-dialog .p-confirm-dialog-message {
-                line-height: 1.6;
-            }
-
-           .p-dialog-mask.p-component-overlay {
-              z-index: 40;
-           }
-           .p-dialog-mask.p-component-overlay-enter {
-              z-index: 40;
-           }
-        `}</style>
 
       </div>
     </>

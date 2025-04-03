@@ -187,7 +187,7 @@ export default function UserManagementPage() {
         deviceType: newDevice.type,
       };
       const data = await configurationApi.getConfigurationsByFilter(params);
-
+      console.log(data)
       if (data && Array.isArray(data.configurations)) {
         setConfigType(data.configurations); // Lưu trực tiếp mảng
       } else {
@@ -333,7 +333,7 @@ export default function UserManagementPage() {
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="bg-white border border-gray-200 rounded-md shadow-lg py-2"
+          className="bg-white border border-gray-200 rounded-md shadow-lg py-2 z-[60]"
           sideOffset={5}
         >
           {options.map((option) => (
@@ -400,7 +400,7 @@ export default function UserManagementPage() {
           "Khu vực",
           locationIdFilter,
           [
-            { label: "Khu vực", value: "ALL" },
+            { label: "Khu vực", value: "" },
             { label: "Khu vực 1", value: "KV1" },
             { label: "Khu vực 2", value: "KV2" },
           ],
@@ -656,8 +656,8 @@ export default function UserManagementPage() {
                     value={editDeviceData.status || ""}
                     onChange={(e) => setEditDeviceData((prev) => ({ ...prev, status: e.target.value as DeviceStatus }))}
                   >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
+                    <option value="ACTIVE">Bật</option>
+                    <option value="INACTIVE">Tắt</option>
                   </select>
                 </label>
 

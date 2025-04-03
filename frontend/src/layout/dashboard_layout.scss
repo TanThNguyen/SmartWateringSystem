@@ -1,0 +1,77 @@
+.notification-panel .p-overlaypanel-content {
+    padding: 0 !important;
+}
+
+.p-overlaypanel.notification-panel {
+    z-index: 45 !important;
+}
+
+.p-tooltip {
+    z-index: 100 !important;
+}
+
+.p-tooltip .p-tooltip-text {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.p-confirm-dialog {
+    max-width: 500px !important;
+    width: 90vw !important;
+    z-index: 50 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+    overflow: hidden;
+}
+
+.p-confirm-dialog .p-dialog-header {
+    background-color: #f8f9fa;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: 0.75rem !important;
+    border-top-right-radius: 0.75rem !important;
+    padding: 1rem 1.5rem !important;
+    font-weight: 600;
+}
+
+.p-confirm-dialog .p-dialog-content {
+    padding: 1.5rem !important;
+    background-color: #ffffff;
+    color: #495057;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.p-confirm-dialog .p-confirm-dialog-icon {
+    font-size: 1.75rem !important;
+    margin-right: 1rem !important;
+    flex-shrink: 0;
+}
+
+.p-confirm-dialog .p-confirm-dialog-message {
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+.p-confirm-dialog .p-dialog-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    border-bottom-left-radius: 0.75rem !important;
+    border-bottom-right-radius: 0.75rem !important;
+    padding: 1rem 1.5rem !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem;
+}
+
+.p-dialog-mask.p-component-overlay {
+    z-index: 40 !important;
+}
+
+.p-dialog-mask.p-component-overlay-enter {
+    z-index: 40 !important;
+}
+
+.p-confirm-dialog .p-dialog-footer .p-button-danger {}
+
+.p-confirm-dialog .p-dialog-footer .p-button-text.p-button-secondary {}
