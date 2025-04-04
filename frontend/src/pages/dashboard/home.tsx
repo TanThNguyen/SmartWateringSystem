@@ -221,6 +221,17 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [showAreaList]);
 
+  useEffect(() => {
+    if (!editingArea) return;
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCancelEditArea();
+      }
+    };
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [editingArea]);
+
   const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
   const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
 
@@ -296,6 +307,7 @@ export default function DashboardPage() {
 
   const handleCancelEditArea = () => {
     setEditingArea(null);
+    setShowAreaList(true);
   };
 
   const handleDeleteArea = (locationId: string) => {
@@ -588,13 +600,13 @@ export default function DashboardPage() {
                     <td className="border-b py-2 space-x-2">
                       <button
                         onClick={() => handleEditArea(location.locationId)}
-                        className="px-2 py-1 bg-green-500 text-white rounded"
+                        className="px-2 py-1 bg-blue-500 text-white rounded"
                       >
                         Chỉnh sửa
                       </button>
                       <button
                         onClick={() => handleDeleteArea(location.locationId)}
-                        className="px-2 py-1 bg-red-500 text-white rounded"
+                        className="px-4 py-1 bg-gray-300 rounded"
                       >
                         Xóa
                       </button>
@@ -618,9 +630,9 @@ export default function DashboardPage() {
         editingArea !== null && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50">
             <div className="bg-white p-6 rounded-lg w-80">
-              <h2 className="text-lg font-bold mb-4">Chỉnh sửa Area</h2>
+              <h2 className="text-lg font-bold mb-4">Chỉnh sửa khu vực</h2>
               <div className="mb-2">
-                <label className="block text-sm">Tên Area</label>
+                <label className="block text-sm">Tên khu vực</label>
                 <input
                   type="text"
                   value={editingAreaData.name}
@@ -629,8 +641,8 @@ export default function DashboardPage() {
                 />
               </div>
               <div className="flex justify-end space-x-2">
-                <button onClick={() => handleSaveEditArea()} className="px-4 py-1 bg-blue-500 text-white rounded">Save</button>
-                <button onClick={handleCancelEditArea} className="px-4 py-1 bg-gray-300 rounded">Cancel</button>
+                <button onClick={() => handleSaveEditArea()} className="px-4 py-1 bg-blue-500 text-white rounded">Lưu</button>
+                <button onClick={handleCancelEditArea} className="px-4 py-1 bg-gray-300 rounded">Hủy</button>
               </div>
             </div>
           </div>
