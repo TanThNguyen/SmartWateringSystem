@@ -36,6 +36,7 @@ export default function LoginPage() {
         localStorage.setItem("token", JSON.stringify(accessToken));
         localStorage.setItem("name", JSON.stringify(name));
         localStorage.setItem("isAuthenticated", "true"); 
+        localStorage.setItem("role", role);
         if (role === "ADMIN") {
           localStorage.setItem("adminLogin", JSON.stringify({ status: true, expiration }));
         } else if (role === "GARDENER") {
@@ -47,6 +48,7 @@ export default function LoginPage() {
           setLoading(false); 
           return; 
         }
+
 
         
         navigate("/dashboard");

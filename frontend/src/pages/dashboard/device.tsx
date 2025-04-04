@@ -38,8 +38,7 @@ import {
   ScheduleType,
   CreateSchedulePayload,
   GetSchedulesParams,
-  ToggleSchedulePayload,
-  DeleteSchedulePayload,
+
 } from "../../types/schedule.type";
 
 import PopupModal from "../../layout/popupmodal";
@@ -110,6 +109,9 @@ export default function DeviceManagementPage() {
   const [newScheduleRepeatDays, setNewScheduleRepeatDays] = useState<boolean[]>(Array(7).fill(false));
   const addModalRef = useRef<HTMLDivElement>(null);
   const editModalRef = useRef<HTMLDivElement>(null);
+
+   const [isAdmin, setIsAdmin] =useState(true);
+
 
   const findConfig = useCallback((configId?: string): ConfigurationDetailType | undefined => {
     return configOptions.find(c => c.configId === configId);
@@ -270,6 +272,15 @@ export default function DeviceManagementPage() {
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "ADMIN") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchDevices();
@@ -814,19 +825,25 @@ export default function DeviceManagementPage() {
         {renderDropdown("Trạng thái", statusFilter, statusOptions, handleFilterChange(setStatusFilter), "w-40")}
         {renderDropdown("Sắp xếp", order, orderOptions, handleFilterChange(setOrder), "w-36")}
         {renderDropdown("Khu vực", locationFilter, locationOptions, handleFilterChange(setLocationFilter), "w-48")}
+        {isAdmin && (
         <button
           onClick={handleOpenAddForm}
           className="button addButton"
         >
           Thêm Mới
         </button>
-        <button
-          onClick={handleDeleteDevices}
-          disabled={selectedDeviceIds.length === 0 || loading}
-          className="button deleteButton"
-        >
-          Xóa ({selectedDeviceIds.length})
-        </button>
+        )}
+
+        {isAdmin && (
+          <button
+            onClick={handleDeleteDevices}
+            disabled={selectedDeviceIds.length === 0 || loading}
+            className="button deleteButton"
+          >
+            Xóa ({selectedDeviceIds.length})
+          </button>
+        )}
+
       </div>
 
       <div className="tableContainer">
@@ -834,7 +851,8 @@ export default function DeviceManagementPage() {
           <table className="deviceTable">
             <thead>
               <tr>
-                <th style={{ width: '5%' }} className="checkboxCell">
+               {isAdmin && ( <th style={{ width: '5%' }} className="checkboxCell">
+                
                   <input
                     type="checkbox"
                     className="checkboxInput"
@@ -843,7 +861,7 @@ export default function DeviceManagementPage() {
                     disabled={loading || devices.length === 0}
                     title="Chọn/Bỏ chọn tất cả"
                   />
-                </th>
+                </th>)}
                 <th style={{ width: '30%' }}>Tên</th>
                 <th style={{ width: '25%' }}>Khu vực</th>
                 <th style={{ width: '20%' }}>Loại</th>
@@ -863,7 +881,7 @@ export default function DeviceManagementPage() {
                     className="tableRowClickable"
                     title="Xem chi tiết/Chỉnh sửa"
                   >
-                    <td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
+                   {isAdmin && (  <td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         className="checkboxInput"
@@ -873,7 +891,7 @@ export default function DeviceManagementPage() {
                           toggleSelectDevice(device.deviceId);
                         }}
                       />
-                    </td>
+                    </td>)}
                     <td>{device.name}</td>
                     <td>{locationMap.get(device.locationId) || device.locationId}</td>
                     <td>{device.type}</td>
