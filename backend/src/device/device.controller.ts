@@ -42,6 +42,7 @@ export class DeviceController {
     
     @Put('edit')
     async editDevice(@Body() body: EditDeviceDto): Promise<string> {
+        console.log(body)
         return await this.deviceService.editDevice(body);
     }
     

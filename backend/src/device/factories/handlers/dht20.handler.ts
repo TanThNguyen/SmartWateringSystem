@@ -28,10 +28,10 @@ export class DHT20SensorDeviceHandler implements IDeviceHandler {
   }
 
   async updateSpecifics(prisma: PrismaTransactionClient, deviceId: string, data: EditDeviceDto): Promise<void> {
-    if (data.dht20Sensor) {
+    if (data.dht20_sensor) {
       await prisma.dHT20Sensor.update({
         where: { sensorId: deviceId },
-        data: data.dht20Sensor,
+        data: data.dht20_sensor,
       });
     }
   }

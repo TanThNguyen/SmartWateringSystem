@@ -183,12 +183,13 @@ export class UserService {
     }
 
     async getAllUsers(query: GetUsersRequestDto): Promise<FindAllUsersDto> {
+        console.log(query);
         try {
             const page = Number(query.page) || 1;
             const items_per_page = Number(query.items_per_page) || 5;
-            const { order, search, role } = query;
+            const { order, search, role, locationId } = query;
             const skip = (page - 1) * items_per_page;
-
+    
             const [users, total] = await Promise.all([
                 this.prismaService.user.findMany({
                     where: {
@@ -200,6 +201,7 @@ export class UserService {
                             ],
                         }),
                         ...(role !== 'ALL' && { role }),
+                        ...(locationId !== 'ALL' && { locationId }),
                     },
                     orderBy: { updatedAt: order === 'asc' ? 'asc' : 'desc' },
                     take: items_per_page,
@@ -211,7 +213,7 @@ export class UserService {
                         phone: true,
                         role: true,
                         updatedAt: true,
-                        location: { select: { name: true } },
+                        locationId: true,
                     },
                 }),
                 this.prismaService.user.count({
@@ -224,23 +226,24 @@ export class UserService {
                             ],
                         }),
                         ...(role !== 'ALL' && { role }),
+                        ...(locationId !== 'ALL' && { locationId }),
                     },
                 }),
             ]);
-
+    
             const lastPage = Math.ceil(total / items_per_page);
             const nextPage = page + 1 > lastPage ? null : page + 1;
             const prevPage = page - 1 < 1 ? null : page - 1;
-
+    
             return {
                 users: users.map(user => ({
                     userId: user.userId,
                     name: user.name,
                     email: user.email,
-                    phone: user.phone ?? "",
+                    phone: user.phone ?? '',
                     role: user.role,
                     updatedAt: user.updatedAt,
-                    locationName: user.location?.name ?? "",
+                    locationId: user.locationId ?? '',
                 })),
                 total,
                 currentPage: page,
@@ -253,6 +256,7 @@ export class UserService {
             throw new InternalServerErrorException('Đã xảy ra lỗi khi lấy danh sách người dùng!');
         }
     }
+    
 
 
     async findByEmail(email: string): Promise<FindByEmailDto> {

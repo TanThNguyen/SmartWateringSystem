@@ -154,7 +154,7 @@ export class DeviceService {
         try {
             const page = query.page || 1;
             const itemsPerPage = query.items_per_page || 5;
-            const { order, search, status, locationName } = query;
+            const { order, search, status, locationId } = query;
             const skip = (page - 1) * itemsPerPage;
 
             const whereCondition: Prisma.DeviceWhereInput = {
@@ -165,7 +165,7 @@ export class DeviceService {
                     ]
                 }),
                 ...(status !== 'ALL' && { status }),
-                ...(locationName && { location: { name: { contains: locationName, mode: 'insensitive' } } })
+                ...(locationId && { locationId })  // Sử dụng locationId thay vì locationName
             };
 
             const [devices, total] = await this.prismaService.$transaction([
@@ -187,7 +187,7 @@ export class DeviceService {
                 deviceId: device.deviceId,
                 name: device.name,
                 type: device.type,
-                locationName: device.location?.name || 'Không xác định',
+                locationId: device.locationId || 'Không xác định',
                 status: device.status,
                 updatedAt: device.updatedAt
             }));
@@ -293,7 +293,7 @@ export class DeviceService {
                 name: device.name,
                 type: device.type,
                 status: device.status,
-                locationName: device.location?.name || 'Không xác định',
+                locationId: device.locationId || '',
                 createdAt: device.createdAt,
                 updatedAt: device.updatedAt,
                 ...(specifics && { [device.type.toLowerCase()]: specifics }),
@@ -303,7 +303,6 @@ export class DeviceService {
                 delete result[device.type.toLowerCase()][`${device.type.toLowerCase()}Id`];
                 if (result[device.type.toLowerCase()].sensorId) delete result[device.type.toLowerCase()].sensorId;
             }
-
 
             return result;
 
@@ -367,6 +366,8 @@ export class DeviceService {
                 // const notiPayload: NotificationEventPayload = { ... };
                 // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
                 // --- KẾT THÚC BỔ SUNG ---
+
+                console.log(`Cập nhật thiết bị ${deviceId} thành công!`);
 
                 return `Cập nhật thiết bị ${deviceId} thành công!`;
             });

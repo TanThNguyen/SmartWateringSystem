@@ -25,10 +25,10 @@ export class MoistureSensorDeviceHandler implements IDeviceHandler {
   }
 
   async updateSpecifics(prisma: PrismaTransactionClient, deviceId: string, data: EditDeviceDto): Promise<void> {
-    if (data.moistureSensor) {
+    if (data.moisture_sensor) {
       await prisma.moistureSensor.update({
         where: { sensorId: deviceId },
-        data: data.moistureSensor, // Cập nhật thresholdId
+        data: data.moisture_sensor, // Cập nhật thresholdId
       });
     }
   }

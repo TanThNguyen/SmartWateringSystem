@@ -1,4 +1,3 @@
-/* Container chính */
 .container {
   background: url("https://images.unsplash.com/photo-1562075219-5356a05c8db5?fit=crop&w=1600&q=80") no-repeat center center fixed;
   background-size: cover;
@@ -10,169 +9,362 @@
   align-items: center;
 }
 
-/* Thanh filter */
 .filterContainer {
   margin-bottom: 15px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   width: 90%;
-  padding: 10px;
-  background-color: rgba(0, 0, 0, 0.3);
+  max-width: 1200px;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   border-radius: 8px;
 }
 
-// Reset vertical margin for input inside filterContainer to align properly
-.filterContainer > input[type="text"] {
+.filterContainer > input[type="text"],
+.filterContainer > .dropdown-trigger-wrapper {
   margin-top: 0;
   margin-bottom: 0;
 }
 
-/* Input chung */
-.searchInput,
-.selectInput {
-  padding: 8px;
+.searchInput {
+  flex-grow: 1;
+  min-width: 150px;
+  height: 40px;
+  padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
-.searchInput {
-  flex: 1;
-  padding: 6px 30px;
+.filterContainer > .addButton {
+  margin-left: auto;
+}
+.filterContainer > .deleteButton {
+  margin-left: 10px;
 }
 
-.selectInput {
-  background-color: #fff;
+.dropdown-trigger-wrapper {
+  display: inline-block;
+  height: 40px;
+  vertical-align: middle;
+  position: relative; // Needed for z-index context if dropdown is inside
+  z-index: 50; // Higher than table header but lower than dropdown content
+}
+.w-48 { width: 12rem; }
+.w-40 { width: 10rem; }
+.w-36 { width: 9rem; }
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  height: 100%;
+  border: 1px solid #ccc;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   cursor: pointer;
-}
-
-.selectInput-custom {
   width: 100%;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  outline: none;
-  appearance: none;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 5px;
+    line-height: 1.5;
+    font-size: 14px;
+  }
 }
 
-/* Nút Add */
-.addButton {
-  background-color: #2ecc71;
+.dropdown-chevron {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #6c757d;
+  flex-shrink: 0;
+}
+
+[data-radix-popper-content-wrapper] {
+  z-index: 1050 !important; // Ensure dropdown content is on top
+}
+
+.dropdown-content {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 4px 0;
+  z-index: 1050; // Explicitly high z-index
+  margin-top: 2px;
+}
+
+.dropdown-item {
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  color: #212529;
+  &:hover, &:focus {
+    background-color: #f1f3f5;
+  }
+}
+
+.button {
   color: #fff;
   border: none;
-  padding: 8px 14px;
+  padding: 0 14px;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+  font-size: 14px;
 
-  &:hover {
+  &:disabled {
+    background-color: #bdc3c7 !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+.addButton {
+  background-color: #2ecc71;
+  &:hover:not(:disabled) {
     background-color: #27ae60;
   }
 }
 
-/* Bảng hiển thị */
-.tableContainer {
-  background: rgba(255, 255, 255, 0.652);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  height: 545px;  
-  width: 90%;
-  margin-bottom: 20px;
+.deleteButton {
+  background-color: #e74c3c;
+  &:hover:not(:disabled) {
+    background-color: #c0392b;
+  }
 }
 
-.userTable {
+.primaryButton {
+  background-color: #3498db;
+  &:hover:not(:disabled) {
+    background-color: #2980b9;
+  }
+}
+
+.secondaryButton {
+  background-color: #95a5a6;
+  &:hover:not(:disabled) {
+    background-color: #7f8c8d;
+  }
+}
+
+.tableContainer {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 1200px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 240px);
+}
+
+.tableWrapper {
+  overflow-y: auto;
+  flex-grow: 1;
+    &::-webkit-scrollbar { width: 8px; }
+    &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+    &::-webkit-scrollbar-thumb:hover { background: #aaa; }
+}
+
+.deviceTable {
   width: 100%;
   border-collapse: collapse;
 
   thead {
     position: sticky;
     top: 0;
-    background-color: #f7f7f7;
-    z-index: 1;
+    background-color: rgba(247, 247, 247, 0.9);
+    z-index: 10; // Lower than dropdown trigger wrapper
+    backdrop-filter: blur(5px);
 
     th {
       font-weight: 600;
       color: #333;
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 2px solid #e0e0e0;
+      white-space: nowrap;
+      font-size: 14px;
     }
   }
 
-  th,
-  td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-  }
+  tbody {
+    tr {
+      border-bottom: 1px solid #e0e0e0;
+      transition: background-color 0.15s ease;
 
-  tbody tr:hover {
-    background-color: #f1f1f1;
-    cursor: pointer;
+      &.tableRowClickable:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        cursor: pointer;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 12px 15px;
+      vertical-align: middle;
+      font-size: 14px;
+    }
   }
 }
 
 .noResults {
   text-align: center;
-  padding: 20px;
-  color: #888;
+  padding: 40px 20px;
+  color: #555;
+  font-style: italic;
+  &.small {
+    padding: 15px 10px;
+    font-size: 13px;
+  }
 }
 
-/* Badge quyền */
-.permissionBadge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 12px;
+.checkboxCell {
+  text-align: center;
+}
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.statusBadgeContainer {
+  text-align: center;
+}
+
+.statusBadgeButton {
+  padding: 5px 12px;
+  border-radius: 15px;
   font-weight: bold;
+  font-size: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 95px;
+  display: inline-block;
+  line-height: 1.5;
 
   &.active {
-    color: #109949; // Xanh lá cây
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #6ee7b7;
+    &:hover {
+      background-color: #a7f3d0;
+      border-color: #34d399;
+    }
   }
 
   &.inactive {
-    color: #f39c12; // Màu cam
+    background-color: #feeedb;
+    color: #9a3412;
+    border-color: #fcd3a1;
+    &:hover {
+      background-color: #fed7aa;
+      border-color: #fbbf24;
+    }
   }
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .filterContainer {
+    width: 95%;
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
   }
 
-  .tableContainer {
+  .filterContainer > .searchInput,
+  .filterContainer > .dropdown-trigger-wrapper,
+  .filterContainer > button {
     width: 100%;
-    height: auto;
-    max-height: 591px;
+    margin-left: 0;
+  }
+   .filterContainer > .deleteButton {
+        margin-left: 0;
+     }
+
+  .tableContainer {
+    width: 95%;
+    max-height: calc(100vh - 320px);
+  }
+
+  .deviceTable th,
+  .deviceTable td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .statusBadgeButton {
+    padding: 4px 10px;
+    font-size: 11px;
+    min-width: 85px;
+  }
+
+  .modalContentWrapper {
+      max-width: 95vw !important;
+      max-height: 85vh;
+      flex-direction: column !important;
+      &.modalWithSchedule {
+          flex-direction: column !important;
+          max-width: 95vw !important;
+      }
+  }
+  .scheduleManagementPanel {
+      flex-basis: auto !important;
+      border-left: none !important;
+      border-top: 1px solid #dee2e6;
+      max-height: 40vh;
+  }
+  .modalPopupContainer {
+     min-width: unset !important;
+     overflow: auto;
+  }
+  .modalMainContent {
+    padding: 15px 20px;
+  }
+  .scheduleListContainer{
+    padding: 10px;
+  }
+  .addScheduleContainer{
+     padding: 10px 15px;
+  }
+  .panelHeader{
+    padding: 10px 15px;
+    font-size: 15px;
   }
 }
 
-/* Modal */
-.modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 
 .modalOverlay {
   position: fixed;
@@ -180,12 +372,399 @@ select {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 1000;
+  padding: 15px;
+}
+
+.modalContentWrapper {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 550px;
+  transition: max-width 0.3s ease-in-out;
+
+  &.modalWithSchedule {
+    max-width: 950px;
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.modalPopupContainer { // Container for PopupModal's content if needed
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden; // Outer container shouldn't scroll typically
+    min-width: 0;
+}
+
+.modalInfoEditPanel { // Style for the left panel in edit view
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-y: auto; // This panel scrolls its content
+    min-width: 0; // Prevent flexbox blowouts
+
+    &::-webkit-scrollbar { width: 8px; }
+    &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+    &::-webkit-scrollbar-thumb:hover { background: #aaa; }
+}
+
+.modalMainContent {
+  padding: 20px 25px;
+  // Removed overflow-y: auto; -> handled by modalInfoEditPanel now
+  flex-grow: 1; // Allows content to push actions down
+  position: relative; // For potential absolute positioning inside
+
+  // Remove scrollbar styling from here if modalInfoEditPanel handles it
+}
+
+.modalMainContent label,
+.addScheduleForm label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.modalMainContent input[type="text"],
+.modalMainContent input[type="number"],
+.modalMainContent input[type="datetime-local"],
+.modalMainContent select,
+.addScheduleForm input[type="text"],
+.addScheduleForm input[type="number"],
+.addScheduleForm input[type="datetime-local"],
+.addScheduleForm select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  height: 40px;
+
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+}
+
+.modalMainContent label > select,
+.addScheduleForm label > select {
+    margin-bottom: 16px;
+}
+
+.requiredAsterisk {
+    color: red;
+    margin-left: 2px;
+}
+
+.configLabel {
+    margin-bottom: 12px;
+}
+
+.configSection {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #e0e0e0;
+}
+
+.editFieldsSection {
+    margin-top: 20px;
 }
 
 
+.configSelectContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 
+  select {
+    flex-grow: 1;
+    margin-bottom: 0;
+  }
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 25px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  flex-shrink: 0; // Keep actions at the bottom
+}
+
+.modalLoadingIndicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    min-height: 200px;
+}
+
+
+.chartsArea {
+    margin-bottom: 20px;
+}
+
+.dhtChartsWrapper {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 5px;
+    margin-top: 15px;
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: #e9ecef; border-radius: 3px; }
+    &::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 3px; }
+    &::-webkit-scrollbar-thumb:hover { background: #868e96; }
+}
+
+
+.chartContainer {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #dee2e6;
+
+  .chartTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #343a40;
+    text-align: center;
+  }
+}
+
+
+.scheduleManagementPanel {
+  flex: 0 0 400px;
+  border-left: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+  overflow: hidden;
+
+  .panelHeader {
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #e9ecef;
+    flex-shrink: 0;
+    color: #495057;
+    text-align: center;
+  }
+}
+
+.scheduleListContainer {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding: 15px;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: #e9ecef; border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 3px; }
+  &::-webkit-scrollbar-thumb:hover { background: #868e96; }
+}
+
+
+.scheduleItem {
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 5px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+  .scheduleTime {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .scheduleDays {
+    color: #6c757d;
+    margin-bottom: 8px;
+    font-style: italic;
+    font-size: 12px;
+  }
+
+  .scheduleActions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .statusToggle {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 6px;
+
+    .switch {
+      position: relative; display: inline-block; width: 36px; height: 20px;
+      input { opacity: 0; width: 0; height: 0; }
+      .slider {
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 20px;
+        &:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+      }
+      input:checked + .slider { background-color: #2ecc71; }
+      input:focus + .slider { box-shadow: 0 0 1px #2ecc71; }
+      input:checked + .slider:before { transform: translateX(16px); }
+      input:disabled + .slider { background-color: #e9ecef; cursor: not-allowed; }
+      input:disabled + .slider:before { background-color: #adb5bd; }
+    }
+  }
+
+  .deleteScheduleButton {
+    background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px; line-height: 1;
+    &:hover:not(:disabled) { color: #c82333; }
+     &:disabled { color: #aaa; cursor: not-allowed; }
+  }
+}
+
+.scheduleListPagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  font-size: 13px;
+
+  button {
+    padding: 6px 10px;
+    font-size: 12px;
+    height: 30px;
+    background-color: #adb5bd;
+    color: white;
+     &:hover:not(:disabled) { background-color: #868e96; }
+     &:disabled {
+        background-color: #ced4da !important;
+        opacity: 0.7;
+        color: #6c757d !important;
+        cursor: not-allowed;
+     }
+  }
+   span {
+      font-size: 13px;
+      padding: 6px 10px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      color: #495057;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+   }
+}
+
+.addScheduleContainer {
+  padding: 15px 20px;
+  border-top: 1px solid #dee2e6;
+  background-color: #f1f3f5;
+  flex-shrink: 0;
+}
+
+.addScheduleForm {
+  label { font-size: 13px; margin-bottom: 5px; font-weight: 500;}
+  input[type="datetime-local"],
+  .repeatDaysContainer { margin-bottom: 12px; }
+
+  input[type="datetime-local"] {
+      padding: 8px 10px;
+      font-size: 13px;
+      height: 36px;
+      margin-top: 2px;
+    }
+
+  .repeatDaysContainer {
+    display: flex; flex-wrap: wrap; gap: 10px 15px; margin-top: 8px; padding-bottom: 5px;
+  }
+
+  .repeatDayLabel {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: normal; cursor: pointer; margin-bottom: 0;
+      input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer;}
+    }
+
+  .addScheduleActions {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;
+    button { padding: 7px 14px; font-size: 13px; height: 34px; }
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+.paginationButton {
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    color: #333;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 500;
+
+    &:hover:not(:disabled) {
+      background-color: rgba(240, 240, 240, 0.9);
+    }
+
+    &:disabled {
+      color: #aaa !important;
+      background-color: rgba(230, 230, 230, 0.7) !important;
+      cursor: not-allowed;
+      opacity: 0.6;
+      border-color: #eee !important;
+    }
+}
+
+.paginationInfo {
+    font-size: 14px;
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.loadingText {
+  padding: 20px;
+  text-align: center;
+  color: #555;
+  font-style: italic;
+   &.small {
+      padding: 10px;
+      font-size: 13px;
+   }
+}
+
+.w-full { width: 100%; }

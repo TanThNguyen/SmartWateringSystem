@@ -414,8 +414,8 @@ export class ScheduleService {
   }
 
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  // @Cron('*/10 * * * * *')
+  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron('*/10 * * * * *')
   async handleCron() {
     this.logger.debug(`Running scheduled check (${this.localTimezone})...`);
     try {

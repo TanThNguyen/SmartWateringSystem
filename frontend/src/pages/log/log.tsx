@@ -1,81 +1,112 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { logAPI } from "../../axios/log.api";
 import { InfoLogType, Severity } from "../../types/log.type";
-import "./log.scss";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { FaChevronDown } from "react-icons/fa";
 
+import "./log.scss";
+
 export default function HistoryPage() {
-  const [username, setUsername] = useState("User");
   const [logs, setLogs] = useState<InfoLogType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [eventType, setEventType] = useState<Severity | "ALL">("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
 
-  // Added pagination state
+  // Pagination state
   const [page, setPage] = useState<number>(1);
-  const [rows, setRows] = useState<number>(10);
+  const [itemsPerPage] = useState<number>(15); // Adjust items per page if needed
   const [totalRecords, setTotalRecords] = useState<number>(0);
+
+    const fetchLogs = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await logAPI.getAllLogs({
+                search: search.trim() || undefined,
+                eventType: eventType === "ALL" ? undefined : eventType,
+                order,
+                items_per_page: itemsPerPage,
+                page: page,
+            });
+            setLogs(data.logs || []);
+            setTotalRecords(data.total || 0);
+
+            // Adjust page if current page becomes invalid
+             const maxPage = Math.ceil((data.total || 0) / itemsPerPage) || 1;
+             if (page > maxPage) {
+                 setPage(maxPage);
+             } else if (page < 1 && data.total > 0) {
+                 setPage(1);
+             }
+
+        } catch (error) {
+            console.error("Lỗi khi lấy logs:", error);
+            setLogs([]);
+            setTotalRecords(0);
+            // Optionally show a toast error message here
+        } finally {
+            setLoading(false);
+        }
+    }, [search, eventType, order, page, itemsPerPage]);
+
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]); // fetchLogs is memoized with its dependencies
+
+
+  const handlePageChange = (newPage: number) => {
+        const maxPage = Math.ceil(totalRecords / itemsPerPage) || 1;
+        if (newPage >= 1 && newPage <= maxPage) {
+            setPage(newPage);
+        }
+   };
 
   const renderDropdown = (
     label: string,
     value: string,
     options: { label: string; value: string }[],
-    onChange: (e: { value: string }) => void
+    onChange: (value: string) => void,
+    dropdownWidthClass = "w-200" // Default width class
   ) => (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex items-center justify-between px-3 h-10 border border-gray-300 bg-white rounded-md shadow-sm hover:bg-gray-100 w-80">
-        <span className="truncate">
-          {options.find((option) => option.value === value)?.label || label}
-        </span>
-        <FaChevronDown className="ml-2 text-sm" />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content className="bg-white border border-gray-200 rounded-md shadow-lg py-2" sideOffset={5}>
-          {options.map((option) => (
-            <DropdownMenu.Item
-              key={option.value}
-              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-              onSelect={() => onChange({ value: option.value })}
-            >
-              {option.label}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+    <div className={`filterDropdownWrapper ${dropdownWidthClass}`}>
+        <DropdownMenu.Root>
+            <DropdownMenu.Trigger className="filterDropdownTrigger">
+                <span title={options.find(opt => opt.value === value)?.label || label}>
+                    {options.find(opt => opt.value === value)?.label || label}
+                </span>
+                <FaChevronDown className="filterDropdownChevron" />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+                <DropdownMenu.Content className="filterDropdownContent" sideOffset={5} align="start">
+                    {options.map((option) => (
+                        <DropdownMenu.Item
+                            key={option.value}
+                            className="filterDropdownItem"
+                            onSelect={() => onChange(option.value)}
+                        >
+                            {option.label}
+                        </DropdownMenu.Item>
+                    ))}
+                </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+    </div>
   );
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("username");
-    if (storedUser) {
-      setUsername(storedUser);
-    }
-  }, []);
+   // Memoize options to prevent unnecessary re-renders
+    const eventTypeOptions = useMemo(() => [
+        { label: "Tất cả loại", value: "ALL" },
+        { label: "Thông báo", value: Severity.INFO },
+        { label: "Cảnh báo", value: Severity.WARNING },
+        { label: "Lỗi", value: Severity.ERROR },
+    ], []);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [search, eventType, order, page, rows]);
+    const orderOptions = useMemo(() => [
+        { label: "Mới nhất", value: "desc" },
+        { label: "Cũ nhất", value: "asc" },
+    ], []);
 
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      const data = await logAPI.getAllLogs({
-        search,
-        eventType,
-        order,
-        items_per_page: rows,
-        page: page,
-      });
-      setLogs(data.logs);
-      setTotalRecords(data.total);
-    } catch (error) {
-      console.error("Lỗi khi lấy logs:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="logContainer">
@@ -85,77 +116,78 @@ export default function HistoryPage() {
           placeholder="Tìm kiếm mô tả..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="px-4 text-lg h-10 border border-gray-300 rounded-md w-full"
+          className="searchInput"
         />
         {renderDropdown(
-          "Tất cả",
+          "Loại sự kiện",
           eventType,
-          [
-            { label: "Tất cả", value: "ALL" },
-            { label: "Thông báo", value: Severity.INFO },
-            { label: "Cảnh báo", value: Severity.WARNING },
-            { label: "Lỗi", value: Severity.ERROR },
-          ],
-          (e) => { setEventType(e.value as Severity | "ALL"); setPage(1); }
+          eventTypeOptions,
+          (value) => { setEventType(value as Severity | "ALL"); setPage(1); }
         )}
         {renderDropdown(
-          "Mới nhất",
+          "Sắp xếp",
           order,
-          [
-            { label: "Cũ nhất", value: "asc" },
-            { label: "Mới nhất", value: "desc" },
-          ],
-          (e) => { setOrder(e.value as "asc" | "desc"); setPage(1); }
+          orderOptions,
+          (value) => { setOrder(value as "asc" | "desc"); setPage(1); },
+          "w-150" // Specific width for order dropdown
         )}
       </div>
 
       <div className="historyContainer">
-        <table className="historyTable">
-          <thead>
-            <tr>
-              <th>Loại</th>
-              <th>Thời gian</th>
-              <th>Mô tả</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={3} style={{ textAlign: "center" }}>Đang tải dữ liệu...</td></tr>
-            ) : logs.length > 0 ? (
-              logs.map((log) => (
-                <tr key={log.logId}>
-                  <td>{log.eventType}</td>
-                  <td>{new Date(log.createdAt).toLocaleString()}</td>
-                  <td>{log.description}</td>
+          <div className="tableWrapper">
+            <table className="historyTable">
+            <thead>
+                <tr>
+                <th style={{ width: '15%' }}>Loại</th>
+                <th style={{ width: '25%' }}>Thời gian</th>
+                <th style={{ width: '60%' }}>Mô tả</th>
                 </tr>
-              ))
-            ) : (
-              <tr><td colSpan={3} style={{ textAlign: "center" }}>Không có dữ liệu.</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+                {loading ? (
+                <tr><td colSpan={3} className="noResults">Đang tải dữ liệu...</td></tr>
+                ) : logs.length > 0 ? (
+                logs.map((log) => (
+                    <tr key={log.logId}>
+                     <td>
+                        <span className={`logSeverityBadge ${log.eventType}`}>
+                            {log.eventType}
+                        </span>
+                     </td>
+                    <td>{new Date(log.createdAt).toLocaleString("vi-VN")}</td>
+                    <td>{log.description}</td>
+                    </tr>
+                ))
+                ) : (
+                <tr><td colSpan={3} className="noResults">Không có dữ liệu log.</td></tr>
+                )}
+            </tbody>
+            </table>
+          </div>
       </div>
 
-      {/* Added Pagination */}
-      <div className="pagination flex items-center justify-center mt-4 gap-4">
-        <button 
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))} 
-          disabled={page === 1}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          Trước
-        </button>
-        <span>
-          Trang {page} / {Math.ceil(totalRecords / rows) || 1}
-        </span>
-        <button 
-          onClick={() => setPage((prev) => (prev < Math.ceil(totalRecords / rows) ? prev + 1 : prev))} 
-          disabled={page >= Math.ceil(totalRecords / rows)}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          Sau
-        </button>
-      </div>
+      {/* Pagination */}
+      {!loading && totalRecords > itemsPerPage && (
+            <div className="paginationContainer">
+                <button
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
+                    className="paginationButton"
+                >
+                    Trước
+                </button>
+                <span className="paginationInfo">
+                    Trang {page} / {Math.ceil(totalRecords / itemsPerPage)} (Tổng: {totalRecords})
+                </span>
+                <button
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page >= Math.ceil(totalRecords / itemsPerPage)}
+                    className="paginationButton"
+                >
+                    Sau
+                </button>
+            </div>
+      )}
     </div>
   );
 }

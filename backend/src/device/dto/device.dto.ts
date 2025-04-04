@@ -26,7 +26,7 @@ export class GetDevicesRequestDto {
 
     @IsOptional()
     @IsString()
-    locationName?: string;
+    locationId?: string;
 
     @IsOptional()
     @IsString()
@@ -49,7 +49,7 @@ export class InfoDevicesDto {
 
     @IsString()
     @IsNotEmpty()
-    locationName: string;
+    locationId: string;
 
     @IsDate()
     @IsNotEmpty()
@@ -199,11 +199,11 @@ export class EditDeviceDto {
     @IsOptional()
     @ValidateNested()
     @Type(() => MoistureSensorAttributes)
-    moistureSensor?: MoistureSensorAttributes;
+    moisture_sensor?: MoistureSensorAttributes;
 
     @IsOptional()
     @ValidateNested()
     @Type(() => DHT20SensorAttributes)
-    dht20Sensor?: DHT20SensorAttributes;
+    dht20_sensor?: DHT20SensorAttributes;
 }
 

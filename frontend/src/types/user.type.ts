@@ -7,6 +7,7 @@ export type UsersRequestType = {
     search?: string;
     role?: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL'
     order?: string; // 'asc' or 'desc'
+    locationId?: string;
 
 }
 
@@ -16,7 +17,7 @@ export type InfoUsersType = {
     userId: string;
     name: string;
     email: string;
-    locationName: string;
+    locationId: string;
     phone: string;
     role: string; // 'ADMIN', 'GARDENER', 'INACTIVE', 'ALL'
     updatedAt: Date;

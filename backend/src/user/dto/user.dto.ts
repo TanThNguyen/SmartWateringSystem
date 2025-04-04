@@ -103,15 +103,23 @@ export class GetUsersRequestDto {
 
     @IsOptional()
     @Transform(({ value }) => value?.toUpperCase() || 'ALL')
-    @Matches(/^(ADMIN|GARDENER|INACTIVE|ALL)$/, {
-        message: 'role phải là giá trị hợp lệ của Role hoặc "ALL"',
+    @IsEnum(['ADMIN', 'GARDENER', 'INACTIVE', 'ALL'], {
+        message: 'role phải là ADMIN, GARDENER, INACTIVE hoặc ALL',
     })
     role?: Role | 'ALL' = 'ALL';
 
     @IsOptional()
     @IsString()
     order?: string;
+
+    @IsOptional()
+    @Transform(({ value }) => (value === 'ALL' ? 'ALL' : value))
+    @Matches(/^(ALL|[0-9a-fA-F-]{36})$/, {
+        message: 'locationId phải là UUID hợp lệ hoặc "ALL"',
+    })
+    locationId?: string | 'ALL' = 'ALL';
 }
+
 
 export class InfoUsersDto {
 
@@ -131,7 +139,7 @@ export class InfoUsersDto {
     @IsUUID()
     @IsString()
     @IsNotEmpty()
-    locationName: string;
+    locationId: string;
 
     @IsString()
     phone: string;
