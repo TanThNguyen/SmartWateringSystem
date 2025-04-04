@@ -51,12 +51,18 @@
   display: inline-block;
   height: 40px;
   vertical-align: middle;
-  position: relative; // Needed for z-index context if dropdown is inside
-  z-index: 50; // Higher than table header but lower than dropdown content
+  position: relative;
+  z-index: 50;
 }
-.w-48 { width: 12rem; }
-.w-40 { width: 10rem; }
-.w-36 { width: 9rem; }
+.w-48 {
+  width: 12rem;
+}
+.w-40 {
+  width: 10rem;
+}
+.w-36 {
+  width: 9rem;
+}
 
 .dropdown-trigger {
   display: flex;
@@ -94,7 +100,7 @@
 }
 
 [data-radix-popper-content-wrapper] {
-  z-index: 1050 !important; // Ensure dropdown content is on top
+  z-index: 1050 !important;
 }
 
 .dropdown-content {
@@ -103,7 +109,7 @@
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   padding: 4px 0;
-  z-index: 1050; // Explicitly high z-index
+  z-index: 1050;
   margin-top: 2px;
 }
 
@@ -113,7 +119,9 @@
   cursor: pointer;
   outline: none;
   color: #212529;
-  &:hover, &:focus {
+
+  &:hover,
+  &:focus {
     background-color: #f1f3f5;
   }
 }
@@ -186,10 +194,20 @@
 .tableWrapper {
   overflow-y: auto;
   flex-grow: 1;
-    &::-webkit-scrollbar { width: 8px; }
-    &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-    &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-    &::-webkit-scrollbar-thumb:hover { background: #aaa; }
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
 }
 
 .deviceTable {
@@ -200,7 +218,7 @@
     position: sticky;
     top: 0;
     background-color: rgba(247, 247, 247, 0.9);
-    z-index: 10; // Lower than dropdown trigger wrapper
+    z-index: 10;
     backdrop-filter: blur(5px);
 
     th {
@@ -295,76 +313,63 @@
   }
 }
 
-
-@media (max-width: 768px) {
-  .filterContainer {
-    width: 95%;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+.paginationButton {
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  color: #333;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  &:hover:not(:disabled) {
+    background-color: rgba(240, 240, 240, 0.9);
   }
-
-  .filterContainer > .searchInput,
-  .filterContainer > .dropdown-trigger-wrapper,
-  .filterContainer > button {
-    width: 100%;
-    margin-left: 0;
-  }
-   .filterContainer > .deleteButton {
-        margin-left: 0;
-     }
-
-  .tableContainer {
-    width: 95%;
-    max-height: calc(100vh - 320px);
-  }
-
-  .deviceTable th,
-  .deviceTable td {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  .statusBadgeButton {
-    padding: 4px 10px;
-    font-size: 11px;
-    min-width: 85px;
-  }
-
-  .modalContentWrapper {
-      max-width: 95vw !important;
-      max-height: 85vh;
-      flex-direction: column !important;
-      &.modalWithSchedule {
-          flex-direction: column !important;
-          max-width: 95vw !important;
-      }
-  }
-  .scheduleManagementPanel {
-      flex-basis: auto !important;
-      border-left: none !important;
-      border-top: 1px solid #dee2e6;
-      max-height: 40vh;
-  }
-  .modalPopupContainer {
-     min-width: unset !important;
-     overflow: auto;
-  }
-  .modalMainContent {
-    padding: 15px 20px;
-  }
-  .scheduleListContainer{
-    padding: 10px;
-  }
-  .addScheduleContainer{
-     padding: 10px 15px;
-  }
-  .panelHeader{
-    padding: 10px 15px;
-    font-size: 15px;
+  &:disabled {
+    color: #aaa !important;
+    background-color: rgba(230, 230, 230, 0.7) !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: #eee !important;
   }
 }
 
+.paginationInfo {
+  font-size: 14px;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.loadingText {
+  padding: 20px;
+  text-align: center;
+  color: #555;
+  font-style: italic;
+  &.small {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+.w-full {
+  width: 100%;
+}
 
 .modalOverlay {
   position: fixed;
@@ -393,110 +398,121 @@
   max-width: 550px;
   transition: max-width 0.3s ease-in-out;
 
-  &.modalWithSchedule {
+  &.modalWithTwoColumns {
     max-width: 950px;
     flex-direction: row;
     align-items: stretch;
   }
 }
 
-.modalPopupContainer { // Container for PopupModal's content if needed
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow: hidden; // Outer container shouldn't scroll typically
-    min-width: 0;
+.modalInfoEditPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 50%;
+  min-width: 320px;
+  overflow: hidden;
 }
 
-.modalInfoEditPanel { // Style for the left panel in edit view
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow-y: auto; // This panel scrolls its content
-    min-width: 0; // Prevent flexbox blowouts
-
-    &::-webkit-scrollbar { width: 8px; }
-    &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-    &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-    &::-webkit-scrollbar-thumb:hover { background: #aaa; }
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  &:hover {
+    color: #333;
+  }
 }
 
 .modalMainContent {
   padding: 20px 25px;
-  // Removed overflow-y: auto; -> handled by modalInfoEditPanel now
-  flex-grow: 1; // Allows content to push actions down
-  position: relative; // For potential absolute positioning inside
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0;
 
-  // Remove scrollbar styling from here if modalInfoEditPanel handles it
-}
-
-.modalMainContent label,
-.addScheduleForm label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  color: #333;
-}
-
-.modalMainContent input[type="text"],
-.modalMainContent input[type="number"],
-.modalMainContent input[type="datetime-local"],
-.modalMainContent select,
-.addScheduleForm input[type="text"],
-.addScheduleForm input[type="number"],
-.addScheduleForm input[type="datetime-local"],
-.addScheduleForm select {
-  width: 100%;
-  padding: 10px 12px;
-  margin-top: 4px;
-  margin-bottom: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 14px;
-  height: 40px;
-
-  &:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  &::-webkit-scrollbar {
+    width: 8px;
   }
-}
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
 
-.modalMainContent label > select,
-.addScheduleForm label > select {
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+  }
+  input[type="text"],
+  input[type="number"],
+  input[type="datetime-local"],
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 4px;
     margin-bottom: 16px;
-}
-
-.requiredAsterisk {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    height: 40px;
+    &:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+  }
+  label > select {
+    margin-bottom: 16px;
+  }
+  .requiredAsterisk {
     color: red;
     margin-left: 2px;
-}
-
-.configLabel {
+  }
+  .configLabel {
     margin-bottom: 12px;
-}
-
-.configSection {
+  }
+  .configSection {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px dashed #e0e0e0;
-}
-
-.editFieldsSection {
-    margin-top: 20px;
-}
-
-
-.configSelectContainer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  select {
-    flex-grow: 1;
-    margin-bottom: 0;
+  }
+  .editFieldsSection {
+    margin-top: 10px;
+  }
+  .configSelectContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    select {
+      flex-grow: 1;
+      margin-bottom: 0;
+    }
   }
 }
 
@@ -507,51 +523,24 @@
   padding: 15px 25px;
   border-top: 1px solid #e0e0e0;
   background-color: #f9f9f9;
-  flex-shrink: 0; // Keep actions at the bottom
+  flex-shrink: 0;
 }
 
 .modalLoadingIndicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-    min-height: 200px;
-}
-
-
-.chartsArea {
-    margin-bottom: 20px;
-}
-
-.dhtChartsWrapper {
-    max-height: 450px;
-    overflow-y: auto;
-    padding-right: 5px;
-    margin-top: 15px;
-    &::-webkit-scrollbar { width: 6px; }
-    &::-webkit-scrollbar-track { background: #e9ecef; border-radius: 3px; }
-    &::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 3px; }
-    &::-webkit-scrollbar-thumb:hover { background: #868e96; }
-}
-
-
-.chartContainer {
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  padding: 15px;
-  margin-bottom: 15px;
-  border: 1px solid #dee2e6;
-
-  .chartTitle {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #343a40;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  flex-grow: 1;
+  &.centeredWithinWrapper {
+    width: 100%;
+    height: 100%;
   }
 }
 
-
+.modalChartPanel,
 .scheduleManagementPanel {
   flex: 0 0 400px;
   border-left: 1px solid #dee2e6;
@@ -572,99 +561,187 @@
   }
 }
 
-.scheduleListContainer {
-  overflow-y: auto;
-  flex-grow: 1;
-  padding: 15px;
-
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: #e9ecef; border-radius: 3px; }
-  &::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 3px; }
-  &::-webkit-scrollbar-thumb:hover { background: #868e96; }
-}
-
-
-.scheduleItem {
-  background-color: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 5px;
-  padding: 12px 15px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-
-  .scheduleTime {
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #333;
-    font-size: 14px;
-  }
-
-  .scheduleDays {
-    color: #6c757d;
-    margin-bottom: 8px;
-    font-style: italic;
-    font-size: 12px;
-  }
-
-  .scheduleActions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-  }
-
-  .statusToggle {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    gap: 6px;
-
-    .switch {
-      position: relative; display: inline-block; width: 36px; height: 20px;
-      input { opacity: 0; width: 0; height: 0; }
-      .slider {
-        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 20px;
-        &:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-      }
-      input:checked + .slider { background-color: #2ecc71; }
-      input:focus + .slider { box-shadow: 0 0 1px #2ecc71; }
-      input:checked + .slider:before { transform: translateX(16px); }
-      input:disabled + .slider { background-color: #e9ecef; cursor: not-allowed; }
-      input:disabled + .slider:before { background-color: #adb5bd; }
+.modalChartPanel {
+  .chartsArea {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 15px;
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #e9ecef;
+      border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #adb5bd;
+      border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: #868e96;
     }
   }
-
-  .deleteScheduleButton {
-    background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 5px; line-height: 1;
-    &:hover:not(:disabled) { color: #c82333; }
-     &:disabled { color: #aaa; cursor: not-allowed; }
+  .dhtChartsWrapper {
+  }
+  .chartContainer {
+    background-color: #fff;
+    border-radius: 6px;
+    padding: 15px 15px 15px 5px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    .chartTitle {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #343a40;
+      text-align: center;
+    }
   }
 }
 
-.scheduleListPagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 15px;
-  font-size: 13px;
-
-  button {
-    padding: 6px 10px;
-    font-size: 12px;
-    height: 30px;
-    background-color: #adb5bd;
-    color: white;
-     &:hover:not(:disabled) { background-color: #868e96; }
-     &:disabled {
+.scheduleManagementPanel {
+  .scheduleListContainer {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 15px;
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #e9ecef;
+      border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #adb5bd;
+      border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: #868e96;
+    }
+  }
+  .scheduleItem {
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    .scheduleTime {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 14px;
+    }
+    .scheduleDays {
+      color: #6c757d;
+      margin-bottom: 8px;
+      font-style: italic;
+      font-size: 12px;
+    }
+    .scheduleActions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .statusToggle {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      gap: 6px;
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+        input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .3s;
+          border-radius: 20px;
+          &:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+          }
+        }
+        input:checked + .slider {
+          background-color: #2ecc71;
+        }
+        input:focus + .slider {
+          box-shadow: 0 0 1px #2ecc71;
+        }
+        input:checked + .slider:before {
+          transform: translateX(16px);
+        }
+        input:disabled + .slider {
+          background-color: #e9ecef;
+          cursor: not-allowed;
+        }
+        input:disabled + .slider:before {
+          background-color: #adb5bd;
+        }
+      }
+    }
+    .deleteScheduleButton {
+      background: none;
+      border: none;
+      color: #dc3545;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 5px;
+      line-height: 1;
+      &:hover:not(:disabled) {
+        color: #c82333;
+      }
+      &:disabled {
+        color: #aaa;
+        cursor: not-allowed;
+      }
+    }
+  }
+  .scheduleListPagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    font-size: 13px;
+    button {
+      padding: 6px 10px;
+      font-size: 12px;
+      height: 30px;
+      background-color: #adb5bd;
+      color: white;
+      &:hover:not(:disabled) {
+        background-color: #868e96;
+      }
+      &:disabled {
         background-color: #ced4da !important;
         opacity: 0.7;
         color: #6c757d !important;
         cursor: not-allowed;
-     }
-  }
-   span {
+      }
+    }
+    span {
       font-size: 13px;
       padding: 6px 10px;
       background-color: #e9ecef;
@@ -673,98 +750,141 @@
       height: 30px;
       display: inline-flex;
       align-items: center;
-   }
-}
-
-.addScheduleContainer {
-  padding: 15px 20px;
-  border-top: 1px solid #dee2e6;
-  background-color: #f1f3f5;
-  flex-shrink: 0;
-}
-
-.addScheduleForm {
-  label { font-size: 13px; margin-bottom: 5px; font-weight: 500;}
-  input[type="datetime-local"],
-  .repeatDaysContainer { margin-bottom: 12px; }
-
-  input[type="datetime-local"] {
+    }
+  }
+  .addScheduleContainer {
+    padding: 15px 20px;
+    border-top: 1px solid #dee2e6;
+    background-color: #f1f3f5;
+    flex-shrink: 0;
+  }
+  .addScheduleForm {
+    label {
+      font-size: 13px;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input[type="datetime-local"],
+    .repeatDaysContainer {
+      margin-bottom: 12px;
+    }
+    input[type="datetime-local"] {
       padding: 8px 10px;
       font-size: 13px;
       height: 36px;
       margin-top: 2px;
     }
+    .repeatDaysContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 15px;
+      margin-top: 8px;
+      padding-bottom: 5px;
+    }
+    .repeatDayLabel {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: normal;
+      cursor: pointer;
+      margin-bottom: 0;
+      input[type="checkbox"] {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        cursor: pointer;
+      }
+    }
+    .addScheduleActions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+      button {
+        padding: 7px 14px;
+        font-size: 13px;
+        height: 34px;
+      }
+    }
+  }
+}
 
-  .repeatDaysContainer {
-    display: flex; flex-wrap: wrap; gap: 10px 15px; margin-top: 8px; padding-bottom: 5px;
+@media (max-width: 768px) {
+  .filterContainer {
+    width: 95%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .filterContainer > .searchInput,
+  .filterContainer > .dropdown-trigger-wrapper,
+  .filterContainer > button {
+    width: 100%;
+    margin-left: 0;
+  }
+  .filterContainer > .deleteButton {
+    margin-left: 0;
+  }
+  .tableContainer {
+    width: 95%;
+    max-height: calc(100vh - 320px);
+  }
+  .deviceTable th,
+  .deviceTable td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .statusBadgeButton {
+    padding: 4px 10px;
+    font-size: 11px;
+    min-width: 85px;
   }
 
-  .repeatDayLabel {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 12px; font-weight: normal; cursor: pointer; margin-bottom: 0;
-      input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer;}
-    }
+  .modalContentWrapper {
+    max-width: 95vw !important;
+    max-height: 85vh;
+    flex-direction: column !important;
 
-  .addScheduleActions {
-    display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;
-    button { padding: 7px 14px; font-size: 13px; height: 34px; }
+    &.modalWithTwoColumns {
+      flex-direction: column !important;
+      max-width: 95vw !important;
+    }
+  }
+  .modalInfoEditPanel {
+    flex: 1 1 auto;
+    overflow: hidden;
+    min-width: unset;
+  }
+  .modalMainContent {
+    padding: 15px 20px;
+    min-height: 150px;
+  }
+  .modalHeader,
+  .modalActions {
+    padding: 12px 20px;
+  }
+  .modalChartPanel,
+  .scheduleManagementPanel {
+    flex-basis: auto !important;
+    flex-shrink: 1;
+    border-left: none !important;
+    border-top: 1px solid #dee2e6;
+    max-height: 40vh;
+    width: 100%;
+  }
+  .modalChartPanel .chartsArea,
+  .scheduleListContainer {
+    padding: 10px;
+  }
+  .addScheduleContainer {
+    padding: 10px 15px;
+  }
+  .panelHeader {
+    padding: 10px 15px;
+    font-size: 15px;
+  }
+  .chartContainer {
+    padding: 10px 10px 10px 0;
   }
 }
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-  gap: 10px;
-}
-.paginationButton {
-    padding: 8px 12px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, opacity 0.2s ease;
-    color: #333;
-    height: 40px;
-    font-size: 14px;
-    font-weight: 500;
-
-    &:hover:not(:disabled) {
-      background-color: rgba(240, 240, 240, 0.9);
-    }
-
-    &:disabled {
-      color: #aaa !important;
-      background-color: rgba(230, 230, 230, 0.7) !important;
-      cursor: not-allowed;
-      opacity: 0.6;
-      border-color: #eee !important;
-    }
-}
-
-.paginationInfo {
-    font-size: 14px;
-    color: #333;
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 8px 12px;
-    border-radius: 4px;
-    border: 1px solid #eee;
-    height: 40px;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-}
-
-.loadingText {
-  padding: 20px;
-  text-align: center;
-  color: #555;
-  font-style: italic;
-   &.small {
-      padding: 10px;
-      font-size: 13px;
-   }
-}
-
-.w-full { width: 100%; }
