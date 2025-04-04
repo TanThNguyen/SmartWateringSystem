@@ -413,6 +413,21 @@ export default function DeviceManagementPage() {
     setShowEditForm(false);
   };
 
+  // Thêm useEffect lắng nghe sự kiện Esc và đóng modal khi nhấn Esc
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCloseModals();
+      }
+    };
+    if (showAddForm || showEditForm) {
+      window.addEventListener("keydown", handleEsc);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [showAddForm, showEditForm]);
+
   const handleNewDeviceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewDevice((prev) => {
@@ -896,7 +911,8 @@ export default function DeviceManagementPage() {
             Trước
           </button>
           <span className="paginationInfo">
-            Trang {currentPage} / {Math.ceil(totalRecords / itemsPerPage)} (Tổng: {totalRecords})
+            Trang {currentPage} / {Math.ceil(totalRecords / itemsPerPage)} 
+            {/* (Tổng: {totalRecords}) */}
           </span>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
@@ -1171,7 +1187,7 @@ export default function DeviceManagementPage() {
                                   onChange={() => handleToggleSchedule(schedule.scheduleId, schedule.deviceId)}
                                   disabled={scheduleLoading}
                                 />
-                                <span className="switch"><span className="slider"></span></span>
+                                {/* <span className="switch"><span className="slider"></span></span> */}
                               </label>
                               <button
                                 className="deleteScheduleButton"
@@ -1220,26 +1236,28 @@ export default function DeviceManagementPage() {
                         </button>
                       ) : (
                         <form className="addScheduleForm" onSubmit={(e) => { e.preventDefault(); handleCreateSchedule(); }}>
-                          <label>
-                            Bắt đầu: <span className="requiredAsterisk">*</span>
-                            <input
-                              type="datetime-local"
-                              name="startTime"
-                              value={newSchedule.startTime || ""}
-                              onChange={handleNewScheduleChange}
-                              required
-                            />
-                          </label>
-                          <label>
-                            Kết thúc: <span className="requiredAsterisk">*</span>
-                            <input
-                              type="datetime-local"
-                              name="endTime"
-                              value={newSchedule.endTime || ""}
-                              onChange={handleNewScheduleChange}
-                              required
-                            />
-                          </label>
+                          <div className="dateTimeRow"> {/* Thêm container để căn hàng */}
+                            <label className="dateField">
+                              Bắt đầu: <span className="requiredAsterisk">*</span>
+                              <input
+                                type="datetime-local"
+                                name="startTime"
+                                value={newSchedule.startTime || ""}
+                                onChange={handleNewScheduleChange}
+                                required
+                              />
+                            </label>
+                            <label className="dateField">
+                              Kết thúc: <span className="requiredAsterisk">*</span>
+                              <input
+                                type="datetime-local"
+                                name="endTime"
+                                value={newSchedule.endTime || ""}
+                                onChange={handleNewScheduleChange}
+                                required
+                              />
+                            </label>
+                          </div>
                           <label>Lặp lại vào các ngày:</label>
                           <div className="repeatDaysContainer">
                             {dayLabels.map((day, index) => (

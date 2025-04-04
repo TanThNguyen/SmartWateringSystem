@@ -676,9 +676,11 @@ export default function DashboardPage() {
             <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-11/12 max-w-3xl">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
-                  {selectedChart === "temperature" ? "Temperature"
-                    : selectedChart === "humidity" ? "Humidity"
-                      : "Soil Moisture"} Chart
+                  {selectedChart === "temperature"
+                    ? "Biểu đồ Nhiệt độ"
+                    : selectedChart === "humidity"
+                      ? "Biểu đồ Độ ẩm không khí"
+                      : "Biểu đồ Độ ẩm đất"}
                 </h2>
                 <button onClick={() => setShowChartModal(false)} className="px-4 py-1 bg-gray-300 rounded">✖</button>
               </div>

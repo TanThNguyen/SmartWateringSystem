@@ -18,7 +18,7 @@
   width: 90%;
   max-width: 1200px; /* Adjust as needed */
   padding: 10px 15px;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   border-radius: 8px;
 }
@@ -39,6 +39,7 @@
   font-size: 14px;
   box-sizing: border-box;
 }
+
 
 .filterDropdownWrapper {
   display: inline-block;
@@ -112,8 +113,7 @@
   }
 }
 
-
-.actionButton {
+.button {
   color: #fff;
   border: none;
   padding: 0 14px;
@@ -128,11 +128,6 @@
   white-space: nowrap;
   box-sizing: border-box;
   font-size: 14px;
-  background-color: #f39c12; // Orange color
-
-  &:hover:not(:disabled) {
-    background-color: #e67e22; // Darker orange
-  }
 
   &:disabled {
     background-color: #bdc3c7 !important;
@@ -141,18 +136,47 @@
   }
 }
 
+.addButton {
+  background-color: #2ecc71;
+  &:hover:not(:disabled) {
+    background-color: #27ae60;
+  }
+}
+
+.deleteButton {
+  background-color: #e74c3c;
+  &:hover:not(:disabled) {
+    background-color: #c0392b;
+  }
+}
+
+.primaryButton {
+  background-color: #3498db;
+  &:hover:not(:disabled) {
+    background-color: #2980b9;
+  }
+}
+
+.secondaryButton {
+  background-color: #95a5a6;
+  &:hover:not(:disabled) {
+    background-color: #7f8c8d;
+  }
+}
+
 .tableContainer {
-  background: rgba(255, 255, 255, 0.7); // Slightly increased opacity
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   overflow: hidden; // Contain table/header
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   width: 90%;
   max-width: 1200px; /* Match filter container */
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 220px); // Adjusted height
+  // max-height: calc(100vh - 240px);
+  height: 545px;
 }
 
 .tableWrapper {
@@ -211,10 +235,13 @@
   padding: 40px 20px;
   color: #555;
   font-style: italic;
+  &.small {
+    padding: 15px 10px;
+    font-size: 13px;
+  }
 }
 
 .checkboxCell {
-  width: 5%;
   text-align: center;
 }
 
@@ -386,8 +413,8 @@
     &:hover { background-color: #7f8c8d; }
   }
   &.success {
-    background-color: #2ecc71;
-    &:hover { background-color: #27ae60; }
+    background-color: #3498db;
+    &:hover { background-color: #2980b9; }
   }
   &.danger {
      background-color: #e74c3c;
@@ -411,7 +438,8 @@
 
   .tableContainer {
     width: 95%;
-    max-height: calc(100vh - 280px); // Adjust height
+    // max-height: calc(100vh - 280px); 
+    max-height: calc(100vh - 320px);
   }
 
   .userTable th,

@@ -23,15 +23,15 @@
   border-radius: 8px;
 }
 
-.filterContainer > input[type="text"],
-.filterContainer > .dropdown-trigger-wrapper {
+.filterContainer > .searchInput,
+.filterContainer > .filterDropdownWrapper {
   margin-top: 0;
   margin-bottom: 0;
 }
 
 .searchInput {
   flex-grow: 1;
-  min-width: 150px;
+  min-width: 200px;
   height: 40px;
   padding: 8px 12px;
   border: 1px solid #ccc;
@@ -40,28 +40,15 @@
   box-sizing: border-box;
 }
 
-.filterContainer > .addButton {
-  margin-left: auto;
-}
-.filterContainer > .deleteButton {
-  margin-left: 10px;
-}
-
-.dropdown-trigger-wrapper {
+.filterDropdownWrapper {
   display: inline-block;
   height: 40px;
   vertical-align: middle;
   position: relative;
-  z-index: 50;
-}
-.w-48 {
-  width: 12rem;
-}
-.w-40 {
-  width: 10rem;
-}
-.w-36 {
-  width: 9rem;
+  z-index: 50; // Above table header
+  width: 180px; // Default width
+
+  &.w-150 { width: 150px; } // Specific width example
 }
 
 .dropdown-trigger {
@@ -111,6 +98,7 @@
   padding: 4px 0;
   z-index: 1050;
   margin-top: 2px;
+  min-width: var(--radix-dropdown-menu-trigger-width);
 }
 
 .dropdown-item {
@@ -188,12 +176,13 @@
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 240px);
+  height: 545px;
 }
 
 .tableWrapper {
   overflow-y: auto;
   flex-grow: 1;
+  height: 100%;
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -514,6 +503,19 @@
       margin-bottom: 0;
     }
   }
+  .dateTimeRow {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  .dateField {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    label, input { // đảm bảo các phần tử bên trong hiển thị như mong muốn
+      width: 100%;
+    }
+  }
 }
 
 .modalActions {
@@ -807,24 +809,32 @@
         height: 34px;
       }
     }
+    .dateTimeRow {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 12px;
+    }
+    .dateField {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      label, input { // đảm bảo các phần tử bên trong hiển thị như mong muốn
+        width: 100%;
+      }
+    }
   }
 }
 
 @media (max-width: 768px) {
   .filterContainer {
-    width: 95%;
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    max-width: 95%;
+    width: 95%;
   }
   .filterContainer > .searchInput,
-  .filterContainer > .dropdown-trigger-wrapper,
-  .filterContainer > button {
-    width: 100%;
-    margin-left: 0;
-  }
-  .filterContainer > .deleteButton {
-    margin-left: 0;
+  .filterContainer > .filterDropdownWrapper {
+    width: 100%; /* Full width on mobile */
   }
   .tableContainer {
     width: 95%;

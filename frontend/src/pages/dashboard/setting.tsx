@@ -253,7 +253,7 @@ const SettingPage = () => {
                     // Pass the state setter function, adapting to expected arg structure
                     (e) => setDeviceTypeFilter(e.value as DeviceType | "ALL")
                 )}
-                <button onClick={() => setShowAddForm(true)}
+                {/* <button onClick={() => setShowAddForm(true)}
                     // Apply SCSS class to action buttons
                     className="actionButton"
                 >
@@ -266,6 +266,20 @@ const SettingPage = () => {
                     disabled={deleteConfig.length === 0} // Keep original disabled logic
                 >
                     Xóa
+                </button> */}
+
+                <button
+                    onClick={setShowAddForm}
+                    className="button addButton"
+                >
+                    Thêm Mới
+                </button>
+                <button
+                    onClick={handleDeleteConfigurations}
+                    disabled={deleteConfig.length === 0 || loading}
+                    className="button deleteButton"
+                >
+                    Xóa ({deleteConfig.length})
                 </button>
             </div>
 
@@ -522,7 +536,7 @@ const SettingPage = () => {
                             onClick={handleCreateConfiguration}
                             className="modalButton success" // Use appropriate variant
                         >
-                            Tạo
+                            Tạo mới
                         </button>
                         <button
                             onClick={() => setShowAddForm(false)}
