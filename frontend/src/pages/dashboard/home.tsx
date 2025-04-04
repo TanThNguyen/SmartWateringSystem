@@ -385,7 +385,7 @@ export default function DashboardPage() {
       }}
     >
       {/* Thanh trên cùng */}
-      <div className="absolute top-0 left-0 w-full flex items-center justify-between p-4 bg-black/40">
+      <div className="fixed top-0 inset-x-20 flex items-center justify-between p-4 bg-black/40">
         <div className="flex items-center space-x-4">
           <div className="relative">
             {/* <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
@@ -396,7 +396,7 @@ export default function DashboardPage() {
             </button>
           </div>
           <span className="text-white text-lg font-semibold">
-            Welcome Farm, {username}
+            Chào mừng bạn, {username}
           </span>
         </div>
         <div className="text-white text-right">
@@ -572,9 +572,9 @@ export default function DashboardPage() {
       {/* Modal danh sách areas */}
       {showAreaList && (
         <div onClick={() => setShowAreaList(false)} className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-96">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-11/12 max-w-md">
             <h2 className="text-lg font-bold mb-4">Danh sách khu vực</h2>
-            <table className="w-full text-left mb-4">
+            <table className="w-full text-left mb-4 table-auto">
               <thead>
                 <tr>
                   <th className="border-b py-2">Khu vực</th>
