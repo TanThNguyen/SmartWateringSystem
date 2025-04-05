@@ -41,6 +41,8 @@ export default function DashboardPage() {
   const [recordData, setRecrordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
   const [isDataStale, setIsDataStale] = useState(false);
 
+    const [isAdmin, setIsAdmin] =useState(true);
+  
   useEffect(() => {
     const fetchLocationData = async () => {
       try {
@@ -66,6 +68,13 @@ export default function DashboardPage() {
     const storedUser = localStorage.getItem("name");
     if (storedUser) {
       setUsername(storedUser.slice(1, -1)); // Cắt bỏ ký tự đầu và cuối
+    }
+
+    const role = localStorage.getItem("role");
+    if (role === "ADMIN") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
     }
   }, []);
   
@@ -432,12 +441,15 @@ export default function DashboardPage() {
                 {area.name}
               </button>
             ))}
+            {isAdmin && (
             <button
-              onClick={handleAddArea}
-              className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
-            >
-              +
-            </button>
+            onClick={handleAddArea}
+            className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
+          >
+            +
+          </button>
+            )}
+
             <button
               onClick={handleOpenAreaList}
               className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
@@ -590,13 +602,15 @@ export default function DashboardPage() {
               <thead>
                 <tr>
                   <th className="border-b py-2">Khu vực</th>
-                  <th className="border-b py-2">Hoạt động</th>
+                  {isAdmin &&(<th className="border-b py-2">Hoạt động</th>)}
                 </tr>
               </thead>
               <tbody>
                 {locationData.locations.map((location) => (
                   <tr key={location.locationId}>
                     <td className="border-b py-2">{location.name}</td>
+
+                    {isAdmin && (
                     <td className="border-b py-2 space-x-2">
                       <button
                         onClick={() => handleEditArea(location.locationId)}
@@ -611,6 +625,7 @@ export default function DashboardPage() {
                         Xóa
                       </button>
                     </td>
+                  )}
                   </tr>
                 ))}
               </tbody>
