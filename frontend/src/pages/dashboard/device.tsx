@@ -110,7 +110,7 @@ export default function DeviceManagementPage() {
   const addModalRef = useRef<HTMLDivElement>(null);
   const editModalRef = useRef<HTMLDivElement>(null);
 
-   const [isAdmin, setIsAdmin] =useState(true);
+  const [isAdmin, setIsAdmin] =useState(true);
 
 
   const findConfig = useCallback((configId?: string): ConfigurationDetailType | undefined => {
