@@ -32,24 +32,30 @@ def check_urgent_conditions(sensor_data: SensorData, config: ConfigurationData) 
         return DecisionResponse(action=ACTION_FAN_ON, duration=URGENT_FAN_DURATION_S, urgency=URGENCY_URGENT)
     return None
 
-def make_normal_decision(sensor_data: SensorData, config: ConfigurationData) -> DecisionResponse:
-    soil_moisture = sensor_data.soilMoisture
+def check_normal_fan_conditions(sensor_data: SensorData, config: ConfigurationData) -> Optional[DecisionResponse]:
     temperature = sensor_data.temperature
     humidity = sensor_data.humidity
-
-    moisture_threshold = config.moistureThreshold
     temp_max = config.tempMax
     humidity_max = config.humidityMax
 
-    temp_safety_margin = 2
-
     if temperature > temp_max or humidity > humidity_max:
-        print(f"Logic (Bình thường): Nhiệt độ ({temperature}°C > {temp_max}°C) hoặc Độ ẩm ({humidity}% > {humidity_max}%) -> Bật quạt")
+        print(f"Logic (Bình thường - Quạt): Nhiệt độ ({temperature}°C > {temp_max}°C) hoặc Độ ẩm ({humidity}% > {humidity_max}%) -> Bật quạt")
         return DecisionResponse(action=ACTION_FAN_ON, duration=DEFAULT_FAN_DURATION_S, urgency=URGENCY_NORMAL)
+    return None
 
-    if soil_moisture < moisture_threshold and temperature < (temp_max - temp_safety_margin):
-        print(f"Logic (Bình thường): Độ ẩm đất ({soil_moisture}% < {moisture_threshold}%) và Nhiệt độ an toàn ({temperature}°C < {temp_max - temp_safety_margin}°C) -> Bật bơm")
+def make_normal_pump_decision_rules(sensor_data: SensorData, config: ConfigurationData) -> DecisionResponse:
+    soil_moisture = sensor_data.soilMoisture
+    temperature = sensor_data.temperature
+    humidity = sensor_data.humidity 
+
+    moisture_threshold = config.moistureThreshold 
+    temp_max = config.tempMax
+
+    soil_moisture_processed = soil_moisture / 10.0 
+    temp_safety_margin = 2 
+
+    if soil_moisture_processed < moisture_threshold and temperature < (temp_max - temp_safety_margin):
+        print(f"Logic (Bình thường - Bơm Rule): Độ ẩm đất ({soil_moisture_processed} < {moisture_threshold}) và Nhiệt độ an toàn ({temperature}°C < {temp_max - temp_safety_margin}°C) -> Bật bơm")
         return DecisionResponse(action=ACTION_PUMP_ON, duration=DEFAULT_PUMP_DURATION_S, urgency=URGENCY_NORMAL)
 
-    print("Logic: Các điều kiện đều ổn -> Không hành động")
     return DecisionResponse(action=ACTION_NONE, duration=0, urgency=URGENCY_NORMAL)
