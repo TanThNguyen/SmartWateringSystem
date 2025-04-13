@@ -198,40 +198,40 @@ model Log {
   device      Device?  @relation(fields: [deviceId], references: [deviceId], onDelete: SetNull)
 }
 
-// Meta (chưa triển khai)
-model AIDecisionLog {
-  logId        String    @id @default(uuid())
-  timestamp    DateTime  @default(now())
-  locationId     String
+// // Meta (chưa triển khai)
+// model AIDecisionLog {
+//   logId        String    @id @default(uuid())
+//   timestamp    DateTime  @default(now())
+//   locationId     String
   
-  soilMoisture Float?
-  temperature  Float?
-  humidity     Float?
-  configSnapshot Json?  
+//   soilMoisture Float?
+//   temperature  Float?
+//   humidity     Float?
+//   configSnapshot Json?  
 
-  decisionAction String  
-  decisionDuration Int     
-  reason         String? 
+//   decisionAction String  
+//   decisionDuration Int     
+//   reason         String? 
 
-  executionStatus String?  
-  executionNotes  String?   
+//   executionStatus String?  
+//   executionNotes  String?   
 
-}
+// }
 
 
-model TrainingData {
-  dataId       String   @id @default(uuid())
-  timestamp    DateTime
-  deviceId     String
+// model TrainingData {
+//   dataId       String   @id @default(uuid())
+//   timestamp    DateTime
+//   deviceId     String
 
-  soilMoisture Float
-  temperature  Float
-  humidity     Float
+//   soilMoisture Float
+//   temperature  Float
+//   humidity     Float
 
-  targetAction String 
-  targetDuration Int   
+//   targetAction String 
+//   targetDuration Int   
 
-  dataSource   String  
-  processedAt  DateTime @default(now())
-  modelVersion String? 
-}
+//   dataSource   String  
+//   processedAt  DateTime @default(now())
+//   modelVersion String? 
+// }

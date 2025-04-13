@@ -5,7 +5,7 @@ import { Role, Severity } from '@prisma/client';
 import { handlerHashPassword } from 'src/helper/util';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
-import { MailerService } from '@nestjs-modules/mailer';
+// import { MailerService } from '@nestjs-modules/mailer';
 import dayjs from 'dayjs';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class UserService {
     constructor(
         private prismaService: PrismaService,
         private eventEmitter: EventEmitter2,
-        private mailerService: MailerService,
+        // private mailerService: MailerService,
     ) { }
 
     async create(createUserDto: CreateUserDto): Promise<string> {
