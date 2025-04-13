@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException, ConflictExc
 import { PrismaService } from "src/prisma/prisma.service";
 import { Prisma, Schedule, DeviceStatus, DeviceType, Severity } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CreateScheduleDto, FindAllSchedulesDto, GetSchedulesRequestDto } from "./dto";
+import { CreateScheduleDto, FindAllSchedulesDto, GetSchedulesRequestDto, ScheduleInfoDto } from "./dto";
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -414,8 +414,8 @@ export class ScheduleService {
   }
 
 
-  // @Cron(CronExpression.EVERY_MINUTE)
-  @Cron('*/10 * * * * *')
+  @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron('*/10 * * * * *')
   async handleCron() {
     this.logger.debug(`Running scheduled check (${this.localTimezone})...`);
     try {

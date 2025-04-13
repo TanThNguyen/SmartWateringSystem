@@ -177,7 +177,8 @@ export default function HistoryPage() {
                     Trước
                 </button>
                 <span className="paginationInfo">
-                    Trang {page} / {Math.ceil(totalRecords / itemsPerPage)} (Tổng: {totalRecords})
+                    Trang {page} / {Math.ceil(totalRecords / itemsPerPage)} 
+                    {/* (Tổng: {totalRecords}) */}
                 </span>
                 <button
                     onClick={() => handlePageChange(page + 1)}

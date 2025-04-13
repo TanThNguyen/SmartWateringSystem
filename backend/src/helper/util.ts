@@ -15,4 +15,5 @@ export const handlerComparePassword = async (password: string, hashedPassword: s
     } catch (error) {
         console.error('Error comparing passwords:', error);
     }
-}
+} 
+  

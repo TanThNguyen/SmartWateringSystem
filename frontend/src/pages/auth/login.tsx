@@ -36,6 +36,7 @@ export default function LoginPage() {
         localStorage.setItem("token", JSON.stringify(accessToken));
         localStorage.setItem("name", JSON.stringify(name));
         localStorage.setItem("isAuthenticated", "true"); 
+        localStorage.setItem("role", role);
         if (role === "ADMIN") {
           localStorage.setItem("adminLogin", JSON.stringify({ status: true, expiration }));
         } else if (role === "GARDENER") {
@@ -47,6 +48,7 @@ export default function LoginPage() {
           setLoading(false); 
           return; 
         }
+
 
         
         navigate("/dashboard");
@@ -68,58 +70,49 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold">Chào mừng bạn!</h1>
         <p className="text-gray-500 mt-2">Nhập thông tin để truy cập</p>
 
-        <div className="mt-6">
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full border px-4 py-2 rounded mt-1"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+          <div className="mt-6">
+            <label className="block text-sm font-medium">Email</label>
+            <input
+              type="email"
+              placeholder="Nhập email"
+              className="w-full border px-4 py-2 rounded mt-1"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <div className="mt-4 relative">
-          <label className="block text-sm font-medium">Mật khẩu</label>
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
-            className="w-full border px-4 py-2 rounded mt-1"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <span
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+          <div className="mt-4 relative">
+            <label className="block text-sm font-medium">Mật khẩu</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Nhập mật khẩu"
+              className="w-full border px-4 py-2 rounded mt-1"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </span>
+            <a href="#" className="text-sm text-blue-600 mt-3 block">Quên mật khẩu?</a>
+          </div>
+
+          <div className="mt-4 flex items-center">
+            <input type="checkbox" className="mr-2" />
+            <span className="text-sm">Ghi nhớ trong 30 ngày</span>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-700 text-white py-2 rounded mt-6 disabled:opacity-50"
+            disabled={loading}
           >
-            {showPassword ? <FiEyeOff /> : <FiEye />}
-          </span>
-          <a href="#" className="text-sm text-blue-600 mt-3 block">Quên mật khẩu?</a>
-        </div>
-
-        <div className="mt-4 flex items-center">
-          <input type="checkbox" className="mr-2" />
-          <span className="text-sm">Ghi nhớ trong 30 ngày</span>
-        </div>
-
-        <button
-          onClick={handleLogin}
-          className="w-full bg-green-700 text-white py-2 rounded mt-6 disabled:opacity-50"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Đăng nhập"}
-        </button>
-
-        {/* <div className="text-center text-sm text-gray-400 mt-4">Or</div>
-
-        <div className="flex gap-4 mt-4">
-          <button className="flex-1 border flex items-center justify-center py-2 rounded">
-            <FaGoogle className="mr-2" /> Sign in with Google
+            {loading ? "Logging in..." : "Đăng nhập"}
           </button>
-          <button className="flex-1 border flex items-center justify-center py-2 rounded">
-            <FaApple className="mr-2" /> Sign in with Apple
-          </button>
-        </div> */}
+        </form>
       </div>
 
       <div className="w-1/2 h-full">

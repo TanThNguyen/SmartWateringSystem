@@ -27,6 +27,7 @@ export default function DashboardLayout() {
   const [isViewingNotiDetail, setIsViewingNotiDetail] = useState<boolean>(false);
   const [isLoadingNoti, setIsLoadingNoti] = useState<boolean>(false);
   const [fetchNotiFlag, setFetchNotiFlag] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] =useState(true);
 
   const navigate = useNavigate();
 
@@ -35,8 +36,14 @@ export default function DashboardLayout() {
     if (storedUser) {
       setUsername(storedUser);
     }
+    const role = localStorage.getItem("role");
+    if (role === "ADMIN") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
   }, []);
-
+  
   useEffect(() => {
     const fetchAllNotificationData = async () => {
       setIsLoadingNoti(true);
@@ -260,14 +267,23 @@ export default function DashboardLayout() {
                   <FaShower size={22} />
                 </NavLink>
 
-                <Tooltip target=".sidebar-users-icon" content="Quản lý người dùng" position="right" showDelay={150}/>
-                <NavLink
-                  to="usermanager"
-                   className={(navData) => `${navLinkClass(navData)} sidebar-users-icon`}
-                  aria-label="Quản lý người dùng"
-                >
-                  <FaUsers size={22} />
-                </NavLink>
+                {isAdmin && (
+                <>
+                  <Tooltip
+                    target=".sidebar-users-icon"
+                    content="Quản lý người dùng"
+                    position="right"
+                    showDelay={150}
+                  />
+                  <NavLink
+                    to="usermanager"
+                    className={(navData) => `${navLinkClass(navData)} sidebar-users-icon`}
+                    aria-label="Quản lý người dùng"
+                  >
+                    <FaUsers size={22} />
+                  </NavLink>
+                </>
+              )}
 
                 <Tooltip target=".sidebar-history-icon" content="Lịch sử" position="right" showDelay={150}/>
                 <NavLink

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  ai-assistant:
+    container_name: smartgarden-ai-assistant-dev
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${AI_ASSISTANT_PORT}:${AI_ASSISTANT_PORT}"
+    volumes:
+      - ./app:/code/app
+    restart: unless-stopped
+    # networks:
+    #   - smartgarden-dev-net
+    networks:
+      - default
+
+# networks:
+#   smartgarden-dev-net:
+#     driver: bridge
+
+networks:
+  default:

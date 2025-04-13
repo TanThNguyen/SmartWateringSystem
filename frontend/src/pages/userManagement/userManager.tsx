@@ -272,15 +272,28 @@ export default function UserManagementPage() {
 
 
         {/* Chỉ thay className của button */}
-        <button onClick={() => setShowAddForm(true)}
+        {/* <button onClick={() => setShowAddForm(true)}
           className="actionButton"
         >
-          Thêm
-        </button>
-        {/* Chỉ thay className của button */}
+          Thêm Mới
+
         <button onClick={handleDeleteUsers} disabled={selectedUsers.length === 0}
           className="actionButton" // SCSS sẽ tự xử lý :disabled
-        >Xóa</button>
+        >Xóa</button> */}
+
+        <button
+          onClick={setShowAddForm}
+          className="button addButton"
+        >
+          Thêm Mới
+        </button>
+        <button
+          onClick={handleDeleteUsers}
+          disabled={selectedUsers.length === 0 || loading}
+          className="button deleteButton"
+        >
+          Xóa ({selectedUsers.length})
+        </button>
       </div>
 
       {/* Chỉ thay className của div table container */}
@@ -385,7 +398,7 @@ export default function UserManagementPage() {
           onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}
         >
           {/* Giữ nguyên component PopupModal và props */}
-          <PopupModal title="Add New User" onClose={() => setShowAddForm(false)}>
+          <PopupModal title="Thêm người dùng mới" onClose={() => setShowAddForm(false)}>
              {/* Thêm wrapper content nếu cần cho SCSS */}
              <div className="modalContent">
                 {/* Giữ nguyên các input và select, không thêm label nếu không có */}
@@ -450,7 +463,7 @@ export default function UserManagementPage() {
             <div className="modalActions">
               {/* Áp dụng className modalButton và lớp bổ trợ */}
               <button onClick={handleCreateUser} className="modalButton success">
-                Tạo
+                Tạo mới
               </button>
               <button onClick={() => setShowAddForm(false)} className="modalButton secondary">
                 Hủy

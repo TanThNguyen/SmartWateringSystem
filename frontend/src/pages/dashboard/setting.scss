@@ -16,9 +16,9 @@
   align-items: center;
   gap: 10px;
   width: 90%;
-  max-width: 1000px; /* Adjust max-width as needed */
+  max-width: 1200px;
   padding: 10px 15px;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   border-radius: 8px;
 }
@@ -30,8 +30,8 @@
 }
 
 .searchInput {
-  flex-grow: 1; /* Take available space */
-  min-width: 150px; /* Minimum width before wrapping */
+  flex-grow: 1;
+  min-width: 200px;
   height: 40px;
   padding: 8px 12px;
   border: 1px solid #ccc;
@@ -45,9 +45,12 @@
   height: 40px;
   vertical-align: middle;
   position: relative;
-  z-index: 50; // Ensure trigger is above table header
-  width: 180px; // Default width, adjust as needed
+  z-index: 50; // Above table header
+  width: 180px; // Default width
+
+  &.w-150 { width: 150px; } // Specific width example
 }
+
 
 .filterDropdownTrigger {
   display: flex;
@@ -110,7 +113,7 @@
   }
 }
 
-.actionButton {
+.button {
   color: #fff;
   border: none;
   padding: 0 14px;
@@ -125,16 +128,39 @@
   white-space: nowrap;
   box-sizing: border-box;
   font-size: 14px;
-  background-color: #f39c12; // Orange color like Tailwind
-
-  &:hover:not(:disabled) {
-    background-color: #e67e22; // Darker orange
-  }
 
   &:disabled {
     background-color: #bdc3c7 !important;
     cursor: not-allowed;
     opacity: 0.7;
+  }
+}
+
+.addButton {
+  background-color: #2ecc71;
+  &:hover:not(:disabled) {
+    background-color: #27ae60;
+  }
+}
+
+.deleteButton {
+  background-color: #e74c3c;
+  &:hover:not(:disabled) {
+    background-color: #c0392b;
+  }
+}
+
+.primaryButton {
+  background-color: #3498db;
+  &:hover:not(:disabled) {
+    background-color: #2980b9;
+  }
+}
+
+.secondaryButton {
+  background-color: #95a5a6;
+  &:hover:not(:disabled) {
+    background-color: #7f8c8d;
   }
 }
 
@@ -145,11 +171,12 @@
   overflow: hidden; // Important for containing the table/header
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-width: 1000px; /* Match filter container */
+  max-width: 1200px;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 220px); // Adjusted height
+  // max-height: calc(100vh - 220px); 
+  height: 545px;
 }
 
 .tableWrapper {
@@ -358,8 +385,8 @@
     &:hover { background-color: #7f8c8d; }
   }
   &.success {
-    background-color: #2ecc71;
-    &:hover { background-color: #27ae60; }
+    background-color: #3498db;
+    &:hover { background-color: #2980b9; }
   }
   &.danger {
      background-color: #e74c3c;

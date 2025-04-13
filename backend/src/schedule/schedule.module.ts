@@ -1,13 +1,17 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { ScheduleController } from "./schedule.controller";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { AdafruitModule } from "src/adafruit/adafruit.module";
+// import { AdafruitModule } from "src/adafruit/adafruit.module";
 
 @Module({
-  imports: [PrismaModule, AdafruitModule],
+  imports: [
+    PrismaModule, 
+    forwardRef(() => AdafruitModule),
+  ],
   controllers: [ScheduleController],
   providers: [ScheduleService],
   exports: [ScheduleService],
 })
-export class ScheduleModule {}
+export class ScheduleModule { }

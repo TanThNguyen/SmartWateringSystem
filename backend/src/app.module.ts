@@ -17,6 +17,8 @@ import { RecordModule } from './record/record.module';
 import { ScheduleModule as MyCustomScheduleModule } from './schedule/schedule.module'; // Đổi tên import để tránh trùng lặp (hoặc giữ nguyên nếu tên file khác)
 import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'; // <-- IMPORT GÓI LẬP LỊCH
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { AiAssistantModule } from './ai-assistant/ai-assistant.module';
+import { DecisionModule } from './decision/decision.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AdafruitModule,
     RecordModule,
     MyCustomScheduleModule,
+    AiAssistantModule,
+    DecisionModule,
   ],
   controllers: [AppController],
   providers: [

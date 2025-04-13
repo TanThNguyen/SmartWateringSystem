@@ -38,8 +38,7 @@ import {
   ScheduleType,
   CreateSchedulePayload,
   GetSchedulesParams,
-  ToggleSchedulePayload,
-  DeleteSchedulePayload,
+
 } from "../../types/schedule.type";
 
 import PopupModal from "../../layout/popupmodal";
@@ -80,6 +79,7 @@ export default function DeviceManagementPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const initialNewDeviceState: AddDeviceType = {
     name: "",
     locationId: "",
@@ -110,6 +110,15 @@ export default function DeviceManagementPage() {
   const [newScheduleRepeatDays, setNewScheduleRepeatDays] = useState<boolean[]>(Array(7).fill(false));
   const addModalRef = useRef<HTMLDivElement>(null);
   const editModalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const [isAdmin, setIsAdmin] =useState(true);
 
   const findConfig = useCallback((configId?: string): ConfigurationDetailType | undefined => {
     return configOptions.find(c => c.configId === configId);
@@ -232,7 +241,7 @@ export default function DeviceManagementPage() {
     } finally {
       setChartLoading(false);
     }
-  }, []);
+  }, [currentTime]);
 
   const fetchSchedules = useCallback(async (deviceId: string) => {
     if (!deviceId) {
@@ -270,6 +279,15 @@ export default function DeviceManagementPage() {
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "ADMIN") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchDevices();
@@ -412,6 +430,21 @@ export default function DeviceManagementPage() {
     setShowAddForm(false);
     setShowEditForm(false);
   };
+
+  // Thêm useEffect lắng nghe sự kiện Esc và đóng modal khi nhấn Esc
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCloseModals();
+      }
+    };
+    if (showAddForm || showEditForm) {
+      window.addEventListener("keydown", handleEsc);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [showAddForm, showEditForm]);
 
   const handleNewDeviceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -799,19 +832,25 @@ export default function DeviceManagementPage() {
         {renderDropdown("Trạng thái", statusFilter, statusOptions, handleFilterChange(setStatusFilter), "w-40")}
         {renderDropdown("Sắp xếp", order, orderOptions, handleFilterChange(setOrder), "w-36")}
         {renderDropdown("Khu vực", locationFilter, locationOptions, handleFilterChange(setLocationFilter), "w-48")}
+        {isAdmin && (
         <button
           onClick={handleOpenAddForm}
           className="button addButton"
         >
           Thêm Mới
         </button>
-        <button
-          onClick={handleDeleteDevices}
-          disabled={selectedDeviceIds.length === 0 || loading}
-          className="button deleteButton"
-        >
-          Xóa ({selectedDeviceIds.length})
-        </button>
+        )}
+
+        {isAdmin && (
+          <button
+            onClick={handleDeleteDevices}
+            disabled={selectedDeviceIds.length === 0 || loading}
+            className="button deleteButton"
+          >
+            Xóa ({selectedDeviceIds.length})
+          </button>
+        )}
+
       </div>
 
       <div className="tableContainer">
@@ -819,7 +858,8 @@ export default function DeviceManagementPage() {
           <table className="deviceTable">
             <thead>
               <tr>
-                <th style={{ width: '5%' }} className="checkboxCell">
+               {isAdmin && ( <th style={{ width: '5%' }} className="checkboxCell">
+                
                   <input
                     type="checkbox"
                     className="checkboxInput"
@@ -828,7 +868,7 @@ export default function DeviceManagementPage() {
                     disabled={loading || devices.length === 0}
                     title="Chọn/Bỏ chọn tất cả"
                   />
-                </th>
+                </th>)}
                 <th style={{ width: '30%' }}>Tên</th>
                 <th style={{ width: '25%' }}>Khu vực</th>
                 <th style={{ width: '20%' }}>Loại</th>
@@ -848,7 +888,7 @@ export default function DeviceManagementPage() {
                     className="tableRowClickable"
                     title="Xem chi tiết/Chỉnh sửa"
                   >
-                    <td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
+                   {isAdmin && (  <td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         className="checkboxInput"
@@ -858,7 +898,7 @@ export default function DeviceManagementPage() {
                           toggleSelectDevice(device.deviceId);
                         }}
                       />
-                    </td>
+                    </td>)}
                     <td>{device.name}</td>
                     <td>{locationMap.get(device.locationId) || device.locationId}</td>
                     <td>{device.type}</td>
@@ -896,7 +936,8 @@ export default function DeviceManagementPage() {
             Trước
           </button>
           <span className="paginationInfo">
-            Trang {currentPage} / {Math.ceil(totalRecords / itemsPerPage)} (Tổng: {totalRecords})
+            Trang {currentPage} / {Math.ceil(totalRecords / itemsPerPage)} 
+            {/* (Tổng: {totalRecords}) */}
           </span>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
@@ -994,9 +1035,9 @@ export default function DeviceManagementPage() {
         <div className="modalOverlay" onClick={handleCloseModals}>
           <div
             className={`modalContentWrapper ${selectedDeviceInfo &&
-                (selectedDeviceInfo.type === DeviceType.PUMP || selectedDeviceInfo.type === DeviceType.FAN || selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR || selectedDeviceInfo.type === DeviceType.DHT20_SENSOR)
-                ? 'modalWithTwoColumns'
-                : ''
+              (selectedDeviceInfo.type === DeviceType.PUMP || selectedDeviceInfo.type === DeviceType.FAN || selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR || selectedDeviceInfo.type === DeviceType.DHT20_SENSOR)
+              ? 'modalWithTwoColumns'
+              : ''
               }`}
             ref={editModalRef}
             onClick={(e) => e.stopPropagation()}
@@ -1171,7 +1212,7 @@ export default function DeviceManagementPage() {
                                   onChange={() => handleToggleSchedule(schedule.scheduleId, schedule.deviceId)}
                                   disabled={scheduleLoading}
                                 />
-                                <span className="switch"><span className="slider"></span></span>
+                                {/* <span className="switch"><span className="slider"></span></span> */}
                               </label>
                               <button
                                 className="deleteScheduleButton"
@@ -1220,26 +1261,28 @@ export default function DeviceManagementPage() {
                         </button>
                       ) : (
                         <form className="addScheduleForm" onSubmit={(e) => { e.preventDefault(); handleCreateSchedule(); }}>
-                          <label>
-                            Bắt đầu: <span className="requiredAsterisk">*</span>
-                            <input
-                              type="datetime-local"
-                              name="startTime"
-                              value={newSchedule.startTime || ""}
-                              onChange={handleNewScheduleChange}
-                              required
-                            />
-                          </label>
-                          <label>
-                            Kết thúc: <span className="requiredAsterisk">*</span>
-                            <input
-                              type="datetime-local"
-                              name="endTime"
-                              value={newSchedule.endTime || ""}
-                              onChange={handleNewScheduleChange}
-                              required
-                            />
-                          </label>
+                          <div className="dateTimeRow"> {/* Thêm container để căn hàng */}
+                            <label className="dateField">
+                              Bắt đầu: <span className="requiredAsterisk">*</span>
+                              <input
+                                type="datetime-local"
+                                name="startTime"
+                                value={newSchedule.startTime || ""}
+                                onChange={handleNewScheduleChange}
+                                required
+                              />
+                            </label>
+                            <label className="dateField">
+                              Kết thúc: <span className="requiredAsterisk">*</span>
+                              <input
+                                type="datetime-local"
+                                name="endTime"
+                                value={newSchedule.endTime || ""}
+                                onChange={handleNewScheduleChange}
+                                required
+                              />
+                            </label>
+                          </div>
                           <label>Lặp lại vào các ngày:</label>
                           <div className="repeatDaysContainer">
                             {dayLabels.map((day, index) => (

@@ -46,6 +46,10 @@ const SettingPage = () => {
     const [updateConfig, setUpdateConfig] = useState<ConfigurationUpdateType | null>(null);
     const [first, setFirst] = useState<number>(0);
     const [rows, setRows] = useState<number>(10);
+    const [isAdmin, setIsAdmin] =useState(true);
+
+
+
     // --- END OF STATE AND LOGIC ---
 
 
@@ -163,6 +167,14 @@ const SettingPage = () => {
 
 
     // --- USE EFFECT HOOKS (UNCHANGED FROM ORIGINAL) ---
+    useEffect(() => {
+        const role = localStorage.getItem("role");
+        if (role === "ADMIN") {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      }, []);
      useEffect(() => {
         const fetchLocationData = async () => {
             try {
@@ -253,7 +265,7 @@ const SettingPage = () => {
                     // Pass the state setter function, adapting to expected arg structure
                     (e) => setDeviceTypeFilter(e.value as DeviceType | "ALL")
                 )}
-                <button onClick={() => setShowAddForm(true)}
+                {/* <button onClick={() => setShowAddForm(true)}
                     // Apply SCSS class to action buttons
                     className="actionButton"
                 >
@@ -266,7 +278,28 @@ const SettingPage = () => {
                     disabled={deleteConfig.length === 0} // Keep original disabled logic
                 >
                     Xóa
+                </button> */}
+
+                {isAdmin && (
+                <button
+                    onClick={setShowAddForm}
+                    className="button addButton"
+                >
+                    Thêm Mới
+                </button>)}
+
+                {isAdmin && (
+                <button
+                    onClick={handleDeleteConfigurations}
+                    disabled={deleteConfig.length === 0 || loading}
+                    className="button deleteButton"
+                >
+                    Xóa ({deleteConfig.length})
                 </button>
+
+                )}
+
+
             </div>
 
             {/* Table Section - Apply SCSS class to container */}
@@ -522,7 +555,7 @@ const SettingPage = () => {
                             onClick={handleCreateConfiguration}
                             className="modalButton success" // Use appropriate variant
                         >
-                            Tạo
+                            Tạo mới
                         </button>
                         <button
                             onClick={() => setShowAddForm(false)}

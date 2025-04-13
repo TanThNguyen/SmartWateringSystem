@@ -41,6 +41,8 @@ export default function DashboardPage() {
   const [recordData, setRecrordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
   const [isDataStale, setIsDataStale] = useState(false);
 
+    const [isAdmin, setIsAdmin] =useState(true);
+  
   useEffect(() => {
     const fetchLocationData = async () => {
       try {
@@ -67,8 +69,15 @@ export default function DashboardPage() {
     if (storedUser) {
       setUsername(storedUser.slice(1, -1)); // Cắt bỏ ký tự đầu và cuối
     }
+
+    const role = localStorage.getItem("role");
+    if (role === "ADMIN") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
   }, []);
-  
+
 
   // Cập nhật thời gian mỗi giây
   useEffect(() => {
@@ -221,6 +230,17 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [showAreaList]);
 
+  useEffect(() => {
+    if (!editingArea) return;
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCancelEditArea();
+      }
+    };
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [editingArea]);
+
   const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
   const timeString = currentTime.toLocaleTimeString("vi-VN", TIME_FORMAT);
 
@@ -296,6 +316,7 @@ export default function DashboardPage() {
 
   const handleCancelEditArea = () => {
     setEditingArea(null);
+    setShowAreaList(true);
   };
 
   const handleDeleteArea = (locationId: string) => {
@@ -385,7 +406,7 @@ export default function DashboardPage() {
       }}
     >
       {/* Thanh trên cùng */}
-      <div className="absolute top-0 left-0 w-full flex items-center justify-between p-4 bg-black/40">
+      <div className="fixed top-0 inset-x-20 flex items-center justify-between p-4 bg-black/40">
         <div className="flex items-center space-x-4">
           <div className="relative">
             {/* <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
@@ -396,7 +417,7 @@ export default function DashboardPage() {
             </button>
           </div>
           <span className="text-white text-lg font-semibold">
-            Welcome Farm, {username}
+            Chào mừng bạn, {username}
           </span>
         </div>
         <div className="text-white text-right">
@@ -420,12 +441,15 @@ export default function DashboardPage() {
                 {area.name}
               </button>
             ))}
+            {isAdmin && (
             <button
-              onClick={handleAddArea}
-              className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
-            >
-              +
-            </button>
+            onClick={handleAddArea}
+            className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
+          >
+            +
+          </button>
+            )}
+
             <button
               onClick={handleOpenAreaList}
               className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
@@ -439,32 +463,32 @@ export default function DashboardPage() {
 
 
           {/* Hiển thị thông tin khu vực */}
-          {selectedLocation? (
+          {selectedLocation ? (
 
-          <div className={`flex flex-wrap justify-between gap-4 mb-6 ${isDataStale ? "border-4 border-red-500 animate-pulse" : ""}`}>
-            {/* Nhiệt độ */}
-            <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-              <div className="text-xl font-semibold mb-1">Nhiệt độ</div>
-              <div className="text-3xl font-bold">{temperatureChartData[selectedLocation]?.slice(-1)[0]?.temp ?? "--"}°C</div>
-              <div className="text-sm text-gray-600 mt-1">Temperature</div>
-            </div>
+            <div className={`flex flex-wrap justify-between gap-4 mb-6 ${isDataStale ? "border-4 border-red-500 animate-pulse" : ""}`}>
+              {/* Nhiệt độ */}
+              <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
+                <div className="text-xl font-semibold mb-1">Nhiệt độ</div>
+                <div className="text-3xl font-bold">{temperatureChartData[selectedLocation]?.slice(-1)[0]?.temp ?? "--"}°C</div>
+                <div className="text-sm text-gray-600 mt-1">Temperature</div>
+              </div>
 
-            {/* Độ ẩm không khí */}
-            <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-              <div className="text-xl font-semibold mb-1">Độ ẩm</div>
-              <div className="text-3xl font-bold">{humidityChartData[selectedLocation]?.slice(-1)[0]?.humidity ?? "--"}%</div>
-              <div className="text-sm text-gray-600 mt-1">Air humidity</div>
-            </div>
+              {/* Độ ẩm không khí */}
+              <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
+                <div className="text-xl font-semibold mb-1">Độ ẩm</div>
+                <div className="text-3xl font-bold">{humidityChartData[selectedLocation]?.slice(-1)[0]?.humidity ?? "--"}%</div>
+                <div className="text-sm text-gray-600 mt-1">Air humidity</div>
+              </div>
 
-            {/* Độ ẩm đất */}
-            <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
-              <div className="text-xl font-semibold mb-1">Độ ẩm đất</div>
-              <div className="text-3xl font-bold">{soilChartData[selectedLocation]?.slice(-1)[0]?.soil ?? "--"}%</div>
-              <div className="text-sm text-gray-600 mt-1">Soil moisture</div>
+              {/* Độ ẩm đất */}
+              <div className="flex-1 min-w-[200px] bg-white/80 rounded-lg p-4 flex flex-col items-center">
+                <div className="text-xl font-semibold mb-1">Độ ẩm đất</div>
+                <div className="text-3xl font-bold">{soilChartData[selectedLocation]?.slice(-1)[0]?.soil ?? "--"}%</div>
+                <div className="text-sm text-gray-600 mt-1">Soil moisture</div>
+              </div>
             </div>
-          </div>
           ) : (
-          <div className="text-center py-6 text-gray-600">Chưa chọn khu vực</div>
+            <div className="text-center py-6 text-gray-600">Chưa chọn khu vực</div>
           )}
 
 
@@ -572,33 +596,36 @@ export default function DashboardPage() {
       {/* Modal danh sách areas */}
       {showAreaList && (
         <div onClick={() => setShowAreaList(false)} className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-96">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-11/12 max-w-md">
             <h2 className="text-lg font-bold mb-4">Danh sách khu vực</h2>
-            <table className="w-full text-left mb-4">
+            <table className="w-full text-left mb-4 table-auto">
               <thead>
                 <tr>
                   <th className="border-b py-2">Khu vực</th>
-                  <th className="border-b py-2">Hoạt động</th>
+                  {isAdmin &&(<th className="border-b py-2">Hoạt động</th>)}
                 </tr>
               </thead>
               <tbody>
                 {locationData.locations.map((location) => (
                   <tr key={location.locationId}>
                     <td className="border-b py-2">{location.name}</td>
+
+                    {isAdmin && (
                     <td className="border-b py-2 space-x-2">
                       <button
                         onClick={() => handleEditArea(location.locationId)}
-                        className="px-2 py-1 bg-green-500 text-white rounded"
+                        className="px-2 py-1 bg-blue-500 text-white rounded"
                       >
                         Chỉnh sửa
                       </button>
                       <button
                         onClick={() => handleDeleteArea(location.locationId)}
-                        className="px-2 py-1 bg-red-500 text-white rounded"
+                        className="px-4 py-1 bg-gray-300 rounded"
                       >
                         Xóa
                       </button>
                     </td>
+                  )}
                   </tr>
                 ))}
               </tbody>
@@ -618,9 +645,9 @@ export default function DashboardPage() {
         editingArea !== null && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50">
             <div className="bg-white p-6 rounded-lg w-80">
-              <h2 className="text-lg font-bold mb-4">Chỉnh sửa Area</h2>
+              <h2 className="text-lg font-bold mb-4">Chỉnh sửa khu vực</h2>
               <div className="mb-2">
-                <label className="block text-sm">Tên Area</label>
+                <label className="block text-sm">Tên khu vực</label>
                 <input
                   type="text"
                   value={editingAreaData.name}
@@ -629,8 +656,8 @@ export default function DashboardPage() {
                 />
               </div>
               <div className="flex justify-end space-x-2">
-                <button onClick={() => handleSaveEditArea()} className="px-4 py-1 bg-blue-500 text-white rounded">Save</button>
-                <button onClick={handleCancelEditArea} className="px-4 py-1 bg-gray-300 rounded">Cancel</button>
+                <button onClick={() => handleSaveEditArea()} className="px-4 py-1 bg-blue-500 text-white rounded">Lưu</button>
+                <button onClick={handleCancelEditArea} className="px-4 py-1 bg-gray-300 rounded">Hủy</button>
               </div>
             </div>
           </div>
@@ -676,9 +703,11 @@ export default function DashboardPage() {
             <div onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg w-11/12 max-w-3xl">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
-                  {selectedChart === "temperature" ? "Temperature"
-                    : selectedChart === "humidity" ? "Humidity"
-                      : "Soil Moisture"} Chart
+                  {selectedChart === "temperature"
+                    ? "Biểu đồ Nhiệt độ"
+                    : selectedChart === "humidity"
+                      ? "Biểu đồ Độ ẩm không khí"
+                      : "Biểu đồ Độ ẩm đất"}
                 </h2>
                 <button onClick={() => setShowChartModal(false)} className="px-4 py-1 bg-gray-300 rounded">✖</button>
               </div>
@@ -729,13 +758,13 @@ export default function DashboardPage() {
 
               {/* Bộ lọc thời gian */}
               <div className="flex space-x-2 mb-4">
-                {[1, 3, 7, 30].map((day) => (
+                {[1 / 96, 1, 3, 7, 30].map((day) => (
                   <button
                     key={day}
                     onClick={() => setTimeFilter(day)}
                     className={`px-3 py-1 rounded ${timeFilter === day ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
                   >
-                    {day === 1 ? "24 giờ gần nhất" : `${day} ngày trước`}
+                    {day === 1/96 ? "15 phút gần nhất" : (day === 1 ? `24 giờ gần nhất`:`${day} ngày trước`)}
                   </button>
                 ))}
               </div>
