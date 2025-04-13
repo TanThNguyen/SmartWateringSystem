@@ -149,6 +149,7 @@ export default function UserManagementPage() {
   const handleCreateUser = async () => {
     // Không thay đổi gì ở đây
     try {
+      console.log(newUser)
       await userApi.createUser(newUser);
       fetchUsers();
       setShowAddForm(false);
@@ -282,7 +283,7 @@ export default function UserManagementPage() {
         >Xóa</button> */}
 
         <button
-          onClick={setShowAddForm}
+          onClick={() => setShowAddForm(true)}
           className="button addButton"
         >
           Thêm Mới
@@ -318,17 +319,17 @@ export default function UserManagementPage() {
               {users.length > 0 ? (
                 users.map((user, index) => ( // Giữ nguyên key={index} nếu bạn dùng nó
                   <tr key={index} onClick={() => {
-                      // Giữ nguyên logic tạo upuser và gọi hàm
-                      const upuser: UpdateUserType = {
-                        userId: user.userId,
-                        name: user.name,
-                        email: user.email,
-                        locationId: user.locationId,
-                        phone: user.phone,
-                        role: user.role,
-                        password: "password123", // Giữ nguyên password mặc định này
-                      };
-                      handleOpenUpdateForm(upuser);
+                    // Giữ nguyên logic tạo upuser và gọi hàm
+                    const upuser: UpdateUserType = {
+                      userId: user.userId,
+                      name: user.name,
+                      email: user.email,
+                      locationId: user.locationId,
+                      phone: user.phone,
+                      role: user.role,
+                      password: "password123", // Giữ nguyên password mặc định này
+                    };
+                    handleOpenUpdateForm(upuser);
                   }}>
                     {/* Thêm className và giữ nguyên logicstopPropagation */}
                     <td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
@@ -399,65 +400,65 @@ export default function UserManagementPage() {
         >
           {/* Giữ nguyên component PopupModal và props */}
           <PopupModal title="Thêm người dùng mới" onClose={() => setShowAddForm(false)}>
-             {/* Thêm wrapper content nếu cần cho SCSS */}
-             <div className="modalContent">
-                {/* Giữ nguyên các input và select, không thêm label nếu không có */}
-                <input
-                  type="text"
-                  name="name"
-                  value={newUser.name}
-                  onChange={handleNewUserChange}
-                  placeholder="Name"
-                  // Không thêm className cho input trừ khi SCSS có định nghĩa riêng
-                />
-                <input
-                  type="email"
-                  name="email"
-                  value={newUser.email}
-                  onChange={handleNewUserChange}
-                  placeholder="Email"
-                />
-                <select
-                  name="locationId"
-                  value={newUser.locationId}
-                  onChange={handleNewUserChange}
-                  // Không thêm className cho select trừ khi SCSS có định nghĩa riêng
-                >
-                  {/* Giữ nguyên logic render option */}
-                  <option value="" disabled hidden>
-                    Chọn khu vực
+            {/* Thêm wrapper content nếu cần cho SCSS */}
+            <div className="modalContent">
+              {/* Giữ nguyên các input và select, không thêm label nếu không có */}
+              <input
+                type="text"
+                name="name"
+                value={newUser.name}
+                onChange={handleNewUserChange}
+                placeholder="Name"
+              // Không thêm className cho input trừ khi SCSS có định nghĩa riêng
+              />
+              <input
+                type="email"
+                name="email"
+                value={newUser.email}
+                onChange={handleNewUserChange}
+                placeholder="Email"
+              />
+              <select
+                name="locationId"
+                value={newUser.locationId}
+                onChange={handleNewUserChange}
+              // Không thêm className cho select trừ khi SCSS có định nghĩa riêng
+              >
+                {/* Giữ nguyên logic render option */}
+                <option value="" disabled hidden>
+                  Chọn khu vực
+                </option>
+                {locations.map((location) => (
+                  <option key={location.locationId} value={location.locationId}>
+                    {location.name}
                   </option>
-                  {locations.map((location) => (
-                    <option key={location.locationId} value={location.locationId}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
+                ))}
+              </select>
 
 
-                <input
-                  type="text"
-                  name="phone"
-                  value={newUser.phone}
-                  onChange={handleNewUserChange}
-                  placeholder="Phone"
-                />
-                <input
-                  type="password"
-                  name="password"
-                  value={newUser.password}
-                  onChange={handleNewUserChange}
-                  placeholder="Password"
-                />
-                <select
-                  name="role"
-                  value={newUser.role}
-                  onChange={handleNewUserChange}
-                >
-                  <option value="GARDENER">Gardener</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-             </div>
+              <input
+                type="text"
+                name="phone"
+                value={newUser.phone}
+                onChange={handleNewUserChange}
+                placeholder="Phone"
+              />
+              <input
+                type="password"
+                name="password"
+                value={newUser.password}
+                onChange={handleNewUserChange}
+                placeholder="Password"
+              />
+              <select
+                name="role"
+                value={newUser.role}
+                onChange={handleNewUserChange}
+              >
+                <option value="GARDENER">Gardener</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
 
             {/* Chỉ thay className của div actions và các button bên trong */}
             <div className="modalActions">
@@ -485,71 +486,71 @@ export default function UserManagementPage() {
             title="Cập nhật người dùng"
             onClose={() => setShowUpdateForm(false)}
           >
-             {/* Thêm wrapper content nếu cần cho SCSS */}
-             <div className="modalContent">
-                {/* Giữ nguyên cấu trúc label và input */}
-                <label>
-                  Tên:
-                  <input
-                    type="text"
-                    name="name"
-                    value={updatedUser.name}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label>
-                  Email:
-                  <input
-                    type="email"
-                    name="email"
-                    value={updatedUser.email}
-                    onChange={handleChange}
-                  />
-                </label>
-                 <label> {/* Thêm label cho location nếu cần */}
-                    Khu vực:
-                    <select
-                      name="locationId"
-                      value={updatedUser.locationId}
-                      onChange={handleChange}
-                    >
-                      <option value="" disabled hidden>Chọn khu vực</option>
-                      {locations.map((location) => (
-                        <option key={location.locationId} value={location.locationId}>
-                          {location.name}
-                        </option>
-                      ))}
-                    </select>
-                 </label>
+            {/* Thêm wrapper content nếu cần cho SCSS */}
+            <div className="modalContent">
+              {/* Giữ nguyên cấu trúc label và input */}
+              <label>
+                Tên:
+                <input
+                  type="text"
+                  name="name"
+                  value={updatedUser.name}
+                  onChange={handleChange}
+                />
+              </label>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  name="email"
+                  value={updatedUser.email}
+                  onChange={handleChange}
+                />
+              </label>
+              <label> {/* Thêm label cho location nếu cần */}
+                Khu vực:
+                <select
+                  name="locationId"
+                  value={updatedUser.locationId}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled hidden>Chọn khu vực</option>
+                  {locations.map((location) => (
+                    <option key={location.locationId} value={location.locationId}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                <label>
-                  Số điện thoại:
-                  <input
-                    type="text"
-                    name="phone"
-                    value={updatedUser.phone}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label>
-                  Mật khẩu (đã tự động reset thành mặc định):
-                  <input
-                    type="password"
-                    name="password"
-                    value={updatedUser.password}
-                    onChange={handleChange}
-                    // Không thay đổi placeholder nếu đã có
-                  />
-                </label>
-                <label>
-                  Vai trò:
-                  <select name="role" value={updatedUser.role} onChange={handleChange}>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="GARDENER">GARDENER</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </label>
-             </div>
+              <label>
+                Số điện thoại:
+                <input
+                  type="text"
+                  name="phone"
+                  value={updatedUser.phone}
+                  onChange={handleChange}
+                />
+              </label>
+              <label>
+                Mật khẩu (đã tự động reset thành mặc định):
+                <input
+                  type="password"
+                  name="password"
+                  value={updatedUser.password}
+                  onChange={handleChange}
+                // Không thay đổi placeholder nếu đã có
+                />
+              </label>
+              <label>
+                Vai trò:
+                <select name="role" value={updatedUser.role} onChange={handleChange}>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="GARDENER">GARDENER</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </label>
+            </div>
             {/* Chỉ thay className của div actions và các button bên trong, bỏ class Tailwind */}
             <div className="modalActions">
               <button

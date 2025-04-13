@@ -6,18 +6,14 @@ import { Navigate} from "react-router-dom";
 import { Suspense, lazy } from "react";
 const DashboardLayout = lazy(() => import('./layout/dashboard_layout'));
 const HomePage = lazy(() => import('./pages/dashboard/home'));
-const SettingPage = lazy(() => import('./pages/dashboard/setting'));
-const DevicePage = lazy(() => import('./pages/dashboard/device'));
-// const HistoryPage = lazy(() => import('./pages/dashboard/history'));
+const SettingPage = lazy(() => import('./pages/setting/setting'));
+const DevicePage = lazy(() => import('./pages/device/device'));
 const HistoryPage = lazy(() => import('./pages/log/log'));
-// const UserManagementPage = lazy(() => import('./pages/dashboard/usermanager'));
 const UserManagementPage = lazy(() => import('./pages/userManagement/userManager'));
-const TestAPI = lazy(() => import('./pages/TestAPI/testLocationAPI'));
 
 
 const LoginPage = lazy(() => import('./pages/auth/login'));
 
-//thêm hàm tự chuyển về login nếu chưa đăng nhập, hiện tại dùng link để vào các trang khác
 
  const AuthGuard = ({ children }: { children: React.ReactNode }) => {
  	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true' || sessionStorage.getItem('isAuthenticated') === 'true';
@@ -141,15 +137,6 @@ const routes: RouteObject[] = [
   {
     path: "*",
     element: <ErrorBoundary />,
-  },
-  // Test api
-  {
-    path: "/api",
-	element: (
-		<Suspense fallback={<LoadingSpinner />}>
-			<TestAPI />
-		</Suspense>
-	),
   },
 ];
 

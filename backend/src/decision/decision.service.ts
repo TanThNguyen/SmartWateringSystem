@@ -96,7 +96,7 @@ export class DecisionService {
         }
 
         let actuatorDevice: { deviceId: string; name: string; } | null = null;
-        if (targetDeviceType === DeviceType.PUMP || targetDeviceType === DeviceType.FAN) { // Kiểm tra cụ thể hơn
+        if (targetDeviceType === DeviceType.PUMP || targetDeviceType === DeviceType.FAN) { 
             actuatorDevice = await this.findActuatorDevice(locationId, targetDeviceType);
             if (actuatorDevice) {
                 const isScheduleRunning = await this.checkIfScheduleIsRunning(actuatorDevice.deviceId, nowDayjs);
@@ -186,9 +186,7 @@ export class DecisionService {
         return { moistureThreshold, tempMax, humidityMax, tempMin };
     }
 
-    // SỬA Ở ĐÂY: Kiểu tham số deviceType
      private async findActuatorDevice(locationId: string, deviceType: DeviceType): Promise<{ deviceId: string; name: string; } | null> {
-         // Đảm bảo chỉ tìm PUMP hoặc FAN
          if (deviceType !== DeviceType.PUMP && deviceType !== DeviceType.FAN) {
              this.logger.warn(`[${this.constructor.name}] findActuatorDevice chỉ hỗ trợ PUMP hoặc FAN, nhận được ${deviceType}`);
              return null;
@@ -227,16 +225,15 @@ export class DecisionService {
         }
 
         let fallbackAction = AiAction.NONE;
-        // SỬA Ở ĐÂY: Khai báo kiểu đúng
         let targetDeviceType : DeviceType | null = null;
 
         if (sensorData.temperature > config.tempMax || sensorData.humidity > config.humidityMax) {
             fallbackAction = AiAction.FAN_ON;
-            targetDeviceType = DeviceType.FAN; // Gán giá trị enum
+            targetDeviceType = DeviceType.FAN;
             this.logger.warn(`[${this.constructor.name}] [Fallback] Điều kiện: Temp/Humi cao. Quyết định: ${fallbackAction}.`);
         } else if (sensorData.soilMoisture < config.moistureThreshold) {
             fallbackAction = AiAction.PUMP_ON;
-            targetDeviceType = DeviceType.PUMP; // Gán giá trị enum
+            targetDeviceType = DeviceType.PUMP;
             this.logger.warn(`[${this.constructor.name}] [Fallback] Điều kiện: Độ ẩm đất thấp. Quyết định: ${fallbackAction}.`);
         } else {
             this.logger.log(`[${this.constructor.name}] [Fallback] Điều kiện ổn. Không hành động.`);
@@ -255,7 +252,6 @@ export class DecisionService {
         }
     }
 
-    // Hàm này nhận action cụ thể nên deviceType được suy ra, không cần sửa kiểu
     private async createUrgentSchedule(actuatorDeviceId: string, actuatorDeviceName: string, action: AiAction.PUMP_ON | AiAction.FAN_ON, source: 'AI' | 'FALLBACK', durationSeconds: number): Promise<void> {
         const actionVerb = action === AiAction.PUMP_ON ? 'Bơm' : 'Quạt';
         this.logger.log(`[${source} Trigger] Tạo lịch trình GẤP (simple) cho ${actuatorDeviceName} (${actuatorDeviceId}): ${actionVerb} trong ${durationSeconds} giây.`);

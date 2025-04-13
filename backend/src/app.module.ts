@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config'; 
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { MyJwtGuard } from './auth/guard';
 import { NotificationModule } from './notification/notification.module';
@@ -19,6 +19,9 @@ import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'; // <-- 
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AiAssistantModule } from './ai-assistant/ai-assistant.module';
 import { DecisionModule } from './decision/decision.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
@@ -40,6 +43,32 @@ import { DecisionModule } from './decision/decision.module';
     MyCustomScheduleModule,
     AiAssistantModule,
     DecisionModule,
+    MailerModule.forRootAsync({
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('HOSTMAIL'),
+          port: configService.get<number>('PORTMAIL'),
+          secure: true,
+          auth: {
+            user: configService.get<string>('MAILDEV_INCOMING_USER'),
+            pass: configService.get<string>('MAILDEV_INCOMING_PASS')
+          },
+        },
+        defaults: {
+          from: '"No Reply" <no-reply@localhost>',
+        },
+        template: {
+          dir: join(__dirname, '../mail/templates/'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+      inject: [ConfigService]
+
+    }),
+
   ],
   controllers: [AppController],
   providers: [
@@ -50,4 +79,4 @@ import { DecisionModule } from './decision/decision.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

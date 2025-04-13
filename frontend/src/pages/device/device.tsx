@@ -118,7 +118,7 @@ export default function DeviceManagementPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const [isAdmin, setIsAdmin] =useState(true);
+  const [isAdmin, setIsAdmin] = useState(true);
 
   const findConfig = useCallback((configId?: string): ConfigurationDetailType | undefined => {
     return configOptions.find(c => c.configId === configId);
@@ -833,12 +833,12 @@ export default function DeviceManagementPage() {
         {renderDropdown("Sắp xếp", order, orderOptions, handleFilterChange(setOrder), "w-36")}
         {renderDropdown("Khu vực", locationFilter, locationOptions, handleFilterChange(setLocationFilter), "w-48")}
         {isAdmin && (
-        <button
-          onClick={handleOpenAddForm}
-          className="button addButton"
-        >
-          Thêm Mới
-        </button>
+          <button
+            onClick={handleOpenAddForm}
+            className="button addButton"
+          >
+            Thêm Mới
+          </button>
         )}
 
         {isAdmin && (
@@ -858,8 +858,8 @@ export default function DeviceManagementPage() {
           <table className="deviceTable">
             <thead>
               <tr>
-               {isAdmin && ( <th style={{ width: '5%' }} className="checkboxCell">
-                
+                {isAdmin && (<th style={{ width: '5%' }} className="checkboxCell">
+
                   <input
                     type="checkbox"
                     className="checkboxInput"
@@ -888,7 +888,7 @@ export default function DeviceManagementPage() {
                     className="tableRowClickable"
                     title="Xem chi tiết/Chỉnh sửa"
                   >
-                   {isAdmin && (  <td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
+                    {isAdmin && (<td className="checkboxCell" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         className="checkboxInput"
@@ -936,7 +936,7 @@ export default function DeviceManagementPage() {
             Trước
           </button>
           <span className="paginationInfo">
-            Trang {currentPage} / {Math.ceil(totalRecords / itemsPerPage)} 
+            Trang {currentPage} / {Math.ceil(totalRecords / itemsPerPage)}
             {/* (Tổng: {totalRecords}) */}
           </span>
           <button

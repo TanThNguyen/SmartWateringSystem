@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { FaGoogle, FaApple } from "react-icons/fa";
@@ -12,6 +12,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+    if (isAuthenticated && token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -35,7 +43,7 @@ export default function LoginPage() {
         console.log(response);
         localStorage.setItem("token", JSON.stringify(accessToken));
         localStorage.setItem("name", JSON.stringify(name));
-        localStorage.setItem("isAuthenticated", "true"); 
+        localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("role", role);
         if (role === "ADMIN") {
           localStorage.setItem("adminLogin", JSON.stringify({ status: true, expiration }));
@@ -45,12 +53,12 @@ export default function LoginPage() {
           localStorage.removeItem("token");
           localStorage.removeItem("isAuthenticated");
           toast.error("Vai trò không hợp lệ");
-          setLoading(false); 
-          return; 
+          setLoading(false);
+          return;
         }
 
 
-        
+
         navigate("/dashboard");
         toast.success("Đăng nhập thành công!");
       } else {
@@ -93,17 +101,18 @@ export default function LoginPage() {
             />
             <span
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+              className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
             >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
+              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
             </span>
-            <a href="#" className="text-sm text-blue-600 mt-3 block">Quên mật khẩu?</a>
+            {/* <a href="#" className="text-sm text-blue-600 mt-3 block">Quên mật khẩu?</a> */}
+
           </div>
 
-          <div className="mt-4 flex items-center">
+          {/* <div className="mt-4 flex items-center">
             <input type="checkbox" className="mr-2" />
             <span className="text-sm">Ghi nhớ trong 30 ngày</span>
-          </div>
+          </div> */}
 
           <button
             type="submit"

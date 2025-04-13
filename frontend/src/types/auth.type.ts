@@ -4,3 +4,13 @@ export interface LoginType {
     password: string;
 
 }
+
+export interface ChangePasswordType {
+    currentPassword: string;
+    newPassword: string;
+    newPasswordConfirm: string;
+}
+
+export interface ChangePasswordSuccessResponse {
+    message: string;
+}

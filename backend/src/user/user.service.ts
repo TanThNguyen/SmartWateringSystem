@@ -5,12 +5,15 @@ import { Role, Severity } from '@prisma/client';
 import { handlerHashPassword } from 'src/helper/util';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class UserService {
     constructor(
         private prismaService: PrismaService,
         private eventEmitter: EventEmitter2,
+        private mailerService: MailerService,
     ) { }
 
     async create(createUserDto: CreateUserDto): Promise<string> {
@@ -49,6 +52,20 @@ export class UserService {
                     role,
                 },
             });
+
+            // this.mailerService
+            //     .sendMail({
+            //         to: user.email,
+            //         subject: 'Activate your account ✔',
+            //         template: 'active',
+            //         context: {
+            //             name,
+            //             password,
+            //         },
+            //     })
+            //     .catch((error) => {
+            //         console.error('Gửi email thất bại:', error.message);
+            //     });
 
             // --- BỔ SUNG LOG ---
             const logPayloadSuccess: LogEventPayload = {
@@ -189,7 +206,7 @@ export class UserService {
             const items_per_page = Number(query.items_per_page) || 5;
             const { order, search, role, locationId } = query;
             const skip = (page - 1) * items_per_page;
-    
+
             const [users, total] = await Promise.all([
                 this.prismaService.user.findMany({
                     where: {
@@ -230,11 +247,11 @@ export class UserService {
                     },
                 }),
             ]);
-    
+
             const lastPage = Math.ceil(total / items_per_page);
             const nextPage = page + 1 > lastPage ? null : page + 1;
             const prevPage = page - 1 < 1 ? null : page - 1;
-    
+
             return {
                 users: users.map(user => ({
                     userId: user.userId,
@@ -256,8 +273,6 @@ export class UserService {
             throw new InternalServerErrorException('Đã xảy ra lỗi khi lấy danh sách người dùng!');
         }
     }
-    
-
 
     async findByEmail(email: string): Promise<FindByEmailDto> {
         try {
@@ -289,6 +304,24 @@ export class UserService {
             }
 
             throw new InternalServerErrorException('Internal server error');
+        }
+    }
+
+    async updatePassword(email: string, password: string): Promise<void> {
+        try {
+            const passwordHash = await handlerHashPassword(password);
+            console.log(passwordHash)
+            console.log(password)
+            await this.prismaService.user.update({
+                where: { email },
+                data: {
+                    passwordHash,
+                    updatedAt: dayjs().toDate(),
+                },
+            });
+        } catch (error) {
+            console.error(`Lỗi khi cập nhật mật khẩu cho user ID ${email}:`, error);
+            throw new InternalServerErrorException('Lỗi khi cập nhật mật khẩu.');
         }
     }
 }

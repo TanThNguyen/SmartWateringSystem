@@ -41,8 +41,8 @@ export default function DashboardPage() {
   const [recordData, setRecrordData] = useState<Record<string, { temp: number, humidity: number, soil: number }>>({});
   const [isDataStale, setIsDataStale] = useState(false);
 
-    const [isAdmin, setIsAdmin] =useState(true);
-  
+  const [isAdmin, setIsAdmin] = useState(true);
+
   useEffect(() => {
     const fetchLocationData = async () => {
       try {
@@ -442,12 +442,12 @@ export default function DashboardPage() {
               </button>
             ))}
             {isAdmin && (
-            <button
-            onClick={handleAddArea}
-            className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
-          >
-            +
-          </button>
+              <button
+                onClick={handleAddArea}
+                className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm font-semibold bg-white/10 text-gray-800"
+              >
+                +
+              </button>
             )}
 
             <button
@@ -602,7 +602,7 @@ export default function DashboardPage() {
               <thead>
                 <tr>
                   <th className="border-b py-2">Khu vực</th>
-                  {isAdmin &&(<th className="border-b py-2">Hoạt động</th>)}
+                  {isAdmin && (<th className="border-b py-2">Hoạt động</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -611,21 +611,21 @@ export default function DashboardPage() {
                     <td className="border-b py-2">{location.name}</td>
 
                     {isAdmin && (
-                    <td className="border-b py-2 space-x-2">
-                      <button
-                        onClick={() => handleEditArea(location.locationId)}
-                        className="px-2 py-1 bg-blue-500 text-white rounded"
-                      >
-                        Chỉnh sửa
-                      </button>
-                      <button
-                        onClick={() => handleDeleteArea(location.locationId)}
-                        className="px-4 py-1 bg-gray-300 rounded"
-                      >
-                        Xóa
-                      </button>
-                    </td>
-                  )}
+                      <td className="border-b py-2 space-x-2">
+                        <button
+                          onClick={() => handleEditArea(location.locationId)}
+                          className="px-2 py-1 bg-blue-500 text-white rounded"
+                        >
+                          Chỉnh sửa
+                        </button>
+                        <button
+                          onClick={() => handleDeleteArea(location.locationId)}
+                          className="px-4 py-1 bg-gray-300 rounded"
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -764,7 +764,7 @@ export default function DashboardPage() {
                     onClick={() => setTimeFilter(day)}
                     className={`px-3 py-1 rounded ${timeFilter === day ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
                   >
-                    {day === 1/96 ? "15 phút gần nhất" : (day === 1 ? `24 giờ gần nhất`:`${day} ngày trước`)}
+                    {day === 1 / 96 ? "15 phút gần nhất" : (day === 1 ? `24 giờ gần nhất` : `${day} ngày trước`)}
                   </button>
                 ))}
               </div>

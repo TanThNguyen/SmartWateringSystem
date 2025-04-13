@@ -46,7 +46,7 @@ const SettingPage = () => {
     const [updateConfig, setUpdateConfig] = useState<ConfigurationUpdateType | null>(null);
     const [first, setFirst] = useState<number>(0);
     const [rows, setRows] = useState<number>(10);
-    const [isAdmin, setIsAdmin] =useState(true);
+    const [isAdmin, setIsAdmin] = useState(true);
 
 
 
@@ -54,7 +54,7 @@ const SettingPage = () => {
 
 
     // --- API CALLS AND HANDLERS (UNCHANGED FROM ORIGINAL) ---
-     const fetchConfigurationData = async () => {
+    const fetchConfigurationData = async () => {
         setLoading(true);
         const request: ConfigurationQueryType = {
             page: Math.ceil(first / rows) + 1,
@@ -86,7 +86,7 @@ const SettingPage = () => {
         }
     };
 
-     const handleCheckboxChange = (id: string) => {
+    const handleCheckboxChange = (id: string) => {
         setDeleteConfig((prev) =>
             prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
         );
@@ -105,7 +105,7 @@ const SettingPage = () => {
         }
     };
 
-     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         // Keep original logic
         setNewConfig({ ...newConfig, [e.target.name]: e.target.value });
     };
@@ -170,12 +170,12 @@ const SettingPage = () => {
     useEffect(() => {
         const role = localStorage.getItem("role");
         if (role === "ADMIN") {
-          setIsAdmin(true);
+            setIsAdmin(true);
         } else {
-          setIsAdmin(false);
+            setIsAdmin(false);
         }
-      }, []);
-     useEffect(() => {
+    }, []);
+    useEffect(() => {
         const fetchLocationData = async () => {
             try {
                 const response = await locationApi.getAllLocations({ search: "", order: "asc" });
@@ -189,14 +189,14 @@ const SettingPage = () => {
         };
 
         fetchLocationData();
-     // Ensure dependencies are as in the original code
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Ensure dependencies are as in the original code
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         fetchConfigurationData();
-     // Ensure dependencies are as in the original code
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Ensure dependencies are as in the original code
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deviceTypeFilter, searchText, first, rows]);
 
     useEffect(() => {
@@ -248,7 +248,7 @@ const SettingPage = () => {
                     className="searchInput"
                 />
                 {/* Keep the original call structure for renderDropdown */}
-                 {renderDropdown(
+                {renderDropdown(
                     "Tất cả thiết bị",
                     deviceTypeFilter, // State variable used here
                     [
@@ -281,21 +281,21 @@ const SettingPage = () => {
                 </button> */}
 
                 {isAdmin && (
-                <button
-                    onClick={setShowAddForm}
-                    className="button addButton"
-                >
-                    Thêm Mới
-                </button>)}
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        className="button addButton"
+                    >
+                        Thêm Mới
+                    </button>)}
 
                 {isAdmin && (
-                <button
-                    onClick={handleDeleteConfigurations}
-                    disabled={deleteConfig.length === 0 || loading}
-                    className="button deleteButton"
-                >
-                    Xóa ({deleteConfig.length})
-                </button>
+                    <button
+                        onClick={handleDeleteConfigurations}
+                        disabled={deleteConfig.length === 0 || loading}
+                        className="button deleteButton"
+                    >
+                        Xóa ({deleteConfig.length})
+                    </button>
 
                 )}
 
@@ -358,15 +358,15 @@ const SettingPage = () => {
                             </tr>
                         ))}
                         {/* Add original no results logic if it existed */}
-                         {(!configurations?.configurations || configurations.configurations.length === 0) && !loading && (
+                        {(!configurations?.configurations || configurations.configurations.length === 0) && !loading && (
                             <tr>
                                 <td colSpan={5} className="noResults"> {/* Assuming 5 columns originally */}
                                     Không tìm thấy kết quả
                                 </td>
                             </tr>
                         )}
-                         {/* Add original loading logic if it existed */}
-                         {loading && (
+                        {/* Add original loading logic if it existed */}
+                        {loading && (
                             <tr>
                                 <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}> {/* Assuming 5 columns originally */}
                                     Đang tải...
@@ -417,7 +417,7 @@ const SettingPage = () => {
                                 name="name"
                                 value={updateConfig.name}
                                 onChange={(e) => setUpdateConfig({ ...updateConfig, name: e.target.value })}
-                                // No class specified for inputs inside modalContent label in SCSS, keep original structure
+                            // No class specified for inputs inside modalContent label in SCSS, keep original structure
                             />
                         </label>
                         <label>
@@ -449,7 +449,7 @@ const SettingPage = () => {
                                 name="deviceType"
                                 value={updateConfig.deviceType}
                                 onChange={(e) => setUpdateConfig({ ...updateConfig, deviceType: e.target.value as DeviceType })}
-                             >
+                            >
                                 <option value="PUMP">PUMP</option>
                                 <option value="MOISTURE_SENSOR">MOISTURE_SENSOR</option>
                                 <option value="DHT20_SENSOR">DHT20_SENSOR</option>
@@ -464,7 +464,7 @@ const SettingPage = () => {
                     </div>
                     {/* Apply SCSS class to actions area */}
                     <div className="modalActions">
-                         {/* Keep original button structure, apply SCSS classes */}
+                        {/* Keep original button structure, apply SCSS classes */}
                         <button
                             onClick={handleUpdateConfiguration}
                             className="modalButton primary" // Use appropriate variant
@@ -473,7 +473,7 @@ const SettingPage = () => {
                         </button>
                         <button
                             onClick={() => setUpdateConfig(null)}
-                             className="modalButton secondary" // Use appropriate variant
+                            className="modalButton secondary" // Use appropriate variant
                         >
                             Hủy
                         </button>
@@ -483,7 +483,7 @@ const SettingPage = () => {
 
             {/* Add Modal - Keep original conditional rendering */}
             {showAddForm && (
-                 // Assume PopupModal renders children, apply SCSS classes to inner structure
+                // Assume PopupModal renders children, apply SCSS classes to inner structure
                 <PopupModal title="Thêm Cấu Hình" onClose={() => setShowAddForm(false)}>
                     {/* Apply SCSS class to content area */}
                     {/* Note: Original had extra wrapping divs, keeping that structure */}
@@ -548,7 +548,7 @@ const SettingPage = () => {
                             </select>
                         </div>
                     </div>
-                     {/* Apply SCSS class to actions area */}
+                    {/* Apply SCSS class to actions area */}
                     <div className="modalActions">
                         {/* Keep original button structure, apply SCSS classes */}
                         <button
@@ -559,7 +559,7 @@ const SettingPage = () => {
                         </button>
                         <button
                             onClick={() => setShowAddForm(false)}
-                             className="modalButton secondary" // Use appropriate variant
+                            className="modalButton secondary" // Use appropriate variant
                         >
                             Hủy
                         </button>

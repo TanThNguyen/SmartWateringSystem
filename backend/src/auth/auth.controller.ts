@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto';
-import { Public } from './decorator';
+import { ChangePasswordDto, LoginDto } from './dto';
+import { GetUser, Public } from './decorator';
+import { User } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -18,18 +19,31 @@ export class AuthController {
         );
     }
 
-    
+
     // Todo
     @Post('resend-code')
     @Public()
-    async resendCode(): Promise<string>{
-      return await this.authService.resendCode();
+    async resendCode(): Promise<string> {
+        return await this.authService.resendCode();
     }
 
     // Todo
     @Post('reset-password')
     @Public()
-    async resetPassword(): Promise<string>{
-      return await this.authService.resetPassword();
+    async resetPassword(): Promise<string> {
+        return await this.authService.resetPassword();
+    }
+
+    @Post('change-password')
+    async changePassword(
+        @GetUser() user: User,
+        @Body() changePasswordDto: ChangePasswordDto
+    ): Promise<{ message: string }> {
+        console.log(changePasswordDto)
+        const email = user.email;
+        if (!email) {
+            throw new UnauthorizedException('Xác thực thất bại.');
+        }
+        return await this.authService.changePassword(email, changePasswordDto);
     }
 }
