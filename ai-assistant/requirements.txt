@@ -1,4 +1,15 @@
+# API Core & Server
 fastapi
 uvicorn[standard]
 pydantic
 gunicorn
+
+# Machine Learning & Data Handling
+scikit-learn
+pandas
+numpy
+joblib
+
+# Plotting (for training/analysis script)
+matplotlib
+seaborn

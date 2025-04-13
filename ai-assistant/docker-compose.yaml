@@ -10,7 +10,9 @@ services:
     ports:
       - "${AI_ASSISTANT_PORT}:${AI_ASSISTANT_PORT}"
     volumes:
-      - ./app:/code/app
+      - ./app:/code/app           
+      - ./data:/code/data         
+      - ./models_trained:/code/models_trained 
     restart: unless-stopped
     # networks:
     #   - smartgarden-dev-net
@@ -22,4 +24,5 @@ services:
 #     driver: bridge
 
 networks:
-  default:
+  default: 
+    driver: bridge

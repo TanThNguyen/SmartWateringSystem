@@ -1,0 +1,39 @@
+# === Python ===
+**/__pycache__/
+**/*.py[cod]
+*$py.class
+models_trained/
+
+# === Virtual environments ===
+venv/
+.venv/
+env/
+ENV/
+
+# === dotenv / secrets ===
+.env
+
+# === Logs ===
+*.log
+logs/
+
+# === VSCode ===
+.vscode/
+
+# === Coverage / test reports ===
+htmlcov/
+.coverage
+*.cover
+*.py,cover
+coverage.xml
+.pytest_cache/
+
+# === Jupyter ===
+.ipynb_checkpoints/
+
+# === System ===
+.DS_Store
+Thumbs.db
+
+# === Docker override files (optional) ===
+docker-compose.override.yml
