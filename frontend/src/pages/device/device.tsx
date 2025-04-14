@@ -331,7 +331,6 @@ export default function DeviceManagementPage() {
     if (showEditForm && selectedDeviceInfo?.deviceId && (selectedDeviceInfo.type === DeviceType.MOISTURE_SENSOR || selectedDeviceInfo.type === DeviceType.DHT20_SENSOR)) {
       fetchDeviceChartData(selectedDeviceInfo.deviceId, selectedDeviceInfo.type);
       intervalId = setInterval(() => {
-        console.log("Auto-refresh chart data for:", selectedDeviceInfo.deviceId);
         fetchDeviceChartData(selectedDeviceInfo.deviceId, selectedDeviceInfo.type);
       }, 300000);
     } else {
@@ -688,9 +687,7 @@ export default function DeviceManagementPage() {
     const originalSchedules = [...schedules];
     setSchedules(prev => prev.map(s => s.scheduleId === scheduleId ? { ...s, isActive: !s.isActive } : s));
     try {
-      console.log(scheduleId)
       const response = await scheduleAPI.toggleSchedule({ scheduleId });
-      console.log(response)
     } catch (error) {
       toast.error("Lỗi khi thay đổi trạng thái lịch trình! Hoàn tác.");
       console.error("Toggle schedule error:", error);

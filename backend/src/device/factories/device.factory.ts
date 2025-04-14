@@ -12,7 +12,7 @@ import { SimpleDeviceHandler } from './handlers/simple.handler.js';
 export class DeviceFactory {
   private handlers: Map<DeviceType, IDeviceHandler>;
 
-  // Inject tất cả các handler cụ thể vào đây
+  
   constructor(
     private readonly pumpHandler: PumpDeviceHandler,
     private readonly fanHandler: FanDeviceHandler,
@@ -20,7 +20,7 @@ export class DeviceFactory {
     private readonly dht20Handler: DHT20SensorDeviceHandler,
     private readonly simpleHandler: SimpleDeviceHandler,
   ) {
-    // Khởi tạo Map để dễ dàng lấy handler theo type
+    
     this.handlers = new Map<DeviceType, IDeviceHandler>([
       [DeviceType.PUMP, this.pumpHandler],
       [DeviceType.FAN, this.fanHandler],
@@ -40,8 +40,8 @@ export class DeviceFactory {
   getHandler(type: DeviceType): IDeviceHandler {
     const handler = this.handlers.get(type);
     if (!handler) {
-      // Trường hợp này không nên xảy ra nếu Map được khởi tạo đúng
-      // và enum DeviceType không thay đổi đột ngột
+      
+      
       throw new InternalServerErrorException(`Không tìm thấy handler cho loại thiết bị: ${type}`);
     }
     return handler;

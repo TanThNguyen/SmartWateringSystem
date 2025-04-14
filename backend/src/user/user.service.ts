@@ -5,7 +5,7 @@ import { Role, Severity } from '@prisma/client';
 import { handlerHashPassword } from 'src/helper/util';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
-// import { MailerService } from '@nestjs-modules/mailer';
+
 import dayjs from 'dayjs';
 
 @Injectable()
@@ -13,12 +13,11 @@ export class UserService {
     constructor(
         private prismaService: PrismaService,
         private eventEmitter: EventEmitter2,
-        // private mailerService: MailerService,
+
     ) { }
 
     async create(createUserDto: CreateUserDto): Promise<string> {
         const { name, email, locationId, phone, role, password } = createUserDto;
-        console.log(name, email, locationId, phone, role, password);
         try {
             const isExist = await this.prismaService.user.findUnique({
                 where: { email },
@@ -53,39 +52,24 @@ export class UserService {
                 },
             });
 
-            // this.mailerService
-            //     .sendMail({
-            //         to: user.email,
-            //         subject: 'Activate your account ✔',
-            //         template: 'active',
-            //         context: {
-            //             name,
-            //             password,
-            //         },
-            //     })
-            //     .catch((error) => {
-            //         console.error('Gửi email thất bại:', error.message);
-            //     });
-
-            // --- BỔ SUNG LOG ---
             const logPayloadSuccess: LogEventPayload = {
                 userId: user.userId,
                 eventType: Severity.INFO,
                 description: `Người dùng mới '${user.name}' (Email: ${user.email}) đã được tạo.`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
-            // --- KẾT THÚC BỔ SUNG ---
+
 
             return user.email;
         } catch (error) {
 
-            // --- BỔ SUNG LOG LỖI ---
+
             const logPayloadError: LogEventPayload = {
                 eventType: Severity.ERROR,
                 description: `Lỗi khi tạo người dùng với email ${createUserDto.email}: ${error.message}`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadError);
-            // --- KẾT THÚC BỔ SUNG ---
+
 
             console.error('Lỗi trong quá trình tạo người dùng:', error);
             if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
@@ -127,27 +111,27 @@ export class UserService {
                 data: updateData,
             });
 
-            // --- BỔ SUNG LOG ---
+
             const logPayloadSuccess: LogEventPayload = {
                 userId: userId,
                 eventType: Severity.INFO,
                 description: `Thông tin người dùng '${userBeforeUpdate.name}' (ID: ${userId}) đã được cập nhật.`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
-            // --- KẾT THÚC BỔ SUNG ---
+
 
             return 'Cập nhật người dùng thành công!';
 
         } catch (error) {
 
-            // --- BỔ SUNG LOG LỖI ---
+
             const logPayloadError: LogEventPayload = {
                 userId: userId,
                 eventType: Severity.ERROR,
                 description: `Lỗi khi cập nhật người dùng ID ${userId}: ${error.message}`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadError);
-            // --- KẾT THÚC BỔ SUNG ---
+
 
             console.error('Lỗi cập nhật người dùng:', error);
             throw new InternalServerErrorException('Có lỗi xảy ra khi cập nhật người dùng!');
@@ -175,24 +159,24 @@ export class UserService {
                 return updateResult.count;
             });
 
-            // --- BỔ SUNG LOG --- (Sau khi transaction thành công)
+
             const logPayloadSuccess: LogEventPayload = {
                 eventType: Severity.INFO,
                 description: `Đã chuyển trạng thái ${result} người dùng thành INACTIVE. IDs: ${userIds.join(', ')}.`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
-            // --- KẾT THÚC BỔ SUNG ---
+
 
             return 'Đã chuyển trạng thái người dùng thành INACTIVE!';
         } catch (error) {
 
-            // --- BỔ SUNG LOG LỖI ---
+
             const logPayloadError: LogEventPayload = {
                 eventType: Severity.ERROR,
                 description: `Lỗi khi cập nhật trạng thái người dùng thành INACTIVE cho IDs [${userIds.join(', ')}]: ${error.message}`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadError);
-            // --- KẾT THÚC BỔ SUNG ---
+
 
             console.error('Lỗi khi cập nhật trạng thái người dùng:', error);
             throw new InternalServerErrorException('Đã xảy ra lỗi khi cập nhật trạng thái người dùng!');
@@ -200,7 +184,6 @@ export class UserService {
     }
 
     async getAllUsers(query: GetUsersRequestDto): Promise<FindAllUsersDto> {
-        console.log(query);
         try {
             const page = Number(query.page) || 1;
             const items_per_page = Number(query.items_per_page) || 5;
@@ -310,8 +293,6 @@ export class UserService {
     async updatePassword(email: string, password: string): Promise<void> {
         try {
             const passwordHash = await handlerHashPassword(password);
-            console.log(passwordHash)
-            console.log(password)
             await this.prismaService.user.update({
                 where: { email },
                 data: {

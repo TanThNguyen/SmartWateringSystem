@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import PopupModal from "../../layout/popupmodal"; // Giữ nguyên import và cách dùng
+import PopupModal from "../../layout/popupmodal";
 import { CreateUserType, InfoUsersType, UpdateUserType, UsersRequestType } from "../../types/user.type";
 import { userApi } from "../../axios/user.api";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -9,24 +9,20 @@ import { FaChevronDown } from "react-icons/fa";
 import { GetLocationsRequestType } from "../../types/location.type";
 import { locationApi } from "../../axios/location.api";
 
-// Import SCSS file
-import "./user.scss"; // Đường dẫn đến file SCSS
+import "./user.scss"; 
 
 export default function UserManagementPage() {
 
-  // --- GIỮ NGUYÊN TOÀN BỘ LOGIC STATE ---
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<InfoUsersType[]>([]);
   const [searchText, setSearchText] = useState("");
   const [permissionFilter, setPermissionFilter] = useState("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
-  const [locationIdFilter, setLocationIdFilter] = useState("ALL"); // Giữ nguyên giá trị này
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [locationIdFilter, setLocationIdFilter] = useState("ALL");   const [showAddForm, setShowAddForm] = useState(false);
   const [newUser, setNewUser] = useState<CreateUserType>({
     name: "",
     email: "",
-    locationId: "ALL", // Giữ nguyên giá trị khởi tạo ban đầu
-    phone: "",
+    locationId: "ALL",     phone: "",
     password: "",
     role: "GARDENER",
   });
@@ -38,12 +34,9 @@ export default function UserManagementPage() {
   const [rows, setRows] = useState<number>(10);
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
-  // --- GIỮ NGUYÊN TOÀN BỘ LOGIC USEEFFECT ---
-  useEffect(() => {
+    useEffect(() => {
     fetchLocations();
-    fetchUsers(); // Giữ nguyên thứ tự gọi hàm
-  }, [order, permissionFilter, locationIdFilter, searchText, first, rows]); // Giữ nguyên dependencies
-
+    fetchUsers();   }, [order, permissionFilter, locationIdFilter, searchText, first, rows]); 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -53,29 +46,22 @@ export default function UserManagementPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showAddForm, showUpdateForm]); // Giữ nguyên dependencies
-
-  // --- GIỮ NGUYÊN TOÀN BỘ LOGIC HÀM ---
-  const fetchUsers = async () => {
+  }, [showAddForm, showUpdateForm]); 
+    const fetchUsers = async () => {
     setLoading(true);
-    // Giữ nguyên cách tạo request object
-    const request: UsersRequestType = {
+        const request: UsersRequestType = {
       page: Math.ceil(first / rows) + 1,
       items_per_page: rows,
       search: searchText.trim(),
-      role: permissionFilter, // Giữ nguyên giá trị state
-      order,
-      // Giữ nguyên cách xử lý locationIdFilter
-      locationId: (locations.find(l => l.name === locationIdFilter)?.locationId || "ALL"),
+      role: permissionFilter,       order,
+            locationId: (locations.find(l => l.name === locationIdFilter)?.locationId || "ALL"),
     };
 
-    console.log(request); // Giữ nguyên console.log
     try {
       const response = await userApi.getAllUsers(request);
       setUsers(response.users);
       setTotalRecords(response.total);
-      setFirst((response.currentPage - 1) * rows); // Giữ nguyên logic cập nhật first
-    } catch (error) {
+      setFirst((response.currentPage - 1) * rows);     } catch (error) {
       toast.error("Lỗi khi tải danh sách người dùng");
     } finally {
       setLoading(false);
@@ -83,34 +69,28 @@ export default function UserManagementPage() {
   };
 
   const fetchLocations = async () => {
-    // Giữ nguyên cách tạo request
-    const request: GetLocationsRequestType = {
+        const request: GetLocationsRequestType = {
       search: '',
       order: '',
     }
     try {
       const response = await locationApi.getAllLocations(request);
       setLocations(response.locations);
-      console.log(response); // Giữ nguyên console.log
     } catch (error) {
       toast.error("Lỗi khi tải danh sách vị trí");
     }
   };
 
   const handleSearch = () => {
-    // Không thay đổi gì ở đây
-    fetchUsers();
+        fetchUsers();
   };
 
-  // Giữ nguyên hàm renderDropdown, chỉ thay đổi className bên trong JSX trả về
-  const renderDropdown = (
+    const renderDropdown = (
     label: string,
     value: any,
     options: { label: string; value: any }[],
-    onChange: (e: any) => void // Giữ nguyên signature
-  ) => (
-    // Chỉ thêm wrapper và thay className
-    <div className="filterDropdownWrapper">
+    onChange: (e: any) => void   ) => (
+        <div className="filterDropdownWrapper">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger className="filterDropdownTrigger">
           {/* Giữ nguyên logic hiển thị label cũ */}
@@ -120,15 +100,12 @@ export default function UserManagementPage() {
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="filterDropdownContent" // Chỉ thay className
-            sideOffset={5}
+            className="filterDropdownContent"             sideOffset={5}
           >
             {options.map((option) => (
               <DropdownMenu.Item
                 key={option.value}
-                className="filterDropdownItem" // Chỉ thay className
-                // Giữ nguyên logic onSelect
-                onSelect={() => onChange({ value: option.value })}
+                className="filterDropdownItem"                                 onSelect={() => onChange({ value: option.value })}
               >
                 {option.label}
               </DropdownMenu.Item>
@@ -141,19 +118,15 @@ export default function UserManagementPage() {
 
 
   const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    // Không thay đổi gì ở đây
     const { name, value } = e.target;
     setNewUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCreateUser = async () => {
-    // Không thay đổi gì ở đây
     try {
-      console.log(newUser)
       await userApi.createUser(newUser);
       fetchUsers();
       setShowAddForm(false);
-      // Giữ nguyên logic reset state
       setNewUser({ name: "", email: "", locationId: "KV1", phone: "", password: "", role: "GARDENER" });
       toast.success("Người dùng mới đã được tạo thành công!");
     } catch (error) {
@@ -162,19 +135,17 @@ export default function UserManagementPage() {
   };
 
   const handleDeleteUsers = async () => {
-    // Không thay đổi gì ở đây
     if (selectedUsers.length === 0) return;
     try {
       await userApi.deleteUsers(selectedUsers);
       setSelectedUsers([]);
       fetchUsers();
     } catch (error) {
-      console.error("Lỗi khi xóa người dùng:", error); // Giữ nguyên console.error
+      console.error("Lỗi khi xóa người dùng:", error); 
     }
   };
 
   const handleUpdateUser = async (updatedUser: UpdateUserType) => {
-    // Không thay đổi gì ở đây
     try {
       const updatedUserWithLocationId = {
         ...updatedUser,
@@ -183,18 +154,15 @@ export default function UserManagementPage() {
       await userApi.updateUser(updatedUserWithLocationId);
       fetchUsers();
     } catch (error) {
-      console.error("Lỗi khi cập nhật người dùng:", error); // Giữ nguyên console.error
-    }
+      console.error("Lỗi khi cập nhật người dùng:", error);     }
   };
 
   const handleOpenUpdateForm = (user: UpdateUserType) => {
-    // Không thay đổi gì ở đây
     setUpdatedUser(user);
     setShowUpdateForm(true);
   };
 
   const handleSubmit = () => {
-    // Không thay đổi gì ở đây
     if (updatedUser) {
       const updatedUserWithLocationId = {
         ...updatedUser,
@@ -206,23 +174,17 @@ export default function UserManagementPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    // Không thay đổi gì ở đây
     if (!updatedUser) return;
     setUpdatedUser({ ...updatedUser, [e.target.name]: e.target.value });
   };
 
   const toggleSelectUser = (userId: string) => {
-    // Không thay đổi gì ở đây
     setSelectedUsers((prev) =>
       prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
     );
   };
 
-  // Giữ nguyên return loading nếu có
-  // if (loading) return <p>Đang tải dữ liệu...</p>;
-
   return (
-    // Thay className của thẻ div ngoài cùng
     <div className="container">
       {/* Thay className của div filter và bỏ các class Tailwind */}
       <div className="filterContainer">
@@ -232,8 +194,7 @@ export default function UserManagementPage() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          // Chỉ thay className
-          className="searchInput"
+                    className="searchInput"
         />
 
         {/* Giữ nguyên cách gọi renderDropdown */}
@@ -246,8 +207,7 @@ export default function UserManagementPage() {
             { label: "Làm vườn", value: "GARDENER" },
             { label: "Không hoạt động", value: "INACTIVE" },
           ],
-          (e) => setPermissionFilter(e.value) // Giữ nguyên callback
-        )}
+          (e) => setPermissionFilter(e.value)         )}
 
 
         {renderDropdown(
@@ -257,19 +217,15 @@ export default function UserManagementPage() {
             { label: "Mới nhất", value: "desc" },
             { label: "Lâu nhất", value: "asc" },
           ],
-          (e) => setOrder(e.value) // Giữ nguyên callback
-        )}
+          (e) => setOrder(e.value)         )}
 
         {renderDropdown(
           "Khu vực",
-          locationIdFilter, // Giữ nguyên value là state locationIdFilter (string "kv1", "kv2", "ALL")
-          [
+          locationIdFilter,           [
             { label: "Khu vực", value: "ALL" },
-            { label: "Khu vực 1", value: "kv1" }, // Giữ nguyên các option này
-            { label: "Khu vực 2", value: "kv2" },
+            { label: "Khu vực 1", value: "kv1" },             { label: "Khu vực 2", value: "kv2" },
           ],
-          (e) => setLocationIdFilter(e.value), // Giữ nguyên callback
-        )}
+          (e) => setLocationIdFilter(e.value),         )}
 
 
         {/* Chỉ thay className của button */}
@@ -279,8 +235,7 @@ export default function UserManagementPage() {
           Thêm Mới
 
         <button onClick={handleDeleteUsers} disabled={selectedUsers.length === 0}
-          className="actionButton" // SCSS sẽ tự xử lý :disabled
-        >Xóa</button> */}
+          className="actionButton"         >Xóa</button> */}
 
         <button
           onClick={() => setShowAddForm(true)}
@@ -317,18 +272,15 @@ export default function UserManagementPage() {
             <tbody>
               {/* Giữ nguyên logic render */}
               {users.length > 0 ? (
-                users.map((user, index) => ( // Giữ nguyên key={index} nếu bạn dùng nó
-                  <tr key={index} onClick={() => {
-                    // Giữ nguyên logic tạo upuser và gọi hàm
-                    const upuser: UpdateUserType = {
+                users.map((user, index) => (                   <tr key={index} onClick={() => {
+                                        const upuser: UpdateUserType = {
                       userId: user.userId,
                       name: user.name,
                       email: user.email,
                       locationId: user.locationId,
                       phone: user.phone,
                       role: user.role,
-                      password: "password123", // Giữ nguyên password mặc định này
-                    };
+                      password: "password123",                     };
                     handleOpenUpdateForm(upuser);
                   }}>
                     {/* Thêm className và giữ nguyên logicstopPropagation */}
@@ -337,8 +289,7 @@ export default function UserManagementPage() {
                         type="checkbox"
                         checked={selectedUsers.includes(user.userId)}
                         onChange={() => toggleSelectUser(user.userId)}
-                        // Chỉ thay className
-                        className="checkboxInput"
+                                                className="checkboxInput"
                       />
                     </td>
                     <td>{user.name}</td>
@@ -372,8 +323,7 @@ export default function UserManagementPage() {
         <button
           onClick={() => setFirst(prev => Math.max(prev - rows, 0))}
           disabled={first === 0}
-          // Chỉ thay className
-          className="paginationButton"
+                    className="paginationButton"
         >
           Trước
         </button>
@@ -384,8 +334,7 @@ export default function UserManagementPage() {
         <button
           onClick={() => setFirst(prev => (prev + rows < totalRecords ? prev + rows : prev))}
           disabled={first + rows >= totalRecords}
-          // Chỉ thay className
-          className="paginationButton"
+                    className="paginationButton"
         >
           Sau
         </button>
@@ -393,8 +342,7 @@ export default function UserManagementPage() {
 
       {/* --- MODAL THÊM --- */}
       {showAddForm && (
-        // Chỉ thay className overlay
-        <div
+                <div
           className="modalOverlay"
           onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}
         >
@@ -409,8 +357,7 @@ export default function UserManagementPage() {
                 value={newUser.name}
                 onChange={handleNewUserChange}
                 placeholder="Name"
-              // Không thêm className cho input trừ khi SCSS có định nghĩa riêng
-              />
+                            />
               <input
                 type="email"
                 name="email"
@@ -422,8 +369,7 @@ export default function UserManagementPage() {
                 name="locationId"
                 value={newUser.locationId}
                 onChange={handleNewUserChange}
-              // Không thêm className cho select trừ khi SCSS có định nghĩa riêng
-              >
+                            >
                 {/* Giữ nguyên logic render option */}
                 <option value="" disabled hidden>
                   Chọn khu vực
@@ -476,8 +422,7 @@ export default function UserManagementPage() {
 
       {/* --- MODAL CẬP NHẬT --- */}
       {showUpdateForm && updatedUser && (
-        // Chỉ thay className overlay
-        <div
+                <div
           className="modalOverlay"
           onClick={(e) => { if (e.target === e.currentTarget) setShowUpdateForm(false); }}
         >
@@ -539,8 +484,7 @@ export default function UserManagementPage() {
                   name="password"
                   value={updatedUser.password}
                   onChange={handleChange}
-                // Không thay đổi placeholder nếu đã có
-                />
+                                />
               </label>
               <label>
                 Vai trò:
@@ -554,16 +498,13 @@ export default function UserManagementPage() {
             {/* Chỉ thay className của div actions và các button bên trong, bỏ class Tailwind */}
             <div className="modalActions">
               <button
-                onClick={handleSubmit} // Giữ nguyên onClick={handleSubmit}
-                // Áp dụng className modalButton và lớp bổ trợ
-                className="modalButton primary"
+                onClick={handleSubmit}                                 className="modalButton primary"
               >
                 Cập nhật
               </button>
               <button
                 onClick={() => setShowUpdateForm(false)}
-                // Áp dụng className modalButton và lớp bổ trợ
-                className="modalButton secondary"
+                                className="modalButton secondary"
               >
                 Hủy
               </button>

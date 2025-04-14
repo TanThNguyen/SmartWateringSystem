@@ -34,7 +34,7 @@ export default function DashboardLayout() {
   const [fetchNotiFlag, setFetchNotiFlag] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState(true);
 
-  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState<boolean>(false); // <<< SỬ DỤNG STATE NÀY
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState<boolean>(false); 
   const [changePasswordData, setChangePasswordData] = useState<ChangePasswordType>({
     currentPassword: '',
     newPassword: '',
@@ -78,7 +78,7 @@ export default function DashboardLayout() {
         }
 
         if (listResponse?.success) {
-          // *** SỬA Ở ĐÂY: Thêm kiểu dữ liệu cho a và b ***
+          
           const sortedNotifications = (listResponse.data?.notifications || []).sort(
             (a: InfoNotiType, b: InfoNotiType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
@@ -240,14 +240,14 @@ export default function DashboardLayout() {
     }`;
 
 
-  // --- HÀM CHO ĐỔI MẬT KHẨU (Dùng cho Dialog) ---
+  
   const handleOpenChangePasswordDialog = () => {
-    setShowChangePasswordDialog(true); // <<< MỞ DIALOG
+    setShowChangePasswordDialog(true); 
   };
 
   const handleCloseChangePasswordDialog = () => {
-    setShowChangePasswordDialog(false); // <<< ĐÓNG DIALOG
-    // Reset form khi đóng
+    setShowChangePasswordDialog(false); 
+    
     setChangePasswordData({ currentPassword: '', newPassword: '', newPasswordConfirm: '' });
     setIsChangingPassword(false);
   };
@@ -273,7 +273,7 @@ export default function DashboardLayout() {
       const result = await authApi.changePassword(changePasswordData);
       if (result.success) {
         toast.success("Đổi mật khẩu thành công");
-        handleCloseChangePasswordDialog(); // <<< Đóng Dialog và reset
+        handleCloseChangePasswordDialog(); 
       } else {
         const errorMessage = result.data?.message || "Đổi mật khẩu thất bại.";
         const displayError = Array.isArray(errorMessage) ? errorMessage[0] : errorMessage;
@@ -286,7 +286,7 @@ export default function DashboardLayout() {
       setIsChangingPassword(false);
     }
   };
-  // --- Kết thúc hàm đổi mật khẩu ---
+  
 
 
   return (
@@ -372,7 +372,7 @@ export default function DashboardLayout() {
               {/* --- SỬA NÚT ĐỔI MẬT KHẨU ĐỂ MỞ DIALOG --- */}
               <Tooltip target=".sidebar-changepass-button" content="Đổi mật khẩu" position="right" showDelay={150} />
               <button
-                onClick={handleOpenChangePasswordDialog} // <<< Gọi hàm mở Dialog
+                onClick={handleOpenChangePasswordDialog} 
                 className={`${navLinkClass({ isActive: false })} sidebar-changepass-button`}
                 aria-label="Đổi mật khẩu"
               >
@@ -444,9 +444,9 @@ export default function DashboardLayout() {
         <Dialog
           header="Đổi mật khẩu"
           visible={showChangePasswordDialog}
-          // --- RỘNG HƠN ---
-          style={{ width: '90vw', maxWidth: '600px' }} // Tăng max-width
-          modal // --- CÓ NỀN MỜ ---
+          
+          style={{ width: '90vw', maxWidth: '600px' }} 
+          modal 
           footer={
             <div className="flex justify-end gap-3 pt-4"> {/* Tăng gap */}
               <Button label="Hủy" icon="pi pi-times" onClick={handleCloseChangePasswordDialog} className="p-button-text p-button-secondary px-4 py-2" disabled={isChangingPassword} /> {/* Thêm padding */}
@@ -454,16 +454,16 @@ export default function DashboardLayout() {
             </div>
           }
           onHide={handleCloseChangePasswordDialog}
-          // --- NỀN TRẮNG, CHỮ ĐEN, STYLE CHUNG ---
+          
           pt={{
-            root: { className: 'bg-white rounded-lg shadow-xl overflow-hidden border border-gray-300' }, // Thêm border nhẹ
+            root: { className: 'bg-white rounded-lg shadow-xl overflow-hidden border border-gray-300' }, 
             header: (options) => ({
               className: `bg-white text-gray-800 border-b border-gray-200 p-5 ${options?.props?.headerClassName ?? ''}`,
-              style: { fontSize: '1.25rem', fontWeight: '600' } // Tăng cỡ chữ header
+              style: { fontSize: '1.25rem', fontWeight: '600' } 
             }),
-            content: { className: 'bg-white text-gray-900 p-6' }, // Tăng padding content
-            footer: { className: 'bg-gray-100 border-t border-gray-200 p-4' }, // Nền footer sáng hơn
-            mask: { className: 'bg-black/60 backdrop-blur-md' } // <<< Nền mờ đậm hơn + blur
+            content: { className: 'bg-white text-gray-900 p-6' }, 
+            footer: { className: 'bg-gray-100 border-t border-gray-200 p-4' }, 
+            mask: { className: 'bg-black/60 backdrop-blur-md' } 
           }}
           blockScroll={true}
           dismissableMask={true}
@@ -476,8 +476,8 @@ export default function DashboardLayout() {
               <input
                 id="currentPasswordDialog" name="currentPassword" type="password"
                 value={changePasswordData.currentPassword} onChange={handleChangePasswordInputChange} required
-                // --- THÊM VIỀN, TĂNG SIZE CHỮ INPUT ---
-                className="p-inputtext p-component w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-base px-3 py-2" // Thêm border, padding, focus style, text size
+                
+                className="p-inputtext p-component w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-base px-3 py-2" 
                 autoFocus
               />
             </div>
@@ -486,7 +486,7 @@ export default function DashboardLayout() {
               <input
                 id="newPasswordDialog" name="newPassword" type="password"
                 value={changePasswordData.newPassword} onChange={handleChangePasswordInputChange} required minLength={6}
-                // --- THÊM VIỀN, TĂNG SIZE CHỮ INPUT ---
+                
                 className="p-inputtext p-component w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-base px-3 py-2"
               />
             </div>
@@ -495,7 +495,7 @@ export default function DashboardLayout() {
               <input
                 id="newPasswordConfirmDialog" name="newPasswordConfirm" type="password"
                 value={changePasswordData.newPasswordConfirm} onChange={handleChangePasswordInputChange} required
-                // --- THÊM VIỀN, TĂNG SIZE CHỮ INPUT ---
+                
                 className="p-inputtext p-component w-full border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-base px-3 py-2"
               />
             </div>

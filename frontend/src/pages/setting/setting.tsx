@@ -4,8 +4,7 @@ import { LONG_DATE_FORMAT, TIME_FORMAT } from "../../types/date.type";
 import { configurationApi } from "../../axios/configuration.api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./setting.scss"; // Import the SCSS file
-import PopupModal from "../../layout/popupmodal"; // Assuming PopupModal renders children correctly for modal styles
+import "./setting.scss"; import PopupModal from "../../layout/popupmodal";
 import { locationApi } from "../../axios/location.api";
 import { FindAllLocationsType } from "../../types/location.type";
 
@@ -23,7 +22,6 @@ import {
 
 const SettingPage = () => {
 
-    // --- STATE AND LOGIC (UNCHANGED FROM ORIGINAL) ---
     const [username, setUsername] = useState("AAAA");
     const [currentTime, setCurrentTime] = useState(new Date());
     const dateString = currentTime.toLocaleDateString("vi-VN", LONG_DATE_FORMAT);
@@ -41,8 +39,6 @@ const SettingPage = () => {
         deviceType: "MOISTURE_SENSOR",
     });
     const [locations, setLocations] = useState<FindAllLocationsType | null>(null);
-    // Original used ConfigurationUpdateType, let's stick to that for the state type consistency
-    // even though fetched data might be ConfigurationDetailType. User wants original logic.
     const [updateConfig, setUpdateConfig] = useState<ConfigurationUpdateType | null>(null);
     const [first, setFirst] = useState<number>(0);
     const [rows, setRows] = useState<number>(10);
@@ -50,17 +46,14 @@ const SettingPage = () => {
 
 
 
-    // --- END OF STATE AND LOGIC ---
 
 
-    // --- API CALLS AND HANDLERS (UNCHANGED FROM ORIGINAL) ---
     const fetchConfigurationData = async () => {
         setLoading(true);
         const request: ConfigurationQueryType = {
             page: Math.ceil(first / rows) + 1,
             items_per_page: rows,
             search: searchText,
-            // Keep original logic for deviceType, handle 'ALL' case if needed by API endpoint logic
             deviceType: deviceTypeFilter === 'ALL' ? undefined : deviceTypeFilter,
         };
         try {
@@ -74,7 +67,6 @@ const SettingPage = () => {
     };
 
     const handleDeleteConfigurations = async () => {
-        // Keep original logic (assuming individual deletes)
         try {
             const deleteRequests = deleteConfig.map((id) => ({ configId: id }));
             await Promise.all(deleteRequests.map((data) => configurationApi.deleteConfiguration(data)));
@@ -93,12 +85,10 @@ const SettingPage = () => {
     };
 
     const handleCreateConfiguration = async () => {
-        // Keep original logic
         try {
             await configurationApi.createConfiguration(newConfig);
             toast.success("Tạo cấu hình thành công!");
             setShowAddForm(false);
-            // Keep original reset logic (or lack thereof if not present)
             fetchConfigurationData();
         } catch (error) {
             toast.error("Lỗi khi tạo cấu hình.");
@@ -106,15 +96,12 @@ const SettingPage = () => {
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        // Keep original logic
         setNewConfig({ ...newConfig, [e.target.name]: e.target.value });
     };
 
     const handleUpdateConfiguration = async () => {
         if (!updateConfig) return;
-        // Keep original logic
         try {
-            // Original state was ConfigurationUpdateType, so should match API expectation
             await configurationApi.updateConfiguration(updateConfig);
             toast.success("Cập nhật thành công!");
             fetchConfigurationData();
@@ -124,16 +111,11 @@ const SettingPage = () => {
         }
     };
 
-    // Original renderDropdown function structure
-    // Modified slightly to add required wrapper and apply SCSS classes
     const renderDropdown = (
         label: string,
-        value: string, // Original used 'value: string'
-        options: { label: string; value: string }[],
-        // Original onChange signature might have been slightly different, adapting to usage
+        value: string, options: { label: string; value: string }[],
         onChange: (e: { value: string }) => void
     ) => (
-        // SCSS requires this wrapper for correct styling ( .filterDropdownWrapper > .filterDropdownTrigger )
         <div className="filterDropdownWrapper">
             <DropdownMenu.Root>
                 {/* Apply SCSS class to Trigger */}
@@ -150,9 +132,7 @@ const SettingPage = () => {
                         {options.map((option) => (
                             <DropdownMenu.Item
                                 key={option.value}
-                                // Apply SCSS class to Item
                                 className="filterDropdownItem"
-                                // Keep original onSelect logic
                                 onSelect={() => onChange({ value: option.value })}
                             >
                                 {option.label}
@@ -163,10 +143,8 @@ const SettingPage = () => {
             </DropdownMenu.Root>
         </div>
     );
-    // --- END OF API CALLS AND HANDLERS ---
 
 
-    // --- USE EFFECT HOOKS (UNCHANGED FROM ORIGINAL) ---
     useEffect(() => {
         const role = localStorage.getItem("role");
         if (role === "ADMIN") {
@@ -183,20 +161,14 @@ const SettingPage = () => {
             } catch (err) {
                 toast.error("Failed to fetch locations.");
             } finally {
-                // Original didn't necessarily set loading here, keep it that way
-                // setLoading(false);
             }
         };
 
         fetchLocationData();
-        // Ensure dependencies are as in the original code
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         fetchConfigurationData();
-        // Ensure dependencies are as in the original code
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deviceTypeFilter, searchText, first, rows]);
 
     useEffect(() => {
@@ -222,15 +194,9 @@ const SettingPage = () => {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [updateConfig, showAddForm]); // Keep original dependencies
-    // --- END OF USE EFFECT HOOKS ---
-
-    // --- RENDER LOGIC ---
-    // Keep original loading display logic (if any)
-    // if (loading) return <p>Loading...</p>;
+    }, [updateConfig, showAddForm]);
 
     return (
-        // Apply SCSS class to the main container
         <div className="container">
             {/* Filter Section - Apply SCSS class, remove original layout classes */}
             <div className="filterContainer">
@@ -244,39 +210,31 @@ const SettingPage = () => {
                             fetchConfigurationData();
                         }
                     }}
-                    // Apply SCSS class to search input
                     className="searchInput"
                 />
                 {/* Keep the original call structure for renderDropdown */}
                 {renderDropdown(
                     "Tất cả thiết bị",
-                    deviceTypeFilter, // State variable used here
-                    [
-                        { label: "Tất cả thiết bị", value: "ALL" },
-                        { label: "MOISTURE_SENSOR", value: "MOISTURE_SENSOR" },
-                        { label: "DHT20_SENSOR", value: "DHT20_SENSOR" },
-                        { label: "PUMP", value: "PUMP" },
-                        { label: "LCD", value: "LCD" },
-                        { label: "FAN", value: "FAN" },
-                        { label: "LED", value: "LED" },
-                        // Add RELAY if it was in the original options
-                        // { label: "RELAY", value: "RELAY" },
-                    ],
-                    // Pass the state setter function, adapting to expected arg structure
+                    deviceTypeFilter, [
+                    { label: "Tất cả thiết bị", value: "ALL" },
+                    { label: "MOISTURE_SENSOR", value: "MOISTURE_SENSOR" },
+                    { label: "DHT20_SENSOR", value: "DHT20_SENSOR" },
+                    { label: "PUMP", value: "PUMP" },
+                    { label: "LCD", value: "LCD" },
+                    { label: "FAN", value: "FAN" },
+                    { label: "LED", value: "LED" },
+                ],
                     (e) => setDeviceTypeFilter(e.value as DeviceType | "ALL")
                 )}
                 {/* <button onClick={() => setShowAddForm(true)}
-                    // Apply SCSS class to action buttons
-                    className="actionButton"
+                                        className="actionButton"
                 >
                     Thêm
                 </button>
                 <button
                     onClick={handleDeleteConfigurations}
-                    // Apply SCSS class to action buttons
-                    className="actionButton"
-                    disabled={deleteConfig.length === 0} // Keep original disabled logic
-                >
+                                        className="actionButton"
+                    disabled={deleteConfig.length === 0}                 >
                     Xóa
                 </button> */}
 
@@ -313,9 +271,7 @@ const SettingPage = () => {
                             <th className="checkboxCell">
                                 <input
                                     type="checkbox"
-                                    // Apply SCSS class to checkbox input
                                     className="checkboxInput"
-                                    // Keep original onChange logic (with potential TS warning)
                                     onChange={(e) => {
                                         if (e.target.checked) {
                                             setDeleteConfig(configurations?.configurations?.map((item) => item.configId) || []);
@@ -323,7 +279,6 @@ const SettingPage = () => {
                                             setDeleteConfig([]);
                                         }
                                     }}
-                                    // Keep original checked logic (with potential TS warning)
                                     checked={deleteConfig.length === configurations?.configurations?.length}
                                 />
                             </th>
@@ -337,13 +292,11 @@ const SettingPage = () => {
                     <tbody>
                         {/* Keep original mapping logic (with potential TS warning) */}
                         {configurations?.configurations?.map((item: ConfigurationDetailType, index) => (
-                            // Keep original row click logic
                             <tr key={index} onClick={() => setUpdateConfig(item as ConfigurationUpdateType)}>
                                 {/* Apply SCSS class to checkbox data cell */}
                                 <td className="checkboxCell">
                                     <input
                                         type="checkbox"
-                                        // Apply SCSS class to checkbox input
                                         className="checkboxInput"
                                         checked={deleteConfig.includes(item.configId)}
                                         onClick={(e) => e.stopPropagation()}
@@ -381,9 +334,7 @@ const SettingPage = () => {
             <div className="paginationContainer">
                 <button
                     onClick={() => setFirst(prev => Math.max(prev - rows, 0))}
-                    disabled={first === 0} // Keep original disabled logic
-                    // Apply SCSS class to pagination buttons
-                    className="paginationButton"
+                    disabled={first === 0} className="paginationButton"
                 >
                     Trước
                 </button>
@@ -394,9 +345,7 @@ const SettingPage = () => {
                 </span>
                 <button
                     onClick={() => setFirst(prev => (configurations && (prev + rows < configurations.total) ? prev + rows : prev))}
-                    // Keep original disabled logic (with potential TS warning)
                     disabled={configurations ? (first + rows) >= configurations.total : true}
-                    // Apply SCSS class to pagination buttons
                     className="paginationButton"
                 >
                     Sau
@@ -405,7 +354,6 @@ const SettingPage = () => {
 
             {/* Update Modal - Keep original conditional rendering */}
             {updateConfig && (
-                // Assume PopupModal renders children, apply SCSS classes to inner structure
                 <PopupModal title="Cập nhật Cấu Hình" onClose={() => setUpdateConfig(null)}>
                     {/* Apply SCSS class to content area */}
                     <div className="modalContent">
@@ -417,7 +365,6 @@ const SettingPage = () => {
                                 name="name"
                                 value={updateConfig.name}
                                 onChange={(e) => setUpdateConfig({ ...updateConfig, name: e.target.value })}
-                            // No class specified for inputs inside modalContent label in SCSS, keep original structure
                             />
                         </label>
                         <label>
@@ -467,14 +414,12 @@ const SettingPage = () => {
                         {/* Keep original button structure, apply SCSS classes */}
                         <button
                             onClick={handleUpdateConfiguration}
-                            className="modalButton primary" // Use appropriate variant
-                        >
+                            className="modalButton primary"                         >
                             Cập nhật
                         </button>
                         <button
                             onClick={() => setUpdateConfig(null)}
-                            className="modalButton secondary" // Use appropriate variant
-                        >
+                            className="modalButton secondary"                         >
                             Hủy
                         </button>
                     </div>
@@ -483,7 +428,6 @@ const SettingPage = () => {
 
             {/* Add Modal - Keep original conditional rendering */}
             {showAddForm && (
-                // Assume PopupModal renders children, apply SCSS classes to inner structure
                 <PopupModal title="Thêm Cấu Hình" onClose={() => setShowAddForm(false)}>
                     {/* Apply SCSS class to content area */}
                     {/* Note: Original had extra wrapping divs, keeping that structure */}
@@ -553,14 +497,12 @@ const SettingPage = () => {
                         {/* Keep original button structure, apply SCSS classes */}
                         <button
                             onClick={handleCreateConfiguration}
-                            className="modalButton success" // Use appropriate variant
-                        >
+                            className="modalButton success"                         >
                             Tạo mới
                         </button>
                         <button
                             onClick={() => setShowAddForm(false)}
-                            className="modalButton secondary" // Use appropriate variant
-                        >
+                            className="modalButton secondary"                         >
                             Hủy
                         </button>
                     </div>

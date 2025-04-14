@@ -39,7 +39,6 @@ export class AuthController {
         @GetUser() user: User,
         @Body() changePasswordDto: ChangePasswordDto
     ): Promise<{ message: string }> {
-        console.log(changePasswordDto)
         const email = user.email;
         if (!email) {
             throw new UnauthorizedException('Xác thực thất bại.');

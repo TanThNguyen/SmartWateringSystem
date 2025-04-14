@@ -28,7 +28,7 @@ export class MoistureSensorDeviceHandler implements IDeviceHandler {
     if (data.moisture_sensor) {
       await prisma.moistureSensor.update({
         where: { sensorId: deviceId },
-        data: data.moisture_sensor, // Cập nhật thresholdId
+        data: data.moisture_sensor, 
       });
     }
   }
@@ -36,8 +36,8 @@ export class MoistureSensorDeviceHandler implements IDeviceHandler {
   async getSpecifics(prisma: PrismaClient | PrismaTransactionClient, deviceId: string): Promise<any | null> {
     return prisma.moistureSensor.findUnique({
       where: { sensorId: deviceId },
-      // Có thể include thêm threshold nếu cần hiển thị thông tin config
-      // include: { threshold: true }
+      
+      
     });
   }
 

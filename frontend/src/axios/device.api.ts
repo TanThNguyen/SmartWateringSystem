@@ -6,7 +6,6 @@ import {
     GetDevicesRequestType,
     DeviceIdType,
     FindAllDevicesType,
-    InfoDevicesType
 } from "../types/device.type";
 import axiosClient from "./axiosConfigs";
 
@@ -54,7 +53,6 @@ export const deviceApi = {
     getOneDevice: async (params: DeviceIdType) => {
         try {
             const response = await axiosClient.get("/api/device/one", { params });
-            console.log(response)
             return response.data;
         } catch (error) {
             handleAPIError(error);

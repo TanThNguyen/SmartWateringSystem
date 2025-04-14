@@ -40,14 +40,14 @@ export class FanDeviceHandler implements IDeviceHandler {
   ): Promise<DeviceStatus> {
     const newStatus = device.status === DeviceStatus.ACTIVE ? DeviceStatus.INACTIVE : DeviceStatus.ACTIVE;
 
-    // await prisma.device.update({
-    //   where: { deviceId: device.deviceId },
-    //   data: { status: newStatus },
-    // });
+    
+    
+    
+    
 
     if (newStatus === DeviceStatus.ACTIVE) {
       const now = new Date();
-      const endTime = new Date(now.getTime() + 30 * 60000); // 30 phút sau
+      const endTime = new Date(now.getTime() + 30 * 60000); 
 
       await this.scheduleService.createScheduleWithSimpleValidation({
         deviceId: device.deviceId,

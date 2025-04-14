@@ -11,9 +11,9 @@ export class PumpDeviceHandler implements IDeviceHandler {
     private readonly scheduleService: ScheduleService,
   ) { }
   async createSpecifics(prisma: PrismaTransactionClient, deviceId: string, data: AddDeviceDto): Promise<void> {
-    // Pump không yêu cầu trường đặc biệt nào trong AddDeviceDto hiện tại
+    
     await prisma.pump.create({
-      data: { pumpId: deviceId }, // mode, isRunning có giá trị default trong schema
+      data: { pumpId: deviceId }, 
     });
   }
 
@@ -21,7 +21,7 @@ export class PumpDeviceHandler implements IDeviceHandler {
     if (data.pump) {
       await prisma.pump.update({
         where: { pumpId: deviceId },
-        data: data.pump, // Cập nhật các trường từ PumpAttributes trong DTO
+        data: data.pump, 
       });
     }
   }
@@ -36,14 +36,14 @@ export class PumpDeviceHandler implements IDeviceHandler {
   ): Promise<DeviceStatus> {
     const newStatus = device.status === DeviceStatus.ACTIVE ? DeviceStatus.INACTIVE : DeviceStatus.ACTIVE;
 
-    // await prisma.device.update({
-    //   where: { deviceId: device.deviceId },
-    //   data: { status: newStatus },
-    // });
+    
+    
+    
+    
 
     if (newStatus === DeviceStatus.ACTIVE) {
       const now = new Date();
-      const endTime = new Date(now.getTime() + 30 * 60000); // 30 phút sau
+      const endTime = new Date(now.getTime() + 30 * 60000); 
 
       await this.scheduleService.createScheduleWithSimpleValidation({
         deviceId: device.deviceId,

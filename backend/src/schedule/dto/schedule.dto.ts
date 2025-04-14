@@ -35,7 +35,7 @@ export class CreateScheduleDto {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean = true; // Mặc định là active
+  isActive?: boolean = true; 
 }
 
 export class GetSchedulesRequestDto {

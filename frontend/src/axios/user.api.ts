@@ -6,7 +6,6 @@ export const userApi = {
     getAllUsers: async (params: UsersRequestType): Promise<AllUsersType> => {
         try {
             const response = await axiosClient.get<AllUsersType>("/api/user/all", { params });
-            console.log("getAllUsers", response.data);
             return response.data;
         } catch (error) {
             handleAPIError(error);

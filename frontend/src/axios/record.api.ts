@@ -6,7 +6,6 @@ export const recordAPI = {
     getDeviceRecords: async (params: SensorDataRequestType) => {
         try {
             const response = await axiosClient.get("/api/records/device", { params });
-            console.log("getDeviceRecords", response.data);
             return response.data;
         } catch (error) {
             handleAPIError(error);
@@ -17,7 +16,6 @@ export const recordAPI = {
     getLocationRecords: async (params: LocationRecordQueryType): Promise<SensorDataResponseType> => {
         try {
             const response = await axiosClient.get<SensorDataResponseType>("/api/records/location", { params });
-            console.log("getLocationRecords", response.data);
             return response.data;
         } catch (error) {
             handleAPIError(error);

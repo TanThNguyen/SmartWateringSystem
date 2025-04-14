@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FaGoogle, FaApple } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { authApi } from "../../axios/auth";
+import loginImage from '../../assets/image.png';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,7 +40,6 @@ export default function LoginPage() {
         const now = new Date().getTime();
         const expiration = now + 6 * 60 * 60 * 1000;
         const { accessToken, role, name } = response.data;
-        console.log(response);
         localStorage.setItem("token", JSON.stringify(accessToken));
         localStorage.setItem("name", JSON.stringify(name));
         localStorage.setItem("isAuthenticated", "true");
@@ -125,7 +124,7 @@ export default function LoginPage() {
       </div>
 
       <div className="w-1/2 h-full">
-        <img src="/src/assets/image.png" alt="Login Image" className="w-full h-full object-cover" />
+        <img src={loginImage} alt="Login Image" className="w-full h-full object-cover" />
       </div>
     </div>
   );

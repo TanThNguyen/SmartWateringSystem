@@ -6,7 +6,6 @@ export const logAPI = {
     getAllLogs: async (params: GetLogsRequestType): Promise<FindAllLogsType> => {
         try {
             const response = await axiosClient.get<FindAllLogsType>("/api/log/all", { params });
-            console.log("getAllLogs", response.data);
             return response.data;
         } catch (error) {
             handleAPIError(error);

@@ -10,12 +10,10 @@ import {
 import axiosClient from "./axiosConfigs";
 
 export const configurationApi = {
-    // Lấy tất cả các cấu hình với phân trang trả về ConfigurationPaginatedType
+    
     getAllConfigurations: async (params: ConfigurationQueryType) => {
         try {
             const response = await axiosClient.get("/api/configurations", { params });
-            console.log("API Response:", response.data);
-
             return response.data;
         } catch (error) {
             handleAPIError(error);
@@ -23,7 +21,7 @@ export const configurationApi = {
         }
     },
 
-    // Lọc cấu hình theo điều kiện trả về  
+    
     getConfigurationsByFilter: async (params: ConfigurationFilterType) => {
         try {
             const response = await axiosClient.get("/api/configurations/filter", { params });
@@ -34,7 +32,7 @@ export const configurationApi = {
         }
     },
 
-    // Tạo mới cấu hình
+    
     createConfiguration: async (data: ConfigurationCreateType) => {
         try {
             const response = await axiosClient.post("/api/configurations", data);
@@ -45,7 +43,7 @@ export const configurationApi = {
         }
     },
 
-    // Cập nhật cấu hình
+    
     updateConfiguration: async (data: ConfigurationUpdateType) => {
         try {
             const response = await axiosClient.put("/api/configurations", data);
@@ -56,7 +54,7 @@ export const configurationApi = {
         }
     },
 
-    // Xóa cấu hình
+    
     deleteConfiguration: async (data: ConfigurationDeleteType) => {
         try {
             const response = await axiosClient.delete("/api/configurations", { data });

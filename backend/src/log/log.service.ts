@@ -16,7 +16,7 @@ export class LogService {
     async handleLogEvent(payload: LogEventPayload): Promise<void> {
         this.logger.debug(`Đang xử lý sự kiện log: ${JSON.stringify(payload)}`);
         try {
-            // Khai báo type rõ ràng: có thể là object connect hoặc undefined
+            
             let connectUser: PrismaConnect<'userId', string> | undefined = undefined;
             let connectDevice: PrismaConnect<'deviceId', string> | undefined = undefined;
 
@@ -26,7 +26,7 @@ export class LogService {
                     select: { deviceId: true }
                 });
                 if (device) {
-                    // Gán đúng kiểu đã khai báo
+                    
                     connectDevice = { connect: { deviceId: payload.deviceId } };
                 } else {
                     this.logger.warn(`Không tìm thấy thiết bị với ID ${payload.deviceId} khi cố gắng tạo log. Log sẽ được tạo mà không có liên kết thiết bị.`);
@@ -39,7 +39,7 @@ export class LogService {
                     select: { userId: true }
                 });
                 if (user) {
-                     // Gán đúng kiểu đã khai báo
+                     
                     connectUser = { connect: { userId: payload.userId } };
                 } else {
                     this.logger.warn(`Không tìm thấy người dùng với ID ${payload.userId} khi cố gắng tạo log. Log sẽ được tạo mà không có liên kết người dùng.`);
@@ -49,7 +49,7 @@ export class LogService {
             const logData: Prisma.LogCreateInput = {
                 eventType: payload.eventType,
                 description: payload.description,
-                // Sử dụng toán tử optional chaining và spread để thêm quan hệ nếu có
+                
                 ...(connectUser ? { user: connectUser } : {}),
                 ...(connectDevice ? { device: connectDevice } : {}),
             };

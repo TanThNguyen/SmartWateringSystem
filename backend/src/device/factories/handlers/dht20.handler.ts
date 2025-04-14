@@ -12,7 +12,7 @@ export class DHT20SensorDeviceHandler implements IDeviceHandler {
     if (!data.tempMinId || !data.tempMaxId || !data.humidityThresholdId) {
       throw new BadRequestException('Thiếu ID ngưỡng nhiệt độ tối thiểu, tối đa hoặc độ ẩm cho DHT20 Sensor!');
     }
-    // Có thể thêm kiểm tra sự tồn tại của các config ID này
+    
   }
 
   async createSpecifics(prisma: PrismaTransactionClient, deviceId: string, data: AddDeviceDto): Promise<void> {
@@ -39,8 +39,8 @@ export class DHT20SensorDeviceHandler implements IDeviceHandler {
   async getSpecifics(prisma: PrismaClient | PrismaTransactionClient, deviceId: string): Promise<any | null> {
     return prisma.dHT20Sensor.findUnique({
       where: { sensorId: deviceId },
-      // Có thể include thêm các configuration nếu cần
-      // include: { temperatureMin: true, temperatureMax: true, humidityThreshold: true }
+      
+      
     });
   }
 

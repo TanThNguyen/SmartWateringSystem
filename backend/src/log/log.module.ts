@@ -7,6 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [LogController],
   providers: [LogService],
-  exports: [LogService], // Vẫn export nếu cần truy vấn log từ module khác
+  exports: [LogService], 
 })
 export class LogModule {}

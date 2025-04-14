@@ -6,16 +6,30 @@ import { DeviceFactory } from './factories/device.factory';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
 import { NOTIFICATION_EVENT, NotificationEventPayload, NotificationEventContext } from "src/notification/dto";
+import { DevicePollingService } from 'src/adafruit/device-polling.service';
+import { debounce, DebouncedFunc } from 'lodash';
 
 @Injectable()
 export class DeviceService {
     private readonly logger = new Logger(DeviceService.name);
+    private refreshPollingDebounced: DebouncedFunc<() => Promise<void>>;
 
     constructor(
         private prismaService: PrismaService,
         private deviceFactory: DeviceFactory,
         private eventEmitter: EventEmitter2,
-    ) { }
+        private readonly devicePollingService: DevicePollingService,
+    ) {
+        this.refreshPollingDebounced = debounce(async () => {
+            this.logger.log('Debounced refreshPolling triggered.');
+            try {
+                await this.devicePollingService.refreshPolling();
+                this.logger.log('Polling refreshed successfully after debounce.');
+            } catch (error) {
+                this.logger.error(`Error during debounced refreshPolling: ${error.message}`, error.stack);
+            }
+        }, 10000);
+    }
 
     async add(addDeviceDto: AddDeviceDto): Promise<string> {
         const { name, type, locationId, status } = addDeviceDto;
@@ -45,6 +59,8 @@ export class DeviceService {
                 addedDeviceId = device.deviceId;
                 await handler.createSpecifics(prisma, device.deviceId, addDeviceDto);
             });
+
+            this.refreshPollingDebounced();
 
             // --- BỔ SUNG LOG & NOTIFICATION ---
             const logPayloadSuccess: LogEventPayload = {
@@ -94,7 +110,7 @@ export class DeviceService {
         try {
             // Lấy thông tin thiết bị trước khi cập nhật để log
             const devicesToUpdate = await this.prismaService.device.findMany({
-                where: { deviceId: { in: deviceIds }, status: DeviceStatus.ACTIVE }, // Chỉ lấy những thiết bị đang ACTIVE
+                where: { deviceId: { in: deviceIds } }, // Chỉ lấy những thiết bị đang ACTIVE
                 select: { deviceId: true, name: true }
             });
 
@@ -111,15 +127,19 @@ export class DeviceService {
 
             const countResult = await this.prismaService.device.updateMany({
                 where: { deviceId: { in: actualIdsToUpdate } }, // Chỉ cập nhật những ID thực sự tồn tại và active
-                data: { status: DeviceStatus.INACTIVE },
+                data: {
+                    status: DeviceStatus.INACTIVE,
+                    locationId: null,
+                },
             });
 
-            // --- BỔ SUNG LOG & NOTIFICATION ---
             const logPayloadSuccess: LogEventPayload = {
                 eventType: Severity.INFO,
                 description: `Đã vô hiệu hóa ${countResult.count} thiết bị: ${deviceNames}.`
             };
             this.eventEmitter.emit(LOG_EVENT, logPayloadSuccess);
+
+            this.refreshPollingDebounced();
 
             // Gửi thông báo (ví dụ: cho admin)
             const notiContext: NotificationEventContext = { /* Thêm context nếu cần */ };
@@ -352,6 +372,8 @@ export class DeviceService {
 
                 await handler.updateSpecifics(prisma, deviceId, editDeviceDto);
 
+                this.refreshPollingDebounced();
+
                 // --- BỔ SUNG LOG & NOTIFICATION ---
                 const logPayloadSuccess: LogEventPayload = {
                     deviceId: deviceId,
@@ -366,8 +388,6 @@ export class DeviceService {
                 // const notiPayload: NotificationEventPayload = { ... };
                 // this.eventEmitter.emit(NOTIFICATION_EVENT, notiPayload);
                 // --- KẾT THÚC BỔ SUNG ---
-
-                console.log(`Cập nhật thiết bị ${deviceId} thành công!`);
 
                 return `Cập nhật thiết bị ${deviceId} thành công!`;
             });
@@ -389,4 +409,9 @@ export class DeviceService {
         }
     }
 
+    onModuleDestroy() {
+        if (typeof this.refreshPollingDebounced.cancel === 'function') {
+             this.refreshPollingDebounced.cancel();
+        }
+    }
 }

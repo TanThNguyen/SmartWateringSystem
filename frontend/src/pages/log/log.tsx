@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { logAPI } from "../../axios/log.api";
 import { InfoLogType, Severity } from "../../types/log.type";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -13,9 +13,9 @@ export default function HistoryPage() {
   const [eventType, setEventType] = useState<Severity | "ALL">("ALL");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
 
-  // Pagination state
+  
   const [page, setPage] = useState<number>(1);
-  const [itemsPerPage] = useState<number>(15); // Adjust items per page if needed
+  const [itemsPerPage] = useState<number>(15); 
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
     const fetchLogs = useCallback(async () => {
@@ -31,7 +31,7 @@ export default function HistoryPage() {
             setLogs(data.logs || []);
             setTotalRecords(data.total || 0);
 
-            // Adjust page if current page becomes invalid
+            
              const maxPage = Math.ceil((data.total || 0) / itemsPerPage) || 1;
              if (page > maxPage) {
                  setPage(maxPage);
@@ -43,7 +43,7 @@ export default function HistoryPage() {
             console.error("Lỗi khi lấy logs:", error);
             setLogs([]);
             setTotalRecords(0);
-            // Optionally show a toast error message here
+            
         } finally {
             setLoading(false);
         }
@@ -52,7 +52,7 @@ export default function HistoryPage() {
 
     useEffect(() => {
         fetchLogs();
-    }, [fetchLogs]); // fetchLogs is memoized with its dependencies
+    }, [fetchLogs]); 
 
 
   const handlePageChange = (newPage: number) => {
@@ -67,7 +67,7 @@ export default function HistoryPage() {
     value: string,
     options: { label: string; value: string }[],
     onChange: (value: string) => void,
-    dropdownWidthClass = "w-200" // Default width class
+    dropdownWidthClass = "w-200" 
   ) => (
     <div className={`filterDropdownWrapper ${dropdownWidthClass}`}>
         <DropdownMenu.Root>
@@ -94,7 +94,7 @@ export default function HistoryPage() {
     </div>
   );
 
-   // Memoize options to prevent unnecessary re-renders
+   
     const eventTypeOptions = useMemo(() => [
         { label: "Tất cả loại", value: "ALL" },
         { label: "Thông báo", value: Severity.INFO },
@@ -129,7 +129,7 @@ export default function HistoryPage() {
           order,
           orderOptions,
           (value) => { setOrder(value as "asc" | "desc"); setPage(1); },
-          "w-150" // Specific width for order dropdown
+          "w-150" 
         )}
       </div>
 

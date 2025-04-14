@@ -5,7 +5,7 @@ import { recordAPI } from "../../axios/record.api";
 import { locationApi } from "../../axios/location.api";
 import { LocationRecordQueryType, SensorDataResponseType } from "../../types/record.type";
 
-import { GetLocationsRequestType, CreateLocationType, UpdateLocationType, DeleteLocationType, FindAllLocationsType, InfoLocationType } from "../../types/location.type";
+import { UpdateLocationType, FindAllLocationsType } from "../../types/location.type";
 
 export default function DashboardPage() {
   const [areaData, setAreaData] = useState<Record<number, { weather: string, temp: number, humidity: number, ac: number, soil: number }>>({});
@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   const [showChartModal, setShowChartModal] = useState(false);
   const [selectedChart, setSelectedChart] = useState("");
-  const [timeFilter, setTimeFilter] = useState(30); // days (min:1, max:7)
+  const [timeFilter, setTimeFilter] = useState(30);
   const [fixedDate, setFixedDate] = useState<string>("");
   const [searchStart, setSearchStart] = useState<string>("");
   const [searchEnd, setSearchEnd] = useState<string>("");
@@ -49,12 +49,10 @@ export default function DashboardPage() {
         const response = await locationApi.getAllLocations({ search: "", order: "asc" });
         setLocationData(response);
 
-        // Chỉ cập nhật selectedLocation nếu response có dữ liệu
+
         if (response.locations.length > 0) {
           setSelectedLocation(response.locations[0].locationId);
         }
-
-        console.log(response);
       } catch (err) {
         console.error("Failed to fetch locations.");
       }
@@ -63,11 +61,11 @@ export default function DashboardPage() {
     fetchLocationData();
   }, []);
 
-  // Lấy username từ localStorage
+
   useEffect(() => {
     const storedUser = localStorage.getItem("name");
     if (storedUser) {
-      setUsername(storedUser.slice(1, -1)); // Cắt bỏ ký tự đầu và cuối
+      setUsername(storedUser.slice(1, -1));
     }
 
     const role = localStorage.getItem("role");
@@ -79,7 +77,7 @@ export default function DashboardPage() {
   }, []);
 
 
-  // Cập nhật thời gian mỗi giây
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
@@ -87,7 +85,7 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Call API lấy dữ liệu khu vực khi component mount
+
   useEffect(() => {
     if (!selectedLocation) return;
 
@@ -102,14 +100,14 @@ export default function DashboardPage() {
 
         if (!response) return;
 
-        // Cập nhật recordData với dữ liệu mới
+
         const newRecordData: Record<string, { temp: number; humidity: number; soil: number }> = {};
         response.dht20?.forEach(record => {
           const timestamp = new Date(record.timestamp).getTime();
           newRecordData[timestamp] = {
             temp: record._avg.temperature ?? 0,
             humidity: record._avg.humidity ?? 0,
-            soil: 0, // Sẽ cập nhật từ MoistureRecordType
+            soil: 0,
           };
         });
 
@@ -124,7 +122,7 @@ export default function DashboardPage() {
 
         setRecrordData(newRecordData);
 
-        // Cập nhật areaData
+
         if (Object.keys(newRecordData).length > 0) {
           setAreaData(prev => ({
             ...prev,
@@ -137,7 +135,7 @@ export default function DashboardPage() {
             },
           }));
 
-          // Cập nhật activeArea nếu chưa có
+
           if (!activeArea) setActiveArea(Number(selectedLocation));
         }
 
@@ -149,12 +147,12 @@ export default function DashboardPage() {
     fetchAreaData();
   }, [selectedLocation, currentTime]);
 
-  // Cập nhật dữ liệu biểu đồ
+
   useEffect(() => {
     if (!recordData) return;
 
     const newTimestamp = currentTime.getTime();
-    // Sử dụng timeFilter để tính toán threshold (đổi từ 30 sang timeFilter cho nhất quán)
+
     const threshold = newTimestamp - timeFilter * 24 * 60 * 60 * 1000;
 
     setTemperatureChartData(prev => ({
@@ -182,13 +180,13 @@ export default function DashboardPage() {
     }));
   }, [currentTime, recordData, selectedLocation, timeFilter]);
 
-  // Kiểm tra thời gian của dữ liệu backend so với currentTime
+
   useEffect(() => {
     if (selectedLocation && recordData) {
       const timestamps = Object.keys(recordData);
       if (timestamps.length > 0) {
         const maxTimestamp = Math.max(...timestamps.map(Number));
-        if (currentTime.getTime() - maxTimestamp > 30 * 1000) { // chênh lệch hơn 30 giây
+        if (currentTime.getTime() - maxTimestamp > 30 * 1000) {
           setIsDataStale(true);
         } else {
           setIsDataStale(false);
@@ -250,16 +248,16 @@ export default function DashboardPage() {
 
   const handleSaveNewArea = async () => {
     try {
-      // Gọi API để tạo khu vực mới
+
       const newLocation = await locationApi.createLocation(newAreaData);
 
-      // Cập nhật danh sách khu vực sau khi tạo thành công
+
       const updatedLocations = await locationApi.getAllLocations({ search: "", order: "asc" });
       setLocationData(updatedLocations);
       setSelectedLocation(updatedLocations.locationId);
       setActiveArea(newLocation);
 
-      // Đóng modal và reset dữ liệu nhập
+
       setNewAreaData({ name: "" });
       setShowModal(false);
     } catch (error) {
@@ -283,7 +281,7 @@ export default function DashboardPage() {
   };
 
   const handleEditArea = (locationId: string) => {
-    // Tìm khu vực cần chỉnh sửa từ danh sách
+
     const selectedArea = locationData.locations.find((loc) => loc.locationId === locationId);
 
     if (selectedArea) {
@@ -300,14 +298,14 @@ export default function DashboardPage() {
     }
 
     try {
-      // Gọi API cập nhật khu vực
+
       await locationApi.updateLocation(editingAreaData);
 
-      // Cập nhật danh sách khu vực sau khi chỉnh sửa
+
       const updatedLocations = await locationApi.getAllLocations({ search: "", order: "asc" });
       setLocationData(updatedLocations);
 
-      // Đóng modal chỉnh sửa
+
       setEditingArea(null);
     } catch (error) {
       console.error("Failed to update location:", error);
@@ -330,7 +328,7 @@ export default function DashboardPage() {
     try {
       await locationApi.deleteLocation({ locationId: selectedAreaId });
 
-      // Cập nhật danh sách khu vực sau khi xóa thành công
+
       const updatedLocations = await locationApi.getAllLocations({ search: "", order: "asc" });
       setLocationData(updatedLocations);
 
@@ -360,7 +358,7 @@ export default function DashboardPage() {
   };
 
   const getFilteredChartData = () => {
-    if (!selectedLocation) return []; // Nếu không có location, trả về mảng rỗng
+    if (!selectedLocation) return [];
 
     let data: Array<any> = [];
 

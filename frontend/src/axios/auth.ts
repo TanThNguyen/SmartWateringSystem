@@ -32,9 +32,7 @@ export const authApi = {
 
   changePassword: async (params: ChangePasswordType): Promise<ApiResponse> => {
     try {
-      console.log(params)
       const response = await axiosClient.post("/api/auth/change-password", params);
-      console.log(response)
       return {
         success: true,
         status: response.status, 
@@ -48,7 +46,6 @@ export const authApi = {
           data: error.response.data, 
         };
       }
-      console.error("Lỗi không mong muốn khi đổi mật khẩu:", error);
       throw new Error(`Lỗi không mong muốn: ${error}`);
     }
   },

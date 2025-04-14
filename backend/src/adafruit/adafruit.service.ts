@@ -155,11 +155,6 @@ export class AdafruitService {
   async sendFeedData(feedName: string, value: string): Promise<any> {
     const url = `${this.BASE_URL}/feeds/${feedName}/data`;
 
-    console.log(feedName + `: ` + value);;
-    console.log(this.AIO_KEY);
-
-    console.log(`Gửi dữ liệu đến: ${url} với giá trị: ${value}`);
-
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -261,7 +256,6 @@ export class AdafruitService {
 
     const feedConfig = await this.getFeedConfig(feedName);
     const threshold = feedConfig ? feedConfig.threshold : null;
-    console.log(threshold);
     return {
       feedName,
       data: sensorData,
@@ -284,7 +278,6 @@ export class AdafruitService {
       }
 
       const data = await response.json();
-      console.log("Dữ liệu nhận được:", data);
 
       return {
         name: data.name,

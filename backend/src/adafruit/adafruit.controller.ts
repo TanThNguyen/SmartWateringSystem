@@ -12,7 +12,6 @@ export class AdafruitController {
   async getFeedData(
     @Query('feedName') feedName: string,
   ) {
-    console.log(feedName);
     return this.adafruitService.getFeedData(feedName);
   }
 
@@ -22,7 +21,6 @@ export class AdafruitController {
     @Query('feedName') feedName: string,
     @Query('deviceId') deviceId: string
   ) {
-    console.log(feedName, deviceId);
     return this.adafruitService.fetchMoistureData(feedName, deviceId);
   }
 
@@ -32,7 +30,6 @@ export class AdafruitController {
     @Query('feedName') feedName: string,
     @Query('deviceId') deviceId: string
   ) {
-    console.log(feedName, deviceId);
     return this.adafruitService.fetchDHT20Data(feedName, deviceId);
   }
 
@@ -40,12 +37,10 @@ export class AdafruitController {
   @Public()
   async sendFeedData(@Body() body: { feedName: string; value: string }) {
     const { feedName, value } = body;
-    console.log(feedName, ':', value);
     if (!feedName || !value) {
       throw new Error('❌ Missing feedName or value');
     }
 
-    console.log(`📡 Sending to feed: ${feedName} - Value: ${value}`);
     return this.adafruitService.sendFeedData(feedName, value);
   }
 

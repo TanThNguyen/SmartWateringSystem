@@ -238,7 +238,6 @@ export class ScheduleService {
               throw new ConflictException('Bật lại lịch trình sẽ gây xung đột với lịch trình khác.');
             }
           } else if (existingRepeatDays === 0 && schedule.repeatDays !== 0) {
-            console.log('hello world');
             const existingDayOfWeek = dayjs(existing.startTime).day();
             if ((schedule.repeatDays & (1 << existingDayOfWeek)) !== 0) {
               if (dayjs(schedule.startTime).hour() === dayjs(existing.startTime).hour() &&
