@@ -1,7 +1,7 @@
 import { DeviceStatus, DeviceType, Prisma, PrismaClient } from '@prisma/client';
 import { AddDeviceDto, EditDeviceDto } from '../../dto';
 
-// Sử dụng type Prisma.TransactionClient để đảm bảo handler có thể chạy trong transaction
+
 export type PrismaTransactionClient = Omit<
   PrismaClient<Prisma.PrismaClientOptions, never>,
   '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
