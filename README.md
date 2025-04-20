@@ -64,25 +64,30 @@ git clone https://github.com/TanThNguyen/SmartWateringSystem.git
 cd SmartWateringSystem
 ```
 ### 2. Backend
+```bash
 cd Backend
 npm install
 # Thêm file .env (xem .env.example)
 npm run start:dev
-
+```
 ### 3. Frontend
+```bash
 cd Frontend
 npm install
 npm run dev
-
+```
 ### 3. AI model
+```bash
 cd ai-assistant
 pip install -r requirements.txt
 cd ./app
 python train_pump_model.py
+```
 
 ---
 
 ## Cấu trúc thư mục
+```bash
 SmartWateringSystem/
 │
 ├── Backend/            # API, MQTT, xử lý dữ liệu, giao tiếp DB
@@ -94,5 +99,5 @@ SmartWateringSystem/
 ├── docs/               # Tài liệu mô tả hệ thống
 │
 └── README.md
-
+```
 
