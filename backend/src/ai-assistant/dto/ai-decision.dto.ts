@@ -49,27 +49,45 @@ export class AiDecisionRequestDto {
   configuration: ConfigurationDataDto;
 }
 
-export enum AiAction {
-    PUMP_ON = "PUMP_ON",
-    FAN_ON = "FAN_ON",
-    NONE = "NONE",
-}
-
 export enum AiUrgency {
     URGENT = "URGENT",
     NORMAL = "NORMAL",
 }
 
-export class AiDecisionResponseDto {
-  @IsEnum(AiAction)
+export enum AiPumpAction {
+    PUMP_ON = "PUMP_ON",
+    PUMP_OFF = "PUMP_OFF",
+    NONE = "NONE",
+}
+
+export enum AiFanAction {
+    FAN_ON = "FAN_ON",
+    FAN_OFF = "FAN_OFF",
+    NONE = "NONE",
+}
+
+export class AiCombinedDecisionResponseDto {
+  @IsEnum(AiPumpAction)
   @IsNotEmpty()
-  action: AiAction;
+  pump_action: AiPumpAction;
 
   @IsNumber()
   @IsNotEmpty()
-  duration: number;
+  pump_duration: number;
 
   @IsEnum(AiUrgency)
   @IsNotEmpty()
-  urgency: AiUrgency;
+  pump_urgency: AiUrgency;
+
+  @IsEnum(AiFanAction)
+  @IsNotEmpty()
+  fan_action: AiFanAction;
+
+  @IsNumber()
+  @IsNotEmpty()
+  fan_duration: number;
+
+  @IsEnum(AiUrgency)
+  @IsNotEmpty()
+  fan_urgency: AiUrgency;
 }

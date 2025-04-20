@@ -15,23 +15,23 @@ export class AdafruitController {
     return this.adafruitService.getFeedData(feedName);
   }
 
-  @Get('moisture')
-  @Public()
-  async getMoistureData(
-    @Query('feedName') feedName: string,
-    @Query('deviceId') deviceId: string
-  ) {
-    return this.adafruitService.fetchMoistureData(feedName, deviceId);
-  }
+  // @Get('moisture')
+  // @Public()
+  // async getMoistureData(
+  //   @Query('feedName') feedName: string,
+  //   @Query('deviceId') deviceId: string
+  // ) {
+  //   return this.adafruitService.fetchMoistureData(feedName, deviceId);
+  // }
 
-  @Get('dht20')
-  @Public()
-  async getDHT20Data(
-    @Query('feedName') feedName: string,
-    @Query('deviceId') deviceId: string
-  ) {
-    return this.adafruitService.fetchDHT20Data(feedName, deviceId);
-  }
+  // @Get('dht20')
+  // @Public()
+  // async getDHT20Data(
+  //   @Query('feedName') feedName: string,
+  //   @Query('deviceId') deviceId: string
+  // ) {
+  //   return this.adafruitService.fetchDHT20Data(feedName, deviceId);
+  // }
 
   @Post('set')
   @Public()
@@ -78,11 +78,11 @@ export class AdafruitController {
     });
   }
 
-  @Get('sensor')
-  async getSensorData(
-    @Query('feedName') feedName: string,
-  ) {
-    return this.adafruitService.getSensorData(feedName);
-  }
+  // @Get('sensor')
+  // async getSensorData(
+  //   @Query('feedName') feedName: string,
+  // ) {
+  //   return this.adafruitService.getSensorData(feedName);
+  // }
 
 }

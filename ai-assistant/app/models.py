@@ -20,4 +20,12 @@ class DecisionRequest(BaseModel):
 class DecisionResponse(BaseModel):
     action: str = Field(...)
     duration: int = Field(...)
-    urgency: str = Field(...) 
+    urgency: str = Field(...)
+
+class CombinedDecisionResponse(BaseModel):
+    pump_action: str = Field(...)
+    pump_duration: int = Field(...)
+    pump_urgency: str = Field(...)
+    fan_action: str = Field(...)
+    fan_duration: int = Field(...)
+    fan_urgency: str = Field(...)

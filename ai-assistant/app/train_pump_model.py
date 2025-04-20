@@ -61,7 +61,7 @@ def preprocess_data(df):
     # Biến đổi Soil Moisture
     print("\n--- Chia giá trị 'Soil Moisture' cho 10 ---")
     if 'Soil Moisture' in df.columns:
-        df['Soil Moisture'] = df['Soil Moisture'] / 10.0
+        df['Soil Moisture'] = df['Soil Moisture'] / 12.0
         print("'Soil Moisture' đã được chia cho 10.")
     else:
         print("CẢNH BÁO: Không tìm thấy cột 'Soil Moisture' để chia.")

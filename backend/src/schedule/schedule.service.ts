@@ -554,11 +554,11 @@ export class ScheduleService {
           if (deviceSuffix) {
             const commandBase = { deviceId, deviceName: device.name, originalStatus: currentStatus, desiredStatus };
             if (desiredStatus === DeviceStatus.ACTIVE) {
-              adafruitCommands.push({ ...commandBase, feedName: `auto${deviceSuffix}`, value: 'MAN' });
+              // adafruitCommands.push({ ...commandBase, feedName: `auto${deviceSuffix}`, value: 'MAN' });
               adafruitCommands.push({ ...commandBase, feedName: device.name, value: 'ON' });
             } else {
               adafruitCommands.push({ ...commandBase, feedName: device.name, value: 'OFF' });
-              adafruitCommands.push({ ...commandBase, feedName: `auto${deviceSuffix}`, value: 'AUTO' });
+              // adafruitCommands.push({ ...commandBase, feedName: `auto${deviceSuffix}`, value: 'AUTO' });
             }
           } else {
             this.logger.warn(`Could not extract suffix (like kv1) from device name ${device.name} for Adafruit commands.`);

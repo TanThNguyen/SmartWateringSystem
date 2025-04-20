@@ -1,11 +1,17 @@
-import { AiAction, AiDecisionRequestDto, AiDecisionResponseDto, AiUrgency } from "../dto"; // Import thêm AiUrgency nếu cần dùng ở nơi khác
+import {
+    AiDecisionRequestDto,
+    AiCombinedDecisionResponseDto,
+    AiUrgency,
+    AiPumpAction,
+    AiFanAction
+} from "../dto";
 
 export interface AiDecisionContext {
     request: AiDecisionRequestDto;
 }
 
 export interface AiDecisionSuccessPayload extends AiDecisionContext {
-    response: AiDecisionResponseDto; 
+    response: AiCombinedDecisionResponseDto;
 }
 
 export interface AiCircuitOpenPayload extends AiDecisionContext {

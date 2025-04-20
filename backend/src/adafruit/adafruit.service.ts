@@ -1,14 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger, OnModuleInit } from '@nestjs/common';
 import { Device, DeviceType } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class AdafruitService {
+export class AdafruitService implements OnModuleInit, OnModuleDestroy {
   private readonly AIO_USERNAME: string;
   private readonly AIO_KEY: string;
   private readonly BASE_URL: string;
+
+  private readonly logger = new Logger(AdafruitService.name);
+
+  private initialModeSet: boolean = false;
+  private static readonly AUTOMODE_FEED_KEY = 'automode';
 
   constructor(
     private prismaService: PrismaService,
@@ -17,6 +22,20 @@ export class AdafruitService {
     this.AIO_USERNAME = this.configService.get<string>('AIO_USERNAME') ?? 'leduy1204';
     this.AIO_KEY = this.configService.get<string>('AIO_KEY') ?? 'aio_geGY19NFH3nv6m1rAj3unlge1M1q';
     this.BASE_URL = `https://io.adafruit.com/api/v2/${this.AIO_USERNAME}`;
+  }
+
+  async onModuleInit() {
+    if (!this.initialModeSet) {
+      this.initialModeSet = true;
+      this.logger.log(`Attempting to set initial mode to MAN for ${AdafruitService.AUTOMODE_FEED_KEY} feed...`);
+      this.sendFeedData(AdafruitService.AUTOMODE_FEED_KEY, 'MAN')
+        .then(() => {
+          this.logger.log(`Successfully set initial mode to MAN for ${AdafruitService.AUTOMODE_FEED_KEY}.`);
+        })
+        .catch(error => {
+          this.logger.error(`Failed to set initial mode to MAN for ${AdafruitService.AUTOMODE_FEED_KEY}: ${error.message}. Flag already set, won't retry.`);
+        });
+    }
   }
   // Lấy dữ liệu từ một feed và chuyển đổi thời gian về Asia/Ho_Chi_Minh (UTC+7)
   async getFeedData(feedName: string): Promise<any> {
@@ -232,7 +251,14 @@ export class AdafruitService {
   }
 
   // Dừng toàn bộ polling khi module bị hủy
-  onModuleDestroy() {
+  async onModuleDestroy() {
+    this.logger.log(`Sending final 'AUTO' state to ${AdafruitService.AUTOMODE_FEED_KEY} before clean disconnect...`);
+      try {
+        await this.sendFeedData(AdafruitService.AUTOMODE_FEED_KEY, 'AUTO');
+        this.logger.log(`Successfully sent final 'AUTO' state.`);
+      } catch (error) {
+        this.logger.error(`Failed to send final 'AUTO' state during shutdown: ${error.message}`);
+      }
     this.pollingIntervals.forEach((interval, feedName) => {
       clearInterval(interval);
       console.log(`Stopped polling for feed '${feedName}' (module destroy).`);

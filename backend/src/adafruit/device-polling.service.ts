@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdafruitService } from './adafruit.service';
-import { Device, DeviceStatus, DeviceType, Severity } from '@prisma/client';
+import { DeviceStatus, DeviceType, Severity } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LOG_EVENT, LogEventPayload } from 'src/log/dto';
 import { NOTIFICATION_EVENT, NotificationEventPayload, NotificationEventContext } from "src/notification/dto";
@@ -25,6 +25,7 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
   private readonly ACTUATOR_POLL_INTERVAL = 60 * 1000;
   private readonly SENSOR_POLL_INTERVAL = 10 * 1000;
   private readonly CLEANUP_DELAY = 5 * 60 * 1000;
+  private readonly SEVEN_HOURS_IN_MS = 7 * 60 * 60 * 1000;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -240,8 +241,9 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
     this.moistureBuffer.set(deviceId, buffer);
 
     try {
+      const timestampUTC = new Date(timestamp.getTime() - this.SEVEN_HOURS_IN_MS);
       await this.prisma.moistureRecord.create({
-        data: { sensorId: deviceId, timestamp, soilMoisture: value },
+        data: { sensorId: deviceId, timestamp: timestampUTC, soilMoisture: value },
       });
       this.logger.debug(`✅ Dữ liệu Moisture của ${deviceId} (${deviceName}) đã lưu: ${value}%`);
 
@@ -314,8 +316,9 @@ export class DevicePollingService implements OnModuleInit, OnModuleDestroy {
     const humiData = this.humiBuffer.get(deviceId);
     if (tempData && humiData && tempData.timestamp.getTime() === humiData.timestamp.getTime()) {
       try {
+        const timestampUTC = new Date(tempData.timestamp.getTime() - this.SEVEN_HOURS_IN_MS);
         await this.prisma.dHT20Record.create({
-          data: { sensorId: deviceId, timestamp: tempData.timestamp, temperature: tempData.temperature, humidity: humiData.humidity },
+          data: { sensorId: deviceId, timestamp: timestampUTC, temperature: tempData.temperature, humidity: humiData.humidity },
         });
         this.logger.debug(`✅ Dữ liệu DHT20 của ${deviceId} (${deviceName}) đã lưu: T=${tempData.temperature}, H=${humiData.humidity}`);
       } catch (error) {
